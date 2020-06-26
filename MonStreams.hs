@@ -5,7 +5,9 @@
 -- Type of monadic streams
 -- f is not required to be a monad
 
-data MonStr f a = MCons (f (a , MonStr f a))
+data Str a = Cons a (Str a)
+
+data MonStr m a = MCons (m (a , MonStr m a))
 
 -- Example: Lazy lists - Maybe Monad
 ------------------------------------
@@ -59,10 +61,11 @@ t1 = node [(5,leaf),
 
 type Process a = MonStr IO a
 
-runProcess :: Process a -> IO ()
+runProcess :: Process a -> IO [a]
 runProcess (MCons s) = do
     (a,s') <- s
-    runProcess s'
+    as <- runProcess s'
+    return (a:as)
 
 -- A stream that adds up the inputs from the user
 -- Prints the partial sums
@@ -73,3 +76,15 @@ sumProc n = MCons $ do
   s <- getLine
   let n' = n + read s
   return (n, sumProc n')
+
+-- How to use the (infinite) return of a process
+--  stop when it is zero
+
+stopAtZero :: Process Int -> IO [Int]
+stopAtZero s = do
+  as <- runProcess s
+  let l = takeWhile (/=0) as 
+  return l
+
+-- But stopAtZero (sumProc 0) doesn't stop when the sum reaches 0
+--   s not lazily evaluated?
