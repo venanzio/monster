@@ -3,7 +3,7 @@
 
 import System.IO.Unsafe
 import Control.Concurrent
-import Control.Concurrent.Async
+-- import Control.Concurrent.Async
 
 -- Type of monadic streams
 -- f is not required to be a monad
@@ -108,7 +108,7 @@ stopAtZero' s = do
 
 -- Trying to find a way to make the output wait before the program is
 --  finished
-main :: IO ()
-main = do
-  ret <- concurrently (stopAtZero' $ sumProc 5) (return 1)
-  print (ret :: ([Int], Int))
+-- main :: IO ()
+-- main = do
+--   ret <- concurrently (stopAtZero' $ sumProc 5) (return 1)
+--   print (ret :: ([Int], Int))
