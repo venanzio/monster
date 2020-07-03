@@ -1,6 +1,9 @@
 -- Monadic Streams
 --   Venanzio Capretta, 2020
 
+import System.IO.Unsafe
+import Control.Concurrent
+import Control.Concurrent.Async
 
 -- Type of monadic streams
 -- f is not required to be a monad
@@ -67,12 +70,20 @@ runProcess (MCons s) = do
     as <- runProcess s'
     return (a:as)
 
+-- Runs the process using unsafeInterleaveIO - this allows each IO
+--  operation to be run at any time, allowing for lazy evaluation
+unsafeRunProcess :: Process a -> IO [a]
+unsafeRunProcess (MCons s) = do
+    (a,s') <- s
+    as <- unsafeInterleaveIO (unsafeRunProcess s')
+    return (a:as)
+
 -- A stream that adds up the inputs from the user
 -- Prints the partial sums
 
 sumProc :: Int -> Process Int
 sumProc n = MCons $ do
-  putStrLn ("sum so far: "++(show n))
+  putStrLn ("sum so far: " ++ (show n))
   s <- getLine
   let n' = n + read s
   return (n, sumProc n')
@@ -80,11 +91,24 @@ sumProc n = MCons $ do
 -- How to use the (infinite) return of a process
 --  stop when it is zero
 
+-- This stops after the next input from the user
 stopAtZero :: Process Int -> IO [Int]
-stopAtZero s = do
-  as <- runProcess s
-  let l = takeWhile (/=0) as 
-  return l
+stopAtZero (MCons s) = do
+     (n, s') <- s
+     ns <- (if (n == 0) then (pure []) else stopAtZero s')
+     return (n:ns)
+
+stopAtZero' :: Process Int -> IO [Int]
+stopAtZero' s = do
+     ns <- unsafeRunProcess s
+     return $! takeWhile (/= 0) ns
 
 -- But stopAtZero (sumProc 0) doesn't stop when the sum reaches 0
 --   s not lazily evaluated?
+
+-- Trying to find a way to make the output wait before the program is
+--  finished
+main :: IO ()
+main = do
+  ret <- concurrently (stopAtZero' $ sumProc 5) (return 1)
+  print (ret :: ([Int], Int))
