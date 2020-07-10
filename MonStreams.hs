@@ -1,6 +1,7 @@
 -- Monadic Streams
 --   Venanzio Capretta, 2020
 
+import Stream
 import Control.Monad.State
 import System.IO.Unsafe
 import Control.Concurrent
@@ -9,20 +10,10 @@ import Control.Concurrent.Async
 -- Type of monadic streams
 -- f is not required to be a monad
 
-data Str a = Cons a (Str a)
-
 data MonStr m a = MCons (m (a , MonStr m a))
-
--- Stream (Str) class instances and helper functions - should use Data.Stream since most of this has already been well implemented
---------------------------------------------------------
-
-infixr 5 <:>
-(<:>) :: a -> Str a -> Str a
-(<:>) = Cons
 
 -- MonStr class instances and helper functions
 ----------------------------------------------
--- TODO
 
 
 -- Example: Lazy lists - Maybe Monad
@@ -56,7 +47,7 @@ node l = MCons l
 
 -- Depth-first traversal
 dfLabels :: Tree a -> [a]
-dfLabels (MCons l) =  concat (map (\(a,l') -> a:dfLabels l') l)
+dfLabels (MCons l) =  concat (Prelude.map (\(a,l') -> a:dfLabels l') l)
 
 -- Breath-first traversal
 bfLabels :: Tree a -> [a]
@@ -64,7 +55,7 @@ bfLabels t = bfLabs [t]
 
 bfLabs :: [Tree a] -> [a]
 bfLabs [] = []
-bfLabs ((MCons l):ts) = map fst l ++ bfLabs (ts ++ map snd l)
+bfLabs ((MCons l):ts) = Prelude.map fst l ++ bfLabs (ts ++ Prelude.map snd l)
 
 
 t1 = node [(5, leaf),
@@ -114,7 +105,7 @@ stopAtZero (MCons s) = do
 stopAtZero' :: Process Int -> IO [Int]
 stopAtZero' s = do
      ns <- unsafeRunProcess s
-     return $! takeWhile (/= 0) ns
+     return $! Prelude.takeWhile (/= 0) ns
 
 -- But stopAtZero (sumProc 0) doesn't stop when the sum reaches 0
 --   s not lazily evaluated?
@@ -137,7 +128,7 @@ type StatefulStream s a = MonStr (State s) a
 --                                       let ((a, sts'), s') = runState sts s
 --                                       sts >>= collapseStateStream sts' s'
 
-runStr :: StatefulStream s a -> s -> Str a
+runStr :: StatefulStream s a -> s -> Stream a
 runStr (MCons sts) s = let ((a, sts'), s') = runState sts s
                        in a <:> (runStr sts' s')
                        
@@ -149,5 +140,5 @@ flipper = MCons (state (\n -> ((n, flipper), (n+1) `mod` 2)))
 fibGen :: StatefulStream (Int, Int) Int
 fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 
-fib :: Str Int
+fib :: Stream Int
 fib = runStr fibGen (0, 1)
