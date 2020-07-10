@@ -1,9 +1,10 @@
 -- Monadic Streams
 --   Venanzio Capretta, 2020
 
+import Control.Monad.State
 import System.IO.Unsafe
 import Control.Concurrent
--- import Control.Concurrent.Async
+import Control.Concurrent.Async
 
 -- Type of monadic streams
 -- f is not required to be a monad
@@ -11,6 +12,18 @@ import Control.Concurrent
 data Str a = Cons a (Str a)
 
 data MonStr m a = MCons (m (a , MonStr m a))
+
+-- Stream (Str) class instances and helper functions - should use Data.Stream since most of this has already been well implemented
+--------------------------------------------------------
+
+infixr 5 <:>
+(<:>) :: a -> Str a -> Str a
+(<:>) = Cons
+
+-- MonStr class instances and helper functions
+----------------------------------------------
+-- TODO
+
 
 -- Example: Lazy lists - Maybe Monad
 ------------------------------------
@@ -54,8 +67,8 @@ bfLabs [] = []
 bfLabs ((MCons l):ts) = map fst l ++ bfLabs (ts ++ map snd l)
 
 
-t1 = node [(5,leaf),
-           (3, node [(1,leaf)]),
+t1 = node [(5, leaf),
+           (3, node [(1, leaf)]),
            (2, node [])
           ]
 
@@ -112,3 +125,29 @@ stopAtZero' s = do
 -- main = do
 --   ret <- concurrently (stopAtZero' $ sumProc 5) (return 1)
 --   print (ret :: ([Int], Int))
+
+
+-- State Monad
+--------------
+
+type StatefulStream s a = MonStr (State s) a
+
+-- collapseStateStream :: StatefulStream s a -> State s a
+-- collapseStateStream (MCons sts) s = do
+--                                       let ((a, sts'), s') = runState sts s
+--                                       sts >>= collapseStateStream sts' s'
+
+runStr :: StatefulStream s a -> s -> Str a
+runStr (MCons sts) s = let ((a, sts'), s') = runState sts s
+                       in a <:> (runStr sts' s')
+                       
+-- generates a stream flipping between 1 and 0
+flipper :: StatefulStream Int Int
+flipper = MCons (state (\n -> ((n, flipper), (n+1) `mod` 2)))
+
+-- a stream that generates the fibonnacci numbers
+fibGen :: StatefulStream (Int, Int) Int
+fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
+
+fib :: Str Int
+fib = runStr fibGen (0, 1)
