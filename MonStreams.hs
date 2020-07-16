@@ -2,19 +2,15 @@
 --   Venanzio Capretta, 2020
 
 import Stream
+import MonadStream
 import Control.Monad.State
+import Control.Monad
 import System.IO.Unsafe
 import Control.Concurrent
 import Control.Concurrent.Async
 
 -- Type of monadic streams
 -- f is not required to be a monad
-
-data MonStr m a = MCons (m (a , MonStr m a))
-
--- MonStr class instances and helper functions
-----------------------------------------------
-
 
 -- Example: Lazy lists - Maybe Monad
 ------------------------------------
@@ -33,6 +29,8 @@ llist = foldr cons nil
 fromL :: LList a -> [a]
 fromL (MCons Nothing) = []
 fromL (MCons (Just (a,l))) = a : fromL l
+
+l1 = llist [1,2,3,4,5,6,7,8,9,10]
 
 -- Arbitrarily branching trees - List Monad
 -------------------------------------------
@@ -61,6 +59,11 @@ bfLabs ((MCons l):ts) = Prelude.map fst l ++ bfLabs (ts ++ Prelude.map snd l)
 t1 = node [(5, leaf),
            (3, node [(1, leaf)]),
            (2, node [])
+          ]
+          
+t2 = node [(5, leaf),
+           (3, node [(8, node [(11, leaf)])]),
+           (8, node [(11, leaf)])
           ]
 
 -- Interactive Processes -- IO Monad
@@ -130,7 +133,7 @@ type StatefulStream s a = MonStr (State s) a
 
 runStr :: StatefulStream s a -> s -> Stream a
 runStr (MCons sts) s = let ((a, sts'), s') = runState sts s
-                       in a <:> (runStr sts' s')
+                       in a Stream.<:> (runStr sts' s')
                        
 -- generates a stream flipping between 1 and 0
 flipper :: StatefulStream Int Int
