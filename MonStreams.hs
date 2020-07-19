@@ -11,8 +11,11 @@ import Control.Monad
 
 data MonStr m a = MCons (m (a , MonStr m a))
 
--- Terminology: "monster" means monadic stream, an element of: MonStr m a
---  m-monster means an monadic stream under the monad, an element of: m (MonStr m a)
+{-
+  Terminology: "monster" means monadic stream, an element of: MonStr m a
+  m-monster means an monadic stream under the monad,
+  an element of: m (MonStr m a)
+-}
 
 unwrapMS :: MonStr m a -> m (a, MonStr m a)
 unwrapMS (MCons m) = m
@@ -77,38 +80,30 @@ instance Applicative m => Applicative (MonStr m) where
 
   -- (<*>) :: MonStr m (a->b) -> MonStr m a -> MonStr m b
   fs <*> as = (headMS fs <*> headMS as) <::: (tailMS fs <<*>> tailMS as)
-    -- (headMS fs <*> headMS as) <:: (tailMS fs <*> tailMS as) 
 
 
 -- Operations for m Monad
 
-
-
-
 -- "lift" monadic actions from the elements to the stream
 liftMS :: Monad m => MonStr m (m a) -> m (MonStr m a)
-liftMS sm = do ma <- headMS sm
-               a  <- ma
+liftMS sm = do ma <- headMS sm 
                ms <- tailMS sm
-               s <- ms
-               return ma <: liftMS s
-{-
-  (\ma ms -> MCons ((,) <$> ma <*> ms))
-              <$> (headMS sm) <*> (fmap liftMS (tailMS sm))
--}
+               return (ma <::: liftMS ms)
+
+-- A "monster matrix" is a monster or monsters
+type MonMatrix m a = MonStr m (MonStr m a)
+
+-- "origin" of a monster matrix (first element of the first row)
+originMM :: Monad m => MonMatrix m a -> m a
+originMM mm = headMS mm >>= headMS
   
--- given a "stream matrix", take the submatrix down one step in the diagonal
-diagTail :: Monad m => MonStr m (MonStr m a) -> m (MonStr m (MonStr m a))
-diagTail ss = join $ fmap (liftMS . fmap tailMS) (tailMS ss)
+-- submatrix one step down the diagonal
+diagonalMM :: Monad m => MonMatrix m a -> m (MonMatrix m a)
+diagonalMM mm = tailMS mm >>= liftMS . fmap tailMS
 
-joinMS :: Monad m => MonStr m (MonStr m a) -> MonStr m a
-joinMS ss = join (fmap headMS (headMS ss)) <::: fmap joinMS (diagTail ss)
-
-{-
-
-  MCons $ (,) <$> join (fmap headMS (headMS ss))
-                        <*> fmap joinMS (diagTail ss)
--}
+-- Join operation for the MonStr monad - travels down the diagonal
+joinMS :: Monad m => MonMatrix m a -> MonStr m a
+joinMS mm = originMM mm <::: fmap joinMS (diagonalMM mm)
 
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
