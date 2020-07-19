@@ -18,7 +18,7 @@ headS :: Stream a -> a
 headS = runIdentity . headMS
 
 tailS :: Stream a -> Stream a
-tailS = runIdentity . tailMS
+tailS = runIdentity . tailMS  -- equivalent to tailMMS but simpler
 
 nats :: Stream Integer
 nats = fromNat 0
