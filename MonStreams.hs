@@ -80,22 +80,35 @@ instance Applicative m => Applicative (MonStr m) where
     -- (headMS fs <*> headMS as) <:: (tailMS fs <*> tailMS as) 
 
 
+-- Operations for m Monad
 
 
 
 
 -- "lift" monadic actions from the elements to the stream
 liftMS :: Monad m => MonStr m (m a) -> m (MonStr m a)
-liftMS sm = (\ma ms -> MCons ((,) <$> ma <*> ms))
+liftMS sm = do ma <- headMS sm
+               a  <- ma
+               ms <- tailMS sm
+               s <- ms
+               return ma <: liftMS s
+{-
+  (\ma ms -> MCons ((,) <$> ma <*> ms))
               <$> (headMS sm) <*> (fmap liftMS (tailMS sm))
-
+-}
+  
 -- given a "stream matrix", take the submatrix down one step in the diagonal
 diagTail :: Monad m => MonStr m (MonStr m a) -> m (MonStr m (MonStr m a))
 diagTail ss = join $ fmap (liftMS . fmap tailMS) (tailMS ss)
 
 joinMS :: Monad m => MonStr m (MonStr m a) -> MonStr m a
-joinMS ss = MCons $ (,) <$> join (fmap headMS (headMS ss))
+joinMS ss = join (fmap headMS (headMS ss)) <::: fmap joinMS (diagTail ss)
+
+{-
+
+  MCons $ (,) <$> join (fmap headMS (headMS ss))
                         <*> fmap joinMS (diagTail ss)
+-}
 
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
