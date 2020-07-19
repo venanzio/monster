@@ -1,5 +1,54 @@
--- Pure Streams Equations
---  Venanzio Capretta, 2020
+{-
+   Operations on Pure Streams, defined as Identity-monsters
+     Venanzio Capretta & Christopher Purdy, 2020
+
+   Reimplementation of the Stream library by Wouter Swiestra and Bas van Dijk
+-}
+
+
+module PureStreams where
+
+import MonStreams
+
+import Control.Monad.Identity
+
+type Stream = MonStr Identity
+
+headS :: Stream a -> a
+headS = runIdentity . headMS
+
+tailS :: Stream a -> Stream a
+tailS = runIdentity . tailMS
+
+nats :: Stream Integer
+nats = fromNat 0
+  where fromNat n = n <: fromNat (n+1)
+
+takeS :: Int -> Stream a -> [a]
+takeS n s
+  | n <= 0    = []
+  | otherwise = headS s : takeS (n-1) (tailS s) 
+
+dropS :: Int -> Stream a -> Stream a
+dropS n s
+  | n <= 0    = s
+  | otherwise = dropS (n-1) (tailS s) 
+
+
+
+
+
+
+
+
+
+
+
+{- The following is from "The Construction of Infinity"
+   It needs to be adapted to the implementation of pure streams
+      as Identity-monsters
+   It should be put in a separate file
+-}
 
 -- A language for pure streams and element terms in many stream arguments
 

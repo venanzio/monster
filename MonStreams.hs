@@ -1,5 +1,5 @@
 -- Monadic Streams
---   Venanzio Capretta, 2020
+--   Venanzio Capretta & Christopher Purdy, 2020
 
 module MonStreams where
 
@@ -14,7 +14,7 @@ data MonStr m a = MCons (m (a , MonStr m a))
 {-
   Terminology: "monster" means monadic stream, an element of: MonStr m a
   m-monster means an monadic stream under the monad,
-  an element of: m (MonStr m a)
+     an element of: m (MonStr m a)
 -}
 
 unwrapMS :: MonStr m a -> m (a, MonStr m a)
