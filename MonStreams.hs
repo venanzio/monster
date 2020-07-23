@@ -87,6 +87,10 @@ instance Applicative m => Applicative (MonStr m) where
 -- When m is a monad we can return a "pure tail"
 tailMMS :: Monad m => MonStr m a -> MonStr m a
 tailMMS = MCons . join . fmap unwrapMS . tailMS
+
+-- indexing operator when m is a monad
+(!!!) :: Monad m => MonStr m a -> Int -> m a
+s !!! n = headMS $ (iterate tailMMS s) !! n
         
 -- "lift" monadic actions from the elements to the stream
 liftMS :: Monad m => MonStr m (m a) -> m (MonStr m a)

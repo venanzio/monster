@@ -1,44 +1,41 @@
 {-
-   Systems of pure stream equations, implemented using Identity-monsters 
+   Systems of stream equations, generalised for any monadic stream MonStr m a (with m being a monad)
      Venanzio Capretta & Christopher Purdy, 2020
 -}
 
 import MonStreams
-import PureStreams
-
-{- The following is from "The Construction of Infinity"-}
--- A language for pure streams and element terms in many stream arguments
 
 data STerm = STArg Int | STTail STerm | STCons ETerm STerm | STRec Int [STerm]
 data ETerm = ETHead STerm
 
-{- A system of pure stream equations is given by a list of terms
-   (STRec k) refers to the k-th function in the system
--}
-
 -- Function Corresponding to a pure stream equation systems
--- Arguments are given as a list of streams
-funST :: [STerm] -> [[Stream a] -> Stream a]
+-- Arguments are given as a list of monadic streams
+funST :: (Monad m) => [STerm] -> [[MonStr m a] -> MonStr m a]
 funST terms = solveST terms (funST terms)
 
-solveST :: [STerm] -> [[Stream a] -> Stream a] -> [[Stream a] -> Stream a]
+solveST :: (Monad m) => [STerm] -> [[MonStr m a] -> MonStr m a] -> [[MonStr m a] -> MonStr m a]
 solveST terms funs = map funSTerm terms
   where funSTerm (STArg i) alpha = alpha !! i
-        funSTerm (STTail s) alpha = tailS (funSTerm s alpha)
-        funSTerm (STCons e s) alpha = (funETerm e alpha) <: (funSTerm s alpha)
+        funSTerm (STTail s) alpha = tailMMS (funSTerm s alpha)
+        funSTerm (STCons e s) alpha = (funETerm e alpha) <:: (funSTerm s alpha)
         funSTerm (STRec k ts) alpha = (funs !! k) (map (\t -> funSTerm t alpha) ts)
 
-        funETerm (ETHead s) alpha = headS (funSTerm s alpha)
+        funETerm (ETHead s) alpha = headMS (funSTerm s alpha)
 
 -- When we know exactly how many arguments a function has
 
-funST1 :: [STerm] -> Int -> Stream a -> Stream a
+funST1 :: (Monad m) => [STerm] -> Int -> MonStr m a -> MonStr m a
 funST1 terms k alpha = ((funST terms) !! k) [alpha]
 
-funST2 :: [STerm] -> Int -> Stream a -> Stream a -> Stream a
+funST2 :: (Monad m) => [STerm] -> Int -> MonStr m a -> MonStr m a -> MonStr m a
 funST2 terms k alpha1 alpha2 = ((funST terms) !! k) [alpha1,alpha2]
 
 -- Examples
+
+natsLess10 :: MonStr Maybe Integer
+natsLess10 = fromNat 0
+  where fromNat n | n < 10    = MCons $ Just (n, fromNat (n+1))
+                  | otherwise = MCons Nothing
 
 -- Evens and Odds
 --   evens s = head s : odd (tail s)
@@ -48,7 +45,10 @@ eoEq = [STCons (ETHead (STArg 0)) (STRec 1 [STTail (STArg 0)]),
         STRec 0 [STTail (STArg 0)]
        ]
 
+evens :: (Monad m) => MonStr m a -> MonStr m a
 evens = funST1 eoEq 0
+
+odds :: (Monad m) => MonStr m a -> MonStr m a
 odds = funST1 eoEq 1
 
 -- Interleave
@@ -56,4 +56,5 @@ odds = funST1 eoEq 1
 intrlvEq :: [STerm]
 intrlvEq = [STCons (ETHead (STArg 0)) (STRec 0 [STArg 1,STTail (STArg 0)])]
 
-intrlv = funST2 intrlvEq 0 
+intrlv :: (Monad m) => MonStr m a -> MonStr m a -> MonStr m a
+intrlv = funST2 intrlvEq 0

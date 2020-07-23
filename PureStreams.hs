@@ -35,7 +35,3 @@ dropS n s
 
 mapS :: (a -> b) -> Stream a -> Stream b
 mapS f s = fmap f s
-
-infix 5 !!!
-(!!!) :: Stream a -> Int -> a
-s !!! n = headS (dropS n s)
