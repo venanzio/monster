@@ -94,7 +94,7 @@ liftMS sm = do ma <- headMS sm
                ms <- tailMS sm
                return (ma <::: liftMS ms)
 
--- A "monster matrix" is a monster or monsters
+-- A "monster matrix" is a monster of monsters
 type MonMatrix m a = MonStr m (MonStr m a)
 
 -- "origin" of a monster matrix (first element of the first row)
