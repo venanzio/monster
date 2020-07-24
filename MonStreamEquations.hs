@@ -8,7 +8,7 @@ import MonStreams
 data STerm = STArg Int | STTail STerm | STCons ETerm STerm | STRec Int [STerm]
 data ETerm = ETHead STerm
 
--- Function Corresponding to a pure stream equation systems
+-- Function Corresponding to a monadic stream equation systems
 -- Arguments are given as a list of monadic streams
 funST :: (Monad m) => [STerm] -> [[MonStr m a] -> MonStr m a]
 funST terms = solveST terms (funST terms)
@@ -24,18 +24,22 @@ solveST terms funs = map funSTerm terms
 
 -- When we know exactly how many arguments a function has
 
+funSTN :: (Monad m) => [STerm] -> Int -> [MonStr m a]
+funSTN terms k alphas = ((funST terms) !! k) alphas
+
 funST1 :: (Monad m) => [STerm] -> Int -> MonStr m a -> MonStr m a
 funST1 terms k alpha = ((funST terms) !! k) [alpha]
 
 funST2 :: (Monad m) => [STerm] -> Int -> MonStr m a -> MonStr m a -> MonStr m a
-funST2 terms k alpha1 alpha2 = ((funST terms) !! k) [alpha1,alpha2]
+funST2 terms k alpha1 alpha2 = ((funST terms) !! k) [alpha1, alpha2]
 
--- Examples
+-- Examples ------------
 
+-- It is now possible to run the example functions on monadic streams (like this one below)
 natsLess10 :: MonStr Maybe Integer
-natsLess10 = fromNat 0
-  where fromNat n | n < 10    = MCons $ Just (n, fromNat (n+1))
-                  | otherwise = MCons Nothing
+natsLess10 = boundNat 0
+  where boundNat n | n < 10    = MCons $ Just (n, boundNat (n+1))
+                   | otherwise = MCons Nothing 
 
 -- Evens and Odds
 --   evens s = head s : odd (tail s)

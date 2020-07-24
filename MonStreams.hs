@@ -89,6 +89,7 @@ tailMMS :: Monad m => MonStr m a -> MonStr m a
 tailMMS = MCons . join . fmap unwrapMS . tailMS
 
 -- indexing operator when m is a monad
+infixl 9 !!!
 (!!!) :: Monad m => MonStr m a -> Int -> m a
 s !!! n = headMS $ (iterate tailMMS s) !! n
         
