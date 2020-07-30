@@ -30,3 +30,8 @@ instance Alternative m => Alternative (MonStr m) where
 infixr 5 +++
 (+++) :: Alternative m => MonStr m a -> MonStr m a -> MonStr m a
 s1 +++ s2 = (headMS s1 <::: ((+++) <$> tailMS s1 <*> pure s2)) <|> s2
+
+instance (Functor m, Foldable m) => Foldable (MonStr m) where
+  -- foldMap :: Monoid n => (a -> n) -> MonStr m a -> n
+  foldMap f s = foldMap f (headMS s) `mappend`
+                foldMap id (fmap (foldMap f) (tailMS s))
