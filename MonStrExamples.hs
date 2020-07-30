@@ -30,9 +30,7 @@ llist = foldr cons nil
 
 -- This is no longer necessary: use toList from Foldable
 fromL :: LList a -> [a]
-fromL (MCons Nothing) = []
-fromL (MCons (Just (a,l))) = a : fromL l
-
+fromL = toList
 
 -- Examples to test the correctness of the Monad instantiation:
 --   verify that joinMS takes the diagonal
@@ -56,8 +54,6 @@ xyLL = llist (fmap llist xys)
 
 -- fromL $ joinMS xyLL
 --   correctly gives the diagonal: (0,0),(1,1),(2,2),(3,3),..]
-
-
 
 
 -- Arbitrarily branching trees - List Monad
