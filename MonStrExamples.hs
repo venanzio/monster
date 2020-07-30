@@ -12,7 +12,7 @@ import Operations
 import Control.Monad.State
 import Data.Foldable
 import System.IO.Unsafe
-
+import Data.List
 
 -- Example: Lazy lists - Maybe Monad
 ------------------------------------
@@ -65,6 +65,14 @@ xyLL = llist (fmap llist xys)
 
 type Tree a = MonStr [] a
 
+showTree :: Show a => Tree a -> String
+showTree = stInd 0
+  where stInd n (MCons lt) =
+          concat $ map (("\n"++) . stIndPair n) lt
+        stIndPair n (a,t) = (blanks n) ++ show a ++
+                            stInd (n + length (show a)) t
+        blanks n = take n (repeat ' ')
+
 leaf :: Tree a
 leaf = MCons []
 
@@ -75,7 +83,7 @@ node l = MCons l
 dfLabels :: Tree a -> [a]
 dfLabels (MCons l) =  concat (Prelude.map (\(a,l') -> a:dfLabels l') l)
 
--- Breath-first traversal
+-- Breath-first traversal -- same as toList
 bfLabels :: Tree a -> [a]
 bfLabels t = bfLabs [t]
 

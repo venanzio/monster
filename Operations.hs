@@ -39,11 +39,12 @@ instance (Functor m, Foldable m) => Foldable (MonStr m) where
 
 
 
-inits :: Monad m => MonStr m a -> MonStr m [a]
-inits s = pure [] <::: consMMS (headMS s) (fmap inits (tailMS s))
+initsMS :: Monad m => MonStr m a -> MonStr m [a]
+initsMS s = (fmap (\a -> [a]) (headMS s)) <:::
+            (consMS <$> (headMS s) <*> (fmap initsMS (tailMS s)))
 
 consMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
 consMS a s = fmap (a:) s
 
-consMMS :: Applicative m => m a -> m (MonStr m [a]) -> m (MonStr m [a])
-consMMS ma ms = consMS <$> ma <*> ms
+inits :: Monad m => MonStr m a -> MonStr m [a]
+inits s = [] <: initsMS s
