@@ -31,7 +31,19 @@ infixr 5 +++
 (+++) :: Alternative m => MonStr m a -> MonStr m a -> MonStr m a
 s1 +++ s2 = (headMS s1 <::: ((+++) <$> tailMS s1 <*> pure s2)) <|> s2
 
+-- If m is foldable, so is (MonStr m)
 instance (Functor m, Foldable m) => Foldable (MonStr m) where
   -- foldMap :: Monoid n => (a -> n) -> MonStr m a -> n
   foldMap f s = foldMap f (headMS s) `mappend`
                 foldMap id (fmap (foldMap f) (tailMS s))
+
+
+
+inits :: Monad m => MonStr m a -> MonStr m [a]
+inits s = pure [] <::: consMMS (headMS s) (fmap inits (tailMS s))
+
+consMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
+consMS a s = fmap (a:) s
+
+consMMS :: Applicative m => m a -> m (MonStr m [a]) -> m (MonStr m [a])
+consMMS ma ms = consMS <$> ma <*> ms

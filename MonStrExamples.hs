@@ -10,6 +10,7 @@ import PureStreams
 import Operations
 
 import Control.Monad.State
+import Data.Foldable
 import System.IO.Unsafe
 
 
@@ -27,6 +28,7 @@ cons a l = MCons (Just (a,l))
 llist :: [a] -> LList a
 llist = foldr cons nil
 
+-- This is no longer necessary: use toList from Foldable
 fromL :: LList a -> [a]
 fromL (MCons Nothing) = []
 fromL (MCons (Just (a,l))) = a : fromL l
