@@ -37,14 +37,18 @@ instance (Functor m, Foldable m) => Foldable (MonStr m) where
   foldMap f s = foldMap f (headMS s) `mappend`
                 foldMap id (fmap (foldMap f) (tailMS s))
 
-
-initsMS :: Monad m => MonStr m a -> MonStr m [a]
-initsMS s = (fmap (\a -> [a]) (headMS s)) <:::
-            (consMS <$> (headMS s) <*> (fmap initsMS (tailMS s)))
-
 consMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
 consMS a s = fmap (a:) s
 
+initsMS :: Monad m => MonStr m a -> MonStr m [a]
+initsMS s = MCons initM
+  where mh = headMS s
+        mt = tailMS s
+        initM = do
+          (h,t) <- unwrapMS s
+          let tInit = initsMS t
+          return $ ([h],consMS h tInit)
+        
 inits :: Monad m => MonStr m a -> MonStr m [a]
 inits s = [] <: initsMS s
 

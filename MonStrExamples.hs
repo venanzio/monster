@@ -96,7 +96,8 @@ bfLabs ((MCons l):ts) = Prelude.map fst l ++ bfLabs (ts ++ Prelude.map snd l)
 
 t1 = node [(5, leaf),
            (9, node [(1, leaf)]),
-           (2, node [(4, leaf), (7,leaf)])
+           (2, node [(4, node [(3,leaf),(6,leaf)]),
+                     (7,leaf)])
           ]
 
 
