@@ -75,14 +75,14 @@ unconsMMS :: (Monad m, Foldable m) => MonStr m a -> Maybe (m a, MonStr m a)
 unconsMMS ms = if (null . unwrapMS $ ms) then Nothing else (Just (headMS ms, tailMMS ms))
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
--- will run cause the function to run indefinitely
+-- will cause the function to run indefinitely
 lastMMS :: (Monad m, Foldable m) => MonStr m a -> m a
 lastMMS ms = if isEnd tl then headMS ms else lastMMS tl
         where tl = tailMMS ms
               isEnd ms' = null . unwrapMS $ ms'
             
 -- /Beware/: passing a monadic stream not containing a 'null' element 
--- will run cause the function to run indefinitely  
+-- will cause the function to run indefinitely  
 initMMS :: (Monad m, Foldable m) => MonStr m a -> [m a]
 initMMS ms = if isEnd tl then [] else (headMS ms : initMMS tl)
         where tl = tailMMS ms
