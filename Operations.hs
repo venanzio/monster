@@ -42,9 +42,7 @@ consMS a s = fmap (a:) s
 
 initsMS :: Monad m => MonStr m a -> MonStr m [a]
 initsMS s = MCons initM
-  where mh = headMS s
-        mt = tailMS s
-        initM = do
+  where initM = do
           (h,t) <- unwrapMS s
           let tInit = initsMS t
           return $ ([h],consMS h tInit)
