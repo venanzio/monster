@@ -38,7 +38,6 @@ instance (Functor m, Foldable m) => Foldable (MonStr m) where
                 foldMap id (fmap (foldMap f) (tailMS s))
 
 
-
 initsMS :: Monad m => MonStr m a -> MonStr m [a]
 initsMS s = (fmap (\a -> [a]) (headMS s)) <:::
             (consMS <$> (headMS s) <*> (fmap initsMS (tailMS s)))
@@ -60,3 +59,19 @@ dropMS n ms
   | n == 0    = ms
   | n > 0     = dropMS (n - 1) (tailMMS ms)
   | otherwise = error "Operations.dropMS: negative argument."
+
+-- indexing operator when m is a monad
+infixl 9 !!!
+(!!!) :: Monad m => MonStr m a -> Int -> m a
+s !!! n = headMS $ (iterate tailMMS s) !! n
+
+unconsMMS :: (Monad m, Foldable m) => MonStr m a -> Maybe (m a, MonStr m a)
+unconsMMS ms = if (null . unwrapMS $ ms) then Nothing else (Just (headMS ms, tailMMS ms))
+
+lastMMS :: (Monad m, Foldable m) => MonStr m a -> m a
+lastMMS ms = if isEnd tl then headMS ms else lastMMS tl
+        where tl = tailMMS ms
+              isEnd ms' = null . unwrapMS $ ms'
+              
+
+

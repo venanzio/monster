@@ -32,6 +32,12 @@ llist = foldr cons nil
 fromL :: LList a -> [a]
 fromL = toList
 
+-- Example to test functions on
+natsLess10 :: MonStr Maybe Integer
+natsLess10 = boundNat 0
+  where boundNat n | n < 10    = MCons $ Just (n, boundNat (n+1))
+                   | otherwise = MCons Nothing 
+
 -- Examples to test the correctness of the Monad instantiation:
 --   verify that joinMS takes the diagonal
 
