@@ -42,7 +42,7 @@ natsLess10 = boundNat 0
                    | otherwise = MCons Nothing 
 
 -- Evens and Odds
---   evens s = head s : odd (tail s)
+--   evens s = head s : odds (tail s)
 --   odds s = evens (tail s)
 eoEq :: [STerm]
 eoEq = [STCons (ETHead (STArg 0)) (STRec 1 [STTail (STArg 0)]),

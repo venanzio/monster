@@ -50,13 +50,13 @@ inits :: Monad m => MonStr m a -> MonStr m [a]
 inits s = [] <: initsMS s
 
 takeMS :: Monad m => Int -> MonStr m a  -> [m a]
-takeMS n ~ms
+takeMS n ms
   | n == 0    = []
   | n > 0     =  headMS ms : (takeMS (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMS: negative argument."
   
 dropMS :: Monad m => Int -> MonStr m a -> MonStr m a
-dropMS n ~ms
+dropMS n ms
   | n == 0    = ms
   | n > 0     = dropMS (n - 1) (tailMMS ms)
   | otherwise = error "Operations.dropMS: negative argument."
