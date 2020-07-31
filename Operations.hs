@@ -48,16 +48,22 @@ consMS a s = fmap (a:) s
 inits :: Monad m => MonStr m a -> MonStr m [a]
 inits s = [] <: initsMS s
 
-takeMS :: Monad m => Int -> MonStr m a  -> [m a]
-takeMS n ms
+takeMMS :: Monad m => Int -> MonStr m a  -> [m a]
+takeMMS n ms
   | n == 0    = []
-  | n > 0     =  headMS ms : (takeMS (n - 1) (tailMMS ms))
+  | n > 0     =  headMS ms : (takeMMS (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMS: negative argument."
   
-dropMS :: Monad m => Int -> MonStr m a -> MonStr m a
-dropMS n ms
+-- takeMMS' :: Monad m => Int -> MonStr m a  -> m [a]
+-- takeMMS' n ms
+--   | n == 0    = []
+--   | n > 0     =  headMS ms : (takeMMS (n - 1) (tailMMS ms))
+--   | otherwise = error "Operations.takeMS: negative argument."
+  
+dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
+dropMMS n ms
   | n == 0    = ms
-  | n > 0     = dropMS (n - 1) (tailMMS ms)
+  | n > 0     = dropMMS (n - 1) (tailMMS ms)
   | otherwise = error "Operations.dropMS: negative argument."
 
 -- indexing operator when m is a monad
@@ -68,10 +74,16 @@ s !!! n = headMS $ (iterate tailMMS s) !! n
 unconsMMS :: (Monad m, Foldable m) => MonStr m a -> Maybe (m a, MonStr m a)
 unconsMMS ms = if (null . unwrapMS $ ms) then Nothing else (Just (headMS ms, tailMMS ms))
 
+-- /Beware/: passing a monadic stream not containing a 'null' element 
+-- will run cause the function to run indefinitely
 lastMMS :: (Monad m, Foldable m) => MonStr m a -> m a
 lastMMS ms = if isEnd tl then headMS ms else lastMMS tl
         where tl = tailMMS ms
               isEnd ms' = null . unwrapMS $ ms'
-              
-
-
+            
+-- /Beware/: passing a monadic stream not containing a 'null' element 
+-- will run cause the function to run indefinitely  
+initMMS :: (Monad m, Foldable m) => MonStr m a -> [m a]
+initMMS ms = if isEnd tl then [] else (headMS ms : initMMS tl)
+        where tl = tailMMS ms
+              isEnd ms' = null . unwrapMS $ ms'
