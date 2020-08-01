@@ -47,23 +47,28 @@ prefixesMMS s = MCons $ inms <$> (unwrapMS s)
 initsMMS :: Applicative m => MonStr m a -> MonStr m [a]
 initsMMS s = [] <: prefixesMMS s
 
-takeMMS :: Monad m => Int -> MonStr m a  -> [m a]
+takeMMS :: Monad m => Int -> MonStr m a -> [m a]
 takeMMS n ms
   | n == 0    = []
-  | n > 0     =  headMS ms : (takeMMS (n - 1) (tailMMS ms))
-  | otherwise = error "Operations.takeMS: negative argument."
+  | n > 0     = headMS ms : (takeMMS (n - 1) (tailMMS ms))
+  | otherwise = error "Operations.takeMMS: negative argument."
   
--- takeMMS' :: Monad m => Int -> MonStr m a  -> m [a]
--- takeMMS' n ms
---   | n == 0    = []
---   | n > 0     =  headMS ms : (takeMMS (n - 1) (tailMMS ms))
---   | otherwise = error "Operations.takeMS: negative argument."
+-- version of take where the returned list is inside the monad, rather 
+-- than a list of monadic actions
+takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
+takeMMS' n ms
+  | n == 0    = return []
+  | n > 0     = do a <- headMS ms
+                   (a:) <$> takeMMS' (n-1) (tailMMS ms)
+   
+   --(headMS ms) >>= (\ma -> ma >>= (\a -> fmap (a:) (takeMMS' (n-1) (tailMMS ms))))
+  | otherwise = error "Operations.takeMMS': negative argument."
   
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
 dropMMS n ms
   | n == 0    = ms
   | n > 0     = dropMMS (n - 1) (tailMMS ms)
-  | otherwise = error "Operations.dropMS: negative argument."
+  | otherwise = error "Operations.dropMMS: negative argument."
 
 -- indexing operator when m is a monad
 infixl 9 !!!
