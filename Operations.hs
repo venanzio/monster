@@ -73,6 +73,8 @@ infixl 9 !!!
 (!!!) :: Monad m => MonStr m a -> Int -> m a
 s !!! n = headMS $ (iterate tailMMS s) !! n
 
+-- /Beware/: passing a monadic stream not containing a 'null' element 
+-- will cause the function to run indefinitely
 unconsMMS :: (Monad m, Foldable m) => MonStr m a -> Maybe (m a, MonStr m a)
 unconsMMS ms = if (null . unwrapMS $ ms) then Nothing else (Just (headMS ms, tailMMS ms))
 
@@ -92,14 +94,24 @@ initMMS ms = if isEnd tl then [] else (headMS ms : initMMS tl)
               
 -- version of initMMS where the returned list is inside the monad  
 initMMS' :: (Monad m, Foldable m) => MonStr m a -> m [a]
-initMMS' ms = if isEnd tl 
-                 then 
-                    return [] 
-                 else 
-                    do a <- headMS ms
-                       (a:) <$> initMMS' tl
+initMMS' = sequence . initMMS
+              
+-- version of initMMS where the last element is removed from the given finite MonStr
+initMMS'' :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
+initMMS'' ms = if isEnd tl then tl else MCons (fmap (\(a, s) -> (a, initMMS'' s)) $ unwrapMS ms)
         where tl = tailMMS ms
               isEnd ms' = null . unwrapMS $ ms'
 
--- cycle :: [a] -> Stream a
--- cycle xs = foldr Cons (cycle xs) xs
+-- /Beware/: passing a monadic stream not containing a 'null' element 
+-- will cause the function to run indefinitely
+lengthMMS :: (Monad m, Foldable m) => MonStr m a -> Int
+lengthMMS = length
+
+-- Cycles the contents of the given list of monadic values inside a MonStr
+cycleMMS :: Functor m => [m a] -> MonStr m a
+cycleMMS mas = foldr (\ma s -> (ma <:: s)) (cycleMMS mas) (cycle mas)
+
+-- A version of cycleMMS which accepts m [a] instead of [m a]
+cycleMMS' :: Functor m => m [a] -> MonStr m a
+cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
+                where unseq ~mas' = fmap head mas' : unseq (fmap tail mas')
