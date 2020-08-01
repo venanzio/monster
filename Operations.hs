@@ -67,6 +67,13 @@ dropMMS n ms
   | n == 0    = ms
   | n > 0     = dropMMS (n - 1) (tailMMS ms)
   | otherwise = error "Operations.dropMMS: negative argument."
+  
+-- Splits the MonStr at the given index
+splitAtMMS :: Monad m => Int -> MonStr m a -> ([m a], MonStr m a)
+splitAtMMS n ms = (takeMMS n ms, dropMMS n ms)
+
+splitAtMMS' :: Monad m => Int -> MonStr m a -> (m [a], MonStr m a)
+splitAtMMS' n ms = (takeMMS' n ms, dropMMS n ms)
 
 -- indexing operator when m is a monad
 infixl 9 !!!
@@ -115,3 +122,10 @@ cycleMMS mas = foldr (\ma s -> (ma <:: s)) (cycleMMS mas) (cycle mas)
 cycleMMS' :: Functor m => m [a] -> MonStr m a
 cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
                 where unseq ~mas' = fmap head mas' : unseq (fmap tail mas')
+                
+-- Currently doesn't seem possible, may benefit from looking at Data.Predicate
+-- filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
+-- filterMMS p ms = do a <- headMS ms
+--                     if (p a) then (MCons $ return (a, filterMMS p tl))
+--                              else filterMMS p tl
+--                  where tl = tailMMS ms
