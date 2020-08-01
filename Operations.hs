@@ -60,8 +60,6 @@ takeMMS' n ms
   | n == 0    = return []
   | n > 0     = do a <- headMS ms
                    (a:) <$> takeMMS' (n-1) (tailMMS ms)
-   
-   --(headMS ms) >>= (\ma -> ma >>= (\a -> fmap (a:) (takeMMS' (n-1) (tailMMS ms))))
   | otherwise = error "Operations.takeMMS': negative argument."
   
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
