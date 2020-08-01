@@ -53,7 +53,7 @@ takeMMS n ms
   | n > 0     = headMS ms : (takeMMS (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMMS: negative argument."
   
--- version of take where the returned list is inside the monad, rather 
+-- version of takeMMS where the returned list is inside the monad, rather 
 -- than a list of monadic actions
 takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
 takeMMS' n ms
@@ -89,3 +89,17 @@ initMMS :: (Monad m, Foldable m) => MonStr m a -> [m a]
 initMMS ms = if isEnd tl then [] else (headMS ms : initMMS tl)
         where tl = tailMMS ms
               isEnd ms' = null . unwrapMS $ ms'
+              
+-- version of initMMS where the returned list is inside the monad  
+initMMS' :: (Monad m, Foldable m) => MonStr m a -> m [a]
+initMMS' ms = if isEnd tl 
+                 then 
+                    return [] 
+                 else 
+                    do a <- headMS ms
+                       (a:) <$> initMMS' tl
+        where tl = tailMMS ms
+              isEnd ms' = null . unwrapMS $ ms'
+
+-- cycle :: [a] -> Stream a
+-- cycle xs = foldr Cons (cycle xs) xs
