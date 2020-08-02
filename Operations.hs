@@ -44,8 +44,7 @@ consMMS a s = fmap (a:) s
 -- Accumulating the prefixes in each path of a monster:
 --  Every entry contains the list of its predecessors
 prefixesMMS :: Applicative m => MonStr m a -> MonStr m [a]
-prefixesMMS s = MCons $ inms <$> (unwrapMS s)
-  where inms (h,t) = ([h], consMMS h (prefixesMMS t))
+prefixesMMS = transformMS (\h t -> [h]) (\h t -> consMMS h (prefixesMMS t))
 
 -- Appending the empty list, to make it equivalente to inits in Data.List
 initsMMS :: Applicative m => MonStr m a -> MonStr m [a]
@@ -103,7 +102,7 @@ takeMMS'' n = sequence . (takeMMS n)
 pruneMMS :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
 pruneMMS n s
   | n == 0 = empty
-  | n > 0  = MCons $ fmap (\(h,t) -> (h,pruneMMS (n-1) t)) (unwrapMS s)
+  | n > 0  = transformMS (\h _ -> h) (\_ t -> pruneMMS (n-1) t) s
   | otherwise = error "Operations.pruneMMS: negative argument."
 
   
@@ -152,9 +151,9 @@ initMMS' = sequence . initMMS
               
 -- version of initMMS where the last element is removed from the given finite MonStr
 initMMS'' :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
-initMMS'' ms = if isEnd tl then tl else MCons (fmap (\(a, s) -> (a, initMMS'' s)) $ unwrapMS ms)
+initMMS'' ms = if null tl then tl
+                           else transformMS (\a _ -> a) (\_ s -> initMMS'' s) ms
         where tl = tailMMS ms
-              isEnd ms' = null . unwrapMS $ ms'
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely

@@ -20,6 +20,12 @@ data MonStr m a = MCons (m (a , MonStr m a))
 unwrapMS :: MonStr m a -> m (a, MonStr m a)
 unwrapMS (MCons m) = m
 
+-- Transform a monster by mapping head and tail to new head and tail
+transformMS :: Functor m => 
+               (a -> MonStr m a -> b) ->
+               (a -> MonStr m a -> MonStr m b) ->
+               MonStr m a -> MonStr m b
+transformMS fh ft s = MCons $ fmap (\(h,t) -> (fh h t, ft h t)) (unwrapMS s)
 
 {- Infix notation for monadic streams:
    We use (<:) for "pure cons": appending a pure element in front of a monster

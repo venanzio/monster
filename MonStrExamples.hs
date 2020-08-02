@@ -75,6 +75,9 @@ showTree = stInd 0
                             stInd (n + length (show a)) t
         blanks n = take n (repeat ' ')
 
+printTree :: Show a => Tree a -> IO ()
+printTree = putStrLn . showTree
+
 leaf :: Tree a
 leaf = MCons []
 
