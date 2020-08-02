@@ -62,9 +62,12 @@ initsMMS s = [] <: prefixesMMS s
 takeMS :: Monad m => Int -> MonStr m a -> m [a]
 takeMS n s
   | n == 0 = return []
-  | n > 0  = unwrapMS s >>= tms
+  | n > 0  = unwrapMS s >>= \(h,t) -> fmap (h:) (takeMS (n-1) t)
   | otherwise = error "Operations.takeMS: negative argument."
-  where tms (h,t) = fmap (h:) (takeMS (n-1) t)
+
+-- Simpler alternative: nth elements of the inits
+takeMS' :: Monad m => Int -> MonStr m a -> m [a]
+takeMS' n s = initsMMS s !!! n
 
 -- Extracting the list of the first n heads (each inside the monad)
 --  In case of trees: slices at depths less than n
