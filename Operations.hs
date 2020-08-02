@@ -83,7 +83,7 @@ takeMMS n ms
      extracting head and tail and then recombining means that the join
      operation generates all possible combinations
      while we want to a head to be combined only with its original tail
-   Lesson: always use uwrapMS to get head and tail out
+   Lesson: always use unwrapMS to get head and tail out
 -}
 
 -- version of takeMMS where the returned list is inside the monad, rather 
@@ -111,7 +111,7 @@ splitAtMMS :: Monad m => Int -> MonStr m a -> ([m a], MonStr m a)
 splitAtMMS n ms = (takeMMS n ms, dropMMS n ms)
 
 splitAtMMS' :: Monad m => Int -> MonStr m a -> (m [a], MonStr m a)
-splitAtMMS' n ms = (takeMMS' n ms, dropMMS n ms)
+splitAtMMS' n ms = (takeMS' n ms, dropMMS n ms)
 
 -- indexing operator when m is a monad
 infixl 9 !!!
