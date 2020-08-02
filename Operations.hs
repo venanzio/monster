@@ -141,7 +141,7 @@ zipMMS = zipWithMMS (,)
 
 zip3MMS :: Applicative m => MonStr m a -> MonStr m b -> MonStr m c -> MonStr m (a,b,c)
 zip3MMS = zipWith3MMS (,,)
-            
+
 -- Currently doesn't seem possible, may benefit from looking at Data.Predicate
 -- filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 -- filterMMS p ms = do a <- headMS ms
