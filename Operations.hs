@@ -98,7 +98,16 @@ takeMMS' n ms
 -- version of the above using sequence instead to make more compact
 takeMMS'' :: Monad m => Int -> MonStr m a -> m [a]
 takeMMS'' n = sequence . (takeMMS n)
+
+-- "Internal" version of take: pruning the stream at depth n
+pruneMMS :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
+pruneMMS n s
+  | n == 0 = empty
+  | n > 0  = MCons $ fmap (\(h,t) -> (h,pruneMMS (n-1) t)) (unwrapMS s)
+  | otherwise = error "Operations.pruneMMS: negative argument."
+
   
+
 
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
 dropMMS n ms
