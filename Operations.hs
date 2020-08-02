@@ -62,6 +62,10 @@ takeMMS' n ms
                    (a:) <$> takeMMS' (n-1) (tailMMS ms)
   | otherwise = error "Operations.takeMMS': negative argument."
   
+-- version of the above using sequence instead to make more compact
+takeMMS'' :: Monad m => Int -> MonStr m a -> m [a]
+takeMMS'' n = sequence . (takeMMS n)
+  
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
 dropMMS n ms
   | n == 0    = ms
