@@ -122,7 +122,22 @@ cycleMMS mas = foldr (\ma s -> (ma <:: s)) (cycleMMS mas) (cycle mas)
 cycleMMS' :: Functor m => m [a] -> MonStr m a
 cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
                 where unseq ~mas' = fmap head mas' : unseq (fmap tail mas')
-                
+
+-- Zips the two given monsters using the argument function
+zipWithMMS :: Applicative m => (a -> b -> c) -> MonStr m a -> MonStr m b -> MonStr m c
+zipWithMMS f (MCons ma) (MCons mb) = MCons $ liftA2 (\a b -> (f (fst a) (fst b), zipWithMMS f (snd a) (snd b))) ma mb
+
+zipWith3MMS :: Applicative m => (a -> b -> c -> d) -> MonStr m a -> MonStr m b -> MonStr m c -> MonStr m d
+zipWith3MMS f (MCons ma) (MCons mb) (MCons mc) = MCons $ (\a b c -> (f (fst a) (fst b) (fst c), zipWith3MMS f (snd a) (snd b) (snd c))) <$> ma <*> mb <*> mc
+
+-- Takes two monadic streams and returns a monster of pairs obtained
+-- by pairing elements at the same index in the argument monsters
+zipMMS :: Applicative m => MonStr m a -> MonStr m b -> MonStr m (a,b)
+zipMMS = zipWithMMS (,)
+
+zip3MMS :: Applicative m => MonStr m a -> MonStr m b -> MonStr m c -> MonStr m (a,b,c)
+zip3MMS = zipWith3MMS (,,)
+            
 -- Currently doesn't seem possible, may benefit from looking at Data.Predicate
 -- filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 -- filterMMS p ms = do a <- headMS ms
