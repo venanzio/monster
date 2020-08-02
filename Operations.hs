@@ -37,22 +37,55 @@ instance (Functor m, Foldable m) => Foldable (MonStr m) where
   foldMap f s = foldMap f (headMS s) `mappend`
                 foldMap id (fmap (foldMap f) (tailMS s))
 
+-- Appending an element in from of each entry in a monster of lists
 consMMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
 consMMS a s = fmap (a:) s
 
+-- Accumulating the prefixes in each path of a monster:
+--  Every entry contains the list of its predecessors
 prefixesMMS :: Applicative m => MonStr m a -> MonStr m [a]
 prefixesMMS s = MCons $ inms <$> (unwrapMS s)
   where inms (h,t) = ([h], consMMS h (prefixesMMS t))
-  
+
+-- Appending the empty list, to make it equivalente to inits in Data.List
 initsMMS :: Applicative m => MonStr m a -> MonStr m [a]
 initsMMS s = [] <: prefixesMMS s
 
+
+-- Version of "take": returns the list of the first n elements
+--  For trees, we expect to get:
+--    takeMS returns the list paths of depth n
+--    takeMMS returns the list of slices at depths less than n
+
+-- Returns the list of first n elements
+--  In case of trees: paths of length n (ignores shorter paths)
+takeMS :: Monad m => Int -> MonStr m a -> m [a]
+takeMS n s
+  | n == 0 = return []
+  | n > 0  = unwrapMS s >>= \(h,t) -> fmap (h:) (takeMS (n-1) t)
+  | otherwise = error "Operations.takeMS: negative argument."
+
+-- Simpler alternative: nth elements of the inits
+takeMS' :: Monad m => Int -> MonStr m a -> m [a]
+takeMS' n s = initsMMS s !!! n
+
+-- Extracting the list of the first n heads (each inside the monad)
+--  In case of trees: slices at depths less than n
 takeMMS :: Monad m => Int -> MonStr m a -> [m a]
 takeMMS n ms
   | n == 0    = []
   | n > 0     = headMS ms : (takeMMS (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMMS: negative argument."
-  
+
+
+{- Comment by Venanzio: takeMMS' and takeMMS'' give strange results on trees
+   Its a similar problem to the one we had for inits:
+     extracting head and tail and then recombining means that the join
+     operation generates all possible combinations
+     while we want to a head to be combined only with its original tail
+   Lesson: always use uwrapMS to get head and tail out
+-}
+
 -- version of takeMMS where the returned list is inside the monad, rather 
 -- than a list of monadic actions
 takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
@@ -66,6 +99,7 @@ takeMMS' n ms
 takeMMS'' :: Monad m => Int -> MonStr m a -> m [a]
 takeMMS'' n = sequence . (takeMMS n)
   
+
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
 dropMMS n ms
   | n == 0    = ms

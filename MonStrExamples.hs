@@ -100,6 +100,11 @@ t1 = node [(5, leaf),
                      (7,leaf)])
           ]
 
+-- Tree that always branches according to a given list
+--  Used for testing functions in Operations.hs
+treeBranchList :: [a] -> Tree a
+treeBranchList l = node $ map (\a -> (a,treeBranchList l)) l
+
 
 -- Interactive Processes -- IO Monad
 ------------------------------------
