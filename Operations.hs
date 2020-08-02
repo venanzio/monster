@@ -154,13 +154,6 @@ initMMS'' :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
 initMMS'' = mapOutMS $ \hd tl -> if null tl
                                    then tl
                                    else hd <: initMMS'' tl
-{-
-
-
-  if null tl then tl
-                           else transformMS (\a _ -> a) (\_ s -> initMMS'' s) ms
-        where tl = tailMMS ms
--}
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely
