@@ -20,13 +20,6 @@ data MonStr m a = MCons (m (a , MonStr m a))
 unwrapMS :: MonStr m a -> m (a, MonStr m a)
 unwrapMS (MCons m) = m
 
--- Transform a monster by mapping head and tail to new head and tail
-transformMS :: Functor m => 
-               (a -> MonStr m a -> b) ->
-               (a -> MonStr m a -> MonStr m b) ->
-               MonStr m a -> MonStr m b
-transformMS fh ft s = MCons $ fmap (\(h,t) -> (fh h t, ft h t)) (unwrapMS s)
-
 {- Infix notation for monadic streams:
    We use (<:) for "pure cons": appending a pure element in front of a monster
      (<:) :: a -> MonStr m a -> Monstr m a        -- only for m Applicative
@@ -47,6 +40,13 @@ headMS = fmap fst . unwrapMS
 
 tailMS :: Functor m => MonStr m a -> m (MonStr m a)
 tailMS = fmap snd . unwrapMS
+
+-- Transform a monster by mapping head and tail to new head and tail
+transformMS :: Functor m => 
+               (a -> MonStr m a -> b) ->
+               (a -> MonStr m a -> MonStr m b) ->
+               MonStr m a -> MonStr m b
+transformMS fh ft s = MCons $ fmap (\(h,t) -> (fh h t, ft h t)) (unwrapMS s)
 
 -- Appending an m-element in front of a stream
 infixr 5 <::
@@ -99,6 +99,14 @@ liftMS :: Monad m => MonStr m (m a) -> m (MonStr m a)
 liftMS sm = do ma <- headMS sm 
                ms <- tailMS sm
                return (ma <::: liftMS ms)
+
+-- Monsters can "absorb" a monadic action
+absorbMS :: Monad m => m (MonStr m a) -> MonStr m a
+absorbMS ms = MCons . join $ fmap unwrapMS ms
+
+-- Transform a monster by operating on "raw" head and tail
+mapOutMS :: Monad m => (a -> MonStr m a -> MonStr m a) -> MonStr m a -> MonStr m a
+mapOutMS f s = absorbMS $ fmap (uncurry f) (unwrapMS s)
 
 -- A "monster matrix" is a monster of monsters
 type MonMatrix m a = MonStr m (MonStr m a)
