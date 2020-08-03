@@ -105,8 +105,8 @@ absorbMS :: Monad m => m (MonStr m a) -> MonStr m a
 absorbMS ms = MCons . join $ fmap unwrapMS ms
 
 -- Transform a monster by operating on "raw" head and tail
-mapOutMS :: Monad m => (a -> MonStr m a -> MonStr m a) ->
-                       MonStr m a -> MonStr m a
+mapOutMS :: Monad m => (a -> MonStr m a -> MonStr m b) ->
+                       MonStr m a -> MonStr m b
 mapOutMS f s = absorbMS $ fmap (uncurry f) (unwrapMS s)
 
 -- A "monster matrix" is a monster of monsters

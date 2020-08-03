@@ -108,6 +108,8 @@ t1 = node [(5, leaf),
 treeBranchList :: [a] -> Tree a
 treeBranchList l = node $ map (\a -> (a,treeBranchList l)) l
 
+-- Test a couple of the operations with:
+--   printTree $ pruneMMS 3 $ prefixesMMS $ treeBranchList [0,1,2]
 
 -- Interactive Processes -- IO Monad
 ------------------------------------
