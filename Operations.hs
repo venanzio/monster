@@ -37,6 +37,11 @@ instance (Functor m, Foldable m) => Foldable (MonStr m) where
   foldMap f s = foldMap f (headMS s) `mappend`
                 foldMap id (fmap (foldMap f) (tailMS s))
 
+-- indexing operator when m is a monad
+infixl 9 !!!
+(!!!) :: Monad m => MonStr m a -> Int -> m a
+s !!! n = headMS $ (iterate tailMMS s) !! n
+
 -- Appending an element in from of each entry in a monster of lists
 consMMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
 consMMS a s = fmap (a:) s
@@ -105,8 +110,6 @@ pruneMMS n s
   | n > 0  = transformMS (\h _ -> h) (\_ t -> pruneMMS (n-1) t) s
   | otherwise = error "Operations.pruneMMS: negative argument."
 
-  
-
 
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
 dropMMS n ms
@@ -121,10 +124,8 @@ splitAtMMS n ms = (takeMMS n ms, dropMMS n ms)
 splitAtMMS' :: Monad m => Int -> MonStr m a -> (m [a], MonStr m a)
 splitAtMMS' n ms = (takeMS' n ms, dropMMS n ms)
 
--- indexing operator when m is a monad
-infixl 9 !!!
-(!!!) :: Monad m => MonStr m a -> Int -> m a
-s !!! n = headMS $ (iterate tailMMS s) !! n
+
+
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely
