@@ -71,12 +71,22 @@ xyLL = llist (fmap llist xys)
 type Tree a = MonStr [] a
 
 showTree :: Show a => Tree a -> String
+showTree = intercalate "\n" . stList
+  where -- stList :: Tree a -> [String]
+        stList t = concat $ map stPair (unwrapMS t)
+        -- stPair :: (a,Tree a) -> [String]
+        stPair (a,t) = (show a ++ " --") :
+                       map (prefix a ++) (stList t)
+        prefix a = take (length (show a) + 2) (repeat ' ') ++ "| "
+          
+{-
 showTree = stInd 0
   where stInd n (MCons lt) =
           concat $ map (("\n"++) . stIndPair n) lt
         stIndPair n (a,t) = (blanks n) ++ show a ++
                             stInd (n + length (show a)) t
         blanks n = take n (repeat ' ')
+-}
 
 printTree :: Show a => Tree a -> IO ()
 printTree = putStrLn . showTree
