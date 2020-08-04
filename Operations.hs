@@ -33,6 +33,7 @@ instance Alternative m => Alternative (MonStr m) where
   empty = MCons empty
 
   -- (<|>) :: MonStr m a -> MonStr m a -> MonStr m a
+  -- s1 <|> s2 = transformMS (\h t -> h) (\h t -> t <|> s2) s1 <|> s2
   (MCons m1) <|> (MCons m2) = MCons (m1 <|> m2)
 
 instance MonadPlus m => MonadPlus (MonStr m) where
@@ -40,7 +41,8 @@ instance MonadPlus m => MonadPlus (MonStr m) where
   mzero = MCons mzero
 
   -- mplus :: MonStr m a -> MonStr m a -> MonStr m a
-  mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
+  mplus s1 s2 = transformMS (\h t -> h) (\h t -> mplus t s2) s1 <|> s2
+  -- mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
 
 
 -- Appending two monsters: the second is grafted when there is an empty action

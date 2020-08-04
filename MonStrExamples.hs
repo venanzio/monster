@@ -9,6 +9,9 @@ import MonStreams
 import PureStreams
 import Operations
 
+import Control.Applicative
+import Control.Monad
+
 import Control.Monad.State
 import Data.Foldable
 import System.IO.Unsafe
@@ -101,6 +104,13 @@ t1 = node [(5, leaf),
            (9, node [(1, leaf)]),
            (2, node [(4, node [(3,leaf),(6,leaf)]),
                      (7,leaf)])
+          ]
+
+t2 = node [(10, node [(11,leaf)
+                     ,(12,node [(13,leaf)])
+                     ]
+           )
+          ,(20, leaf)
           ]
 
 -- Tree that always branches according to a given list
