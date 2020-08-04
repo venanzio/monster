@@ -80,9 +80,12 @@ infix 5 <<*>>
            m1 (m2 (a->b)) -> m1 (m2 a) -> m1 (m2 b)
 (<<*>>) = liftA2 (<*>)
 
+repeatMS :: Applicative m => a -> MonStr m a
+repeatMS a = a <: repeatMS a
+
 instance Applicative m => Applicative (MonStr m) where
   -- pure :: a -> MonStr m a
-  pure a = a <: pure a -- constant stream
+  pure = repeatMS -- constant stream
 
   -- (<*>) :: MonStr m (a->b) -> MonStr m a -> MonStr m b
   fs <*> as = (headMS fs <*> headMS as) <::: (tailMS fs <<*>> tailMS as)

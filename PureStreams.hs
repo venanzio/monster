@@ -19,7 +19,7 @@ headS = runIdentity . headMS
 tailS :: Stream a -> Stream a
 tailS = runIdentity . tailMS  -- equivalent to tailMMS but simpler
 
-nats :: Stream Integer
+nats :: Applicative m => MonStr m Integer
 nats = fromNat 0
   where fromNat n = n <: fromNat (n+1)
 
