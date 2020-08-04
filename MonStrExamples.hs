@@ -72,12 +72,34 @@ type Tree a = MonStr [] a
 
 showTree :: Show a => Tree a -> String
 showTree = intercalate "\n" . stList
+{-
+           intercalate "\n" . stList
   where -- stList :: Tree a -> [String]
-        stList t = concat $ map stPair (unwrapMS t)
-        -- stPair :: (a,Tree a) -> [String]
-        stPair (a,t) = (show a ++ " --") :
+        stList t = stPairList (unwrapMS t)
+        -- stPair :: Char -> (a,Tree a) -> [String]
+        stPair c (a,t) = (c:show a ++ " <:") :
                        map (prefix a ++) (stList t)
         prefix a = take (length (show a) + 2) (repeat ' ') ++ "| "
+        -- stPairList :: [(a,Tree a)] -> [String]
+        stPairList [] = ["leaf"]
+        stPairList (l:ls) = stPair '[' l : map (stPair ',') ls ++ ["]"] 
+-}
+
+strListPrefixes :: String -> String -> [String] -> [String]
+strListPrefixes s0 snext [] = []
+strListPrefixes s0 snext (s:ls) = (s0++s) : map (snext++) ls
+
+stPair :: Show a => String -> (a,Tree a) -> [String]
+stPair pre (a,t) = let prefix = pre ++ show a ++ " <: "
+                       blanks = replicate (length prefix) ' ' 
+                   in strListPrefixes prefix blanks (stList t)
+
+stPairList :: Show a => [(a,Tree a)] -> [String]
+stPairList [] = ["leaf"]
+stPairList (p:ps) = stPair "branch [ " p ++ concat (map (stPair "       , ") ps) ++ ["       ]"]
+
+stList :: Show a => Tree a -> [String]
+stList = stPairList . unwrapMS
 
 printTree :: Show a => Tree a -> IO ()
 printTree = putStrLn . showTree
@@ -87,6 +109,9 @@ leaf = MCons []
 
 node :: [(a,Tree a)] -> Tree a
 node l = MCons l
+
+branch :: [Tree a] -> Tree a
+branch = foldl (<|>) empty
 
 -- Depth-first traversal
 dfLabels :: Tree a -> [a]

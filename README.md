@@ -1,15 +1,15 @@
 # Monster
 
-*Monster* is a Haskell library on Monadic Streams
+**Monster** is a Haskell library on Monadic Streams
 
 A *pure stream* is an infinite sequence of values, for example
 ```haskell
   nats = 0 <: 1 <: 2 <: 3 <: 4 <: ...
 ```
-The type of pure streams with elements of type a is denoted by *(Stream a)*.
-The cons operation *(<:)* is used to append an element in front
+The type of pure streams with elements of type `a` is denoted by `(Stream a)`.
+The cons operation `(<:)` is used to append an element in front
 of an existing stream.
-Stream are infinite, so we must use recursion to define them.
+Streams are infinite, so we must use recursion to define them.
 For example, the stream of ones is defined as
 ```haskell
   ones = 1 <: ones
@@ -21,7 +21,7 @@ The list of natural numbers can be defined as
 ```
   
 A *monadic stream* (which we call a *monster* for short)
-is a sequence of values in which every constructor (<:)
+is a sequence of values in which every constructor `(<:)`
 is guarded by a monadic action: 
 to obtain the head (first element) and tail (continuation) of the stream,
 we must execute the monadic action.
@@ -34,7 +34,28 @@ In addition we can define finite sequences:
 ```haskell
   1 <: 2 <: 3 <: empty
 ```
-where `empty` is the Maybe-monster given by the Nothing action.
+where `empty` is the Maybe-monster given by the `Nothing` action.
+
+Another example is *List-monsters*, where the monadic action is a list:
+An element consists in a list of heads and tails:
+There may be many (zero or more) branches, each with its own head and tail.
+So list-monsters are actually finitely branching trees:
+```haskell
+branch [ 5 <: leaf
+       , 9 <: branch [ 1 <: leaf
+                     ]
+       , 2 <: branch [ 4 <: branch [ 3 <: leaf
+                                   , 6 <: leaf
+                                   ]
+                     , 7 <: leaf
+                     ]
+       ]
+```
+`leaf` is the tree with no branches (`leaf = branch []`).
+The example is a tree with three branches, with heads 5, 9, 2, respectively.
+Each branch has its own tail.
+This example is a finite tree, but branches are allowed to be infinite.
+
 
 # Outline of Modules
 
