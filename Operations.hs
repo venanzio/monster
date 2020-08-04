@@ -19,6 +19,14 @@ import MonStreams
 import Control.Applicative
 import Control.Monad
 
+-- If m is foldable, so is (MonStr m)
+--  The monster is folded in a breath-first way
+instance (Functor m, Foldable m) => Foldable (MonStr m) where
+  -- foldMap :: Monoid n => (a -> n) -> MonStr m a -> n
+  foldMap f s = foldMap f (headMS s) `mappend`
+                foldMap id (fmap (foldMap f) (tailMS s))
+
+
 {- Instances of Alternative and MonadPlus: <|> and mplus are applied at top level.
    Results may be different than expected for instantiations that are
    equivalent to type with their own alternative:
@@ -37,12 +45,27 @@ instance Alternative m => Alternative (MonStr m) where
   (MCons m1) <|> (MCons m2) = MCons (m1 <|> m2)
 
 instance MonadPlus m => MonadPlus (MonStr m) where
+  -- no instantiation needed for mzero and mplus:
+  --  the same as empty and <|>
+
+{- Alternative version that graft the second stream on the zero elements
+   But it also adds it at the end of the head:
+   Expected result on (MonStr Maybe), but extra trees on (MonStr [])
+
   -- mzero :: MonStr m a
   mzero = MCons mzero
 
   -- mplus :: MonStr m a -> MonStr m a -> MonStr m a
   mplus s1 s2 = transformMS (\h t -> h) (\h t -> mplus t s2) s1 <|> s2
   -- mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
+-}
+
+-- If m is Foldable, we could define alternative by grafting
+graftMS :: (Functor m, Foldable m) => MonStr m a -> MonStr m a -> MonStr m a
+graftMS s1 s2 = if null s1 then s2
+                           else transformMS (\h t -> h)
+                                            (\h t -> graftMS t s2)
+                                            s1
 
 
 -- Appending two monsters: the second is grafted when there is an empty action
@@ -50,11 +73,6 @@ infixr 5 +++
 (+++) :: Alternative m => MonStr m a -> MonStr m a -> MonStr m a
 s1 +++ s2 = (headMS s1 <::: ((+++) <$> tailMS s1 <*> pure s2)) <|> s2
 
--- If m is foldable, so is (MonStr m)
-instance (Functor m, Foldable m) => Foldable (MonStr m) where
-  -- foldMap :: Monoid n => (a -> n) -> MonStr m a -> n
-  foldMap f s = foldMap f (headMS s) `mappend`
-                foldMap id (fmap (foldMap f) (tailMS s))
 
 -- indexing operator when m is a monad
 infixl 9 !!!
