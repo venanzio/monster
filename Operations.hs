@@ -17,6 +17,16 @@ module Operations where
 import MonStreams
 
 import Control.Applicative
+import Control.Monad
+
+{- Instances of Alternative and MonadPlus: <|> and mplus are applied at top level.
+   Results may be different than expected for instantiations that are
+   equivalent to type with their own alternative:
+   (MonStr Maybe) is equivalent to list, but <|> and `mplus` return
+   the first list (if non-empty), not the concatenation.
+
+   We mainly use empty and mzero to characterize finite monsters.
+-}
 
 instance Alternative m => Alternative (MonStr m) where
   -- empty :: MonStr m a
@@ -24,7 +34,14 @@ instance Alternative m => Alternative (MonStr m) where
 
   -- (<|>) :: MonStr m a -> MonStr m a -> MonStr m a
   (MCons m1) <|> (MCons m2) = MCons (m1 <|> m2)
-  
+
+instance MonadPlus m => MonadPlus (MonStr m) where
+  -- mzero :: MonStr m a
+  mzero = MCons mzero
+
+  -- mplus :: MonStr m a -> MonStr m a -> MonStr m a
+  mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
+
 
 -- Appending two monsters: the second is grafted when there is an empty action
 infixr 5 +++
