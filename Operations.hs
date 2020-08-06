@@ -195,8 +195,28 @@ initMMS'' = mapOutMS $ \hd tl -> if null tl
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely
-lengthMMS :: (Monad m, Foldable m) => MonStr m a -> Int
+--  It gives the total numbers of elements in the monster
+lengthMMS :: (Functor m, Foldable m) => MonStr m a -> Int
 lengthMMS = length
+
+-- Length of longest path
+--  diverges if there is an infinite path
+depthMMS :: (Monad m, Foldable m) => MonStr m a -> Int
+depthMMS =  maximumInt . fmap (\(h,t) -> depthMMS t + 1) . unwrapMS
+  where maximumInt t
+          | null t = 0
+          | otherwise = maximum t
+
+
+
+
+
+
+
+
+
+
+
 
 -- Cycles the contents of the given list of monadic values inside a MonStr
 cycleMMS :: Functor m => [m a] -> MonStr m a
