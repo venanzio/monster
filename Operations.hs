@@ -245,6 +245,7 @@ zip3MMS = zipWith3MMS (,,)
 
 -- Filtering the elements satisfying a predicate
 --  when an element doesn't satisfy it, its children are "moved up"
+--  if m is MonadPlus, there's also mfilter, but doesn't work properly on trees
 filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
                                        else filterMMS p s)

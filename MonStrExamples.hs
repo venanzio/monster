@@ -175,7 +175,7 @@ sumProc n = MCons $ do
   putStrLn ("sum so far: " ++ (show n))
   s <- getLine
   let n' = n + read s
-  return (n, sumProc n')
+  return (n', sumProc n')
 
 -- How to use the (infinite) return of a process
 --  stop when it is zero
