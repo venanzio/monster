@@ -181,8 +181,7 @@ lastMMS ms = if isEnd tl then headMS ms else lastMMS tl
         where tl = tailMMS ms
               isEnd ms' = null . unwrapMS $ ms'
             
--- /Beware/: passing a monadic stream not containing a 'null' element 
--- will cause the function to run indefinitely  
+-- /Beware/: if the monster has an infinite path the function will diverge
 initMMS :: (Monad m, Foldable m) => MonStr m a -> [m a]
 initMMS ms = if isEnd tl then [] else (headMS ms : initMMS tl)
         where tl = tailMMS ms
@@ -227,8 +226,11 @@ cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
                 where unseq ~mas' = fmap head mas' : unseq (fmap tail mas')
 
 -- Zips the two given monsters using the argument function
+--  this should be equal to liftA2: but liftA2 gives strange results on trees
+--  maybe the instance of Applicative is incorrect?
 zipWithMMS :: Applicative m => (a -> b -> c) -> MonStr m a -> MonStr m b -> MonStr m c
 zipWithMMS f (MCons ma) (MCons mb) = MCons $ liftA2 (\a b -> (f (fst a) (fst b), zipWithMMS f (snd a) (snd b))) ma mb
+
 
 zipWith3MMS :: Applicative m => (a -> b -> c -> d) -> MonStr m a -> MonStr m b -> MonStr m c -> MonStr m d
 zipWith3MMS f (MCons ma) (MCons mb) (MCons mc) = MCons $ (\a b c -> (f (fst a) (fst b) (fst c), zipWith3MMS f (snd a) (snd b) (snd c))) <$> ma <*> mb <*> mc
@@ -241,9 +243,8 @@ zipMMS = zipWithMMS (,)
 zip3MMS :: Applicative m => MonStr m a -> MonStr m b -> MonStr m c -> MonStr m (a,b,c)
 zip3MMS = zipWith3MMS (,,)
 
--- Currently doesn't seem possible, may benefit from looking at Data.Predicate
--- filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
--- filterMMS p ms = do a <- headMS ms
---                     if (p a) then (MCons $ return (a, filterMMS p tl))
---                              else filterMMS p tl
---                  where tl = tailMMS ms
+-- Filtering the elements satisfying a predicate
+--  when an element doesn't satisfy it, its children are "moved up"
+filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
+filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
+                                       else filterMMS p s)
