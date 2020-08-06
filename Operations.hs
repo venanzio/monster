@@ -151,7 +151,6 @@ pruneMMS n s
   | n > 0  = transformMS (\h _ -> h) (\_ t -> pruneMMS (n-1) t) s
   | otherwise = error "Operations.pruneMMS: negative argument."
 
-
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a
 dropMMS n ms
   | n == 0    = ms
@@ -165,7 +164,9 @@ splitAtMMS n ms = (takeMMS n ms, dropMMS n ms)
 splitAtMMS' :: Monad m => Int -> MonStr m a -> (m [a], MonStr m a)
 splitAtMMS' n ms = (takeMS' n ms, dropMMS n ms)
 
-
+-- "Internal" split
+splitAtMS :: MonadPlus m => Int -> MonStr m a -> (MonStr m a, MonStr m a)
+splitAtMS n s = (pruneMMS n s, dropMMS n s)
 
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
@@ -212,21 +213,9 @@ depthMMS =  maximumInt . fmap (\(h,t) -> depthMMS t + 1) . unwrapMS
           | otherwise = maximum t
 
 
+-- injects an infinite repetition of a list into a monster
 cycleMS :: Applicative m => [a] -> MonStr m a
 cycleMS as = foldr (<:) (cycleMS as) as
-
-
-
-
-  
-
-
-
-
-
-
-
-
 
 -- Cycles the contents of the given list of monadic values inside a MonStr
 cycleMMS :: Functor m => [m a] -> MonStr m a
