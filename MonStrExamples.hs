@@ -36,6 +36,7 @@ fromL :: LList a -> [a]
 fromL = toList
 
 -- Example to test functions on
+--   Venanzio comment: this can be done by (llist [1..9])
 natsLess10 :: MonStr Maybe Integer
 natsLess10 = boundNat 0
   where boundNat n | n < 10    = MCons $ Just (n, boundNat (n+1))

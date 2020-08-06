@@ -60,12 +60,16 @@ instance MonadPlus m => MonadPlus (MonStr m) where
   -- mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
 -}
 
+
 -- If m is Foldable, we could define alternative by grafting
 graftMS :: (Functor m, Foldable m) => MonStr m a -> MonStr m a -> MonStr m a
 graftMS s1 s2 = if null s1 then s2
                            else transformMS (\h t -> h)
                                             (\h t -> graftMS t s2)
                                             s1
+
+toMonStr :: (Foldable t, Applicative m, Alternative m) => t a -> MonStr m a
+toMonStr = foldr (<:) empty
 
 
 -- Appending two monsters: the second is grafted when there is an empty action
@@ -201,14 +205,20 @@ lengthMMS = length
 
 -- Length of longest path
 --  diverges if there is an infinite path
-depthMMS :: (Monad m, Foldable m) => MonStr m a -> Int
+depthMMS :: (Functor m, Foldable m) => MonStr m a -> Int
 depthMMS =  maximumInt . fmap (\(h,t) -> depthMMS t + 1) . unwrapMS
   where maximumInt t
           | null t = 0
           | otherwise = maximum t
 
 
+cycleMS :: Applicative m => [a] -> MonStr m a
+cycleMS as = foldr (<:) (cycleMS as) as
 
+
+
+
+  
 
 
 
