@@ -41,7 +41,7 @@ instance Alternative m => Alternative (MonStr m) where
   empty = MCons empty
 
   -- (<|>) :: MonStr m a -> MonStr m a -> MonStr m a
-  -- s1 <|> s2 = transformMS (\h t -> h) (\h t -> t <|> s2) s1 <|> s2
+  -- s1 <|> s2 = transformMS (\h t -> (h, t <|> s2)) s1 <|> s2
   (MCons m1) <|> (MCons m2) = MCons (m1 <|> m2)
 
 instance MonadPlus m => MonadPlus (MonStr m) where
@@ -56,7 +56,7 @@ instance MonadPlus m => MonadPlus (MonStr m) where
   mzero = MCons mzero
 
   -- mplus :: MonStr m a -> MonStr m a -> MonStr m a
-  mplus s1 s2 = transformMS (\h t -> h) (\h t -> mplus t s2) s1 <|> s2
+  mplus s1 s2 = transformMS (\h t -> (h, mplus t s2)) s1 <|> s2
   -- mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
 -}
 
@@ -64,9 +64,7 @@ instance MonadPlus m => MonadPlus (MonStr m) where
 -- If m is Foldable, we could define alternative by grafting
 graftMS :: (Functor m, Foldable m) => MonStr m a -> MonStr m a -> MonStr m a
 graftMS s1 s2 = if null s1 then s2
-                           else transformMS (\h t -> h)
-                                            (\h t -> graftMS t s2)
-                                            s1
+                           else transformMS (\h t -> (h, graftMS t s2)) s1
 
 toMonStr :: (Foldable t, Applicative m, Alternative m) => t a -> MonStr m a
 toMonStr = foldr (<:) empty
@@ -90,7 +88,7 @@ consMMS a s = fmap (a:) s
 -- Accumulating the prefixes in each path of a monster:
 --  Every entry contains the list of its predecessors
 prefixesMMS :: Applicative m => MonStr m a -> MonStr m [a]
-prefixesMMS = transformMS (\h t -> [h]) (\h t -> consMMS h (prefixesMMS t))
+prefixesMMS = transformMS (\h t -> ([h], consMMS h (prefixesMMS t)))
 
 -- Appending the empty list, to make it equivalente to inits in Data.List
 initsMMS :: Applicative m => MonStr m a -> MonStr m [a]
@@ -148,7 +146,7 @@ takeMMS'' n = sequence . (takeMMS n)
 pruneMMS :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
 pruneMMS n s
   | n == 0 = empty
-  | n > 0  = transformMS (\h _ -> h) (\_ t -> pruneMMS (n-1) t) s
+  | n > 0  = transformMS (\h t -> (h, pruneMMS (n-1) t)) s
   | otherwise = error "Operations.pruneMMS: negative argument."
 
 dropMMS :: Monad m => Int -> MonStr m a -> MonStr m a

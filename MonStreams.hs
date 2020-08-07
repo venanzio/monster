@@ -43,10 +43,9 @@ tailMS = fmap snd . unwrapMS
 
 -- Transform a monster by mapping head and tail to new head and tail
 transformMS :: Functor m => 
-               (a -> MonStr m a -> b) ->
-               (a -> MonStr m a -> MonStr m b) ->
+               (a -> MonStr m a -> (b,MonStr m b)) ->
                MonStr m a -> MonStr m b
-transformMS fh ft s = MCons $ fmap (\(h,t) -> (fh h t, ft h t)) (unwrapMS s)
+transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
 
 -- Appending an m-element in front of a stream
 infixr 5 <::
@@ -55,7 +54,7 @@ ma <:: s = MCons (fmap (\a -> (a,s)) ma)
 
 instance Functor m => Functor (MonStr m) where
   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
-  fmap f = transformMS (\a s -> f a) (\a s -> fmap f s)
+  fmap f = transformMS (\a s -> (f a, fmap f s))
  
 
 -- Operations for m Applicative
