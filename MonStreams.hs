@@ -83,13 +83,23 @@ infix 5 <<*>>
 repeatMS :: Applicative m => a -> MonStr m a
 repeatMS a = a <: repeatMS a
 
+transfAppMS :: Applicative m =>
+               (a -> MonStr m a -> b -> MonStr m b -> (c,MonStr m c)) ->
+               MonStr m a -> MonStr m b -> MonStr m c
+transfAppMS f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
+                              <$> unwrapMS as <*> unwrapMS bs
+
 instance Applicative m => Applicative (MonStr m) where
   -- pure :: a -> MonStr m a
   pure = repeatMS -- constant stream
 
   -- (<*>) :: MonStr m (a->b) -> MonStr m a -> MonStr m b
-  fs <*> as =MCons $ (\(f,fs) (a,as) -> (f a, fs<*>as)) <$> (unwrapMS fs) <*> (unwrapMS as)
+  (<*>) = transfAppMS (\f fs a as -> (f a, fs <*> as))
 
+{-    MCons $ (\(f,fs) (a,as) -> (f a, fs<*>as))
+                      <$> (unwrapMS fs) <*> (unwrapMS as)
+-}
+    
     -- (headMS fs <*> headMS as) <::: (tailMS fs <<*>> tailMS as)
 {- THIS DEFINITION is incorrect: doesn't satisfy the Applicative laws
    For example:
