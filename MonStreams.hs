@@ -89,6 +89,17 @@ instance Applicative m => Applicative (MonStr m) where
 
   -- (<*>) :: MonStr m (a->b) -> MonStr m a -> MonStr m b
   fs <*> as = (headMS fs <*> headMS as) <::: (tailMS fs <<*>> tailMS as)
+{- THIS DEFINITION is incorrect: doesn't satisfy the Applicative laws
+   For example:
+   > printTree $ pure id <*> branch [1<:leaf,2<:leaf]
+   branch [ 1 <: leaf
+          , 1 <: leaf
+          , 2 <: leaf
+          , 2 <: leaf
+          ]
+  This happens because we are "detaching" heads and tail and then recursing.
+  We should instead "go down the diagonal" as for Monad below.
+-}
 
 
 -- Operations for m Monad
