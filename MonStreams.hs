@@ -88,7 +88,9 @@ instance Applicative m => Applicative (MonStr m) where
   pure = repeatMS -- constant stream
 
   -- (<*>) :: MonStr m (a->b) -> MonStr m a -> MonStr m b
-  fs <*> as = (headMS fs <*> headMS as) <::: (tailMS fs <<*>> tailMS as)
+  fs <*> as =MCons $ (\(f,fs) (a,as) -> (f a, fs<*>as)) <$> (unwrapMS fs) <*> (unwrapMS as)
+
+    -- (headMS fs <*> headMS as) <::: (tailMS fs <<*>> tailMS as)
 {- THIS DEFINITION is incorrect: doesn't satisfy the Applicative laws
    For example:
    > printTree $ pure id <*> branch [1<:leaf,2<:leaf]
