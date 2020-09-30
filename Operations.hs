@@ -229,7 +229,6 @@ cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
 zipWithMMS :: Applicative m => (a -> b -> c) -> MonStr m a -> MonStr m b -> MonStr m c
 zipWithMMS f (MCons ma) (MCons mb) = MCons $ liftA2 (\a b -> (f (fst a) (fst b), zipWithMMS f (snd a) (snd b))) ma mb
 
-
 zipWith3MMS :: Applicative m => (a -> b -> c -> d) -> MonStr m a -> MonStr m b -> MonStr m c -> MonStr m d
 zipWith3MMS f (MCons ma) (MCons mb) (MCons mc) = MCons $ (\a b c -> (f (fst a) (fst b) (fst c), zipWith3MMS f (snd a) (snd b) (snd c))) <$> ma <*> mb <*> mc
 
@@ -240,6 +239,13 @@ zipMMS = zipWithMMS (,)
 
 zip3MMS :: Applicative m => MonStr m a -> MonStr m b -> MonStr m c -> MonStr m (a,b,c)
 zip3MMS = zipWith3MMS (,,)
+
+-- Inverse operations of zipMMS and zip3MMS
+unzipMMS :: Applicative m => MonStr m (a, b) -> (MonStr m a, MonStr m b)
+unzipMMS ms = (fmap fst ms, fmap snd ms)
+
+unzip3MMS :: Applicative m => MonStr m (a, b, c) -> (MonStr m a, MonStr m b,  MonStr m c)
+unzip3MMS ms = (fmap (\(a,_,_) -> a) ms, fmap (\(_,b,_) -> b) ms, fmap (\(_,_,c) -> c) ms)
 
 -- Filtering the elements satisfying a predicate
 --  when an element doesn't satisfy it, its children are "moved up"

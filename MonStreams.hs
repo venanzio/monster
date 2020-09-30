@@ -43,7 +43,7 @@ tailMS = fmap snd . unwrapMS
 
 -- Transform a monster by mapping head and tail to new head and tail
 transformMS :: Functor m => 
-               (a -> MonStr m a -> (b,MonStr m b)) ->
+               (a -> MonStr m a -> (b, MonStr m b)) ->
                MonStr m a -> MonStr m b
 transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
 

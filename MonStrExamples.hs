@@ -38,9 +38,7 @@ fromL = toList
 -- Example to test functions on
 --   Venanzio comment: this can be done by (llist [1..9])
 natsLess10 :: MonStr Maybe Integer
-natsLess10 = boundNat 0
-  where boundNat n | n < 10    = MCons $ Just (n, boundNat (n+1))
-                   | otherwise = MCons Nothing 
+natsLess10 = llist [0..9]
 
 -- Examples to test the correctness of the Monad instantiation:
 --   verify that joinMS takes the diagonal
@@ -213,9 +211,9 @@ type StatefulStream s a = MonStr (State s) a
 --                                       let ((a, sts'), s') = runState sts s
 --                                       sts >>= collapseStateStream sts' s'
 
-runStr :: StatefulStream s a -> s -> Stream a
-runStr (MCons sts) s = let ((a, sts'), s') = runState sts s
-                       in a <: (runStr sts' s')
+runSStr :: StatefulStream s a -> s -> Stream a
+runSStr (MCons sts) s = let ((a, sts'), s') = runState sts s
+                       in a <: (runSStr sts' s')
                        
 -- generates a stream flipping between 1 and 0
 flipper :: StatefulStream Int Int
@@ -226,4 +224,4 @@ fibGen :: StatefulStream (Int, Int) Int
 fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 
 fib :: Stream Int
-fib = runStr fibGen (0, 1)
+fib = runSStr fibGen (0, 1)
