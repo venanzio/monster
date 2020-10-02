@@ -224,13 +224,16 @@ cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
                 where unseq ~mas' = fmap head mas' : unseq (fmap tail mas')
 
 -- Zips the two given monsters using the argument function
---  this should be equal to liftA2: but liftA2 gives strange results on trees
---  maybe the instance of Applicative is incorrect?
+--  this performs the same as liftA2 - it seems at the moment but hasn't be verified formally
 zipWithMMS :: Applicative m => (a -> b -> c) -> MonStr m a -> MonStr m b -> MonStr m c
-zipWithMMS f (MCons ma) (MCons mb) = MCons $ liftA2 (\a b -> (f (fst a) (fst b), zipWithMMS f (snd a) (snd b))) ma mb
+zipWithMMS = liftA2
+-- Previous definition in need of rollback
+-- zipWithMMS f (MCons ma) (MCons mb) = MCons $ liftA2 (\a b -> (f (fst a) (fst b), zipWithMMS f (snd a) (snd b))) ma mb
 
 zipWith3MMS :: Applicative m => (a -> b -> c -> d) -> MonStr m a -> MonStr m b -> MonStr m c -> MonStr m d
-zipWith3MMS f (MCons ma) (MCons mb) (MCons mc) = MCons $ (\a b c -> (f (fst a) (fst b) (fst c), zipWith3MMS f (snd a) (snd b) (snd c))) <$> ma <*> mb <*> mc
+zipWith3MMS f ma mb mc = f <$> ma <*> mb <*> mc
+-- Previous definition in need of rollback
+-- zipWith3MMS f (MCons ma) (MCons mb) (MCons mc) = MCons $ (\a b c -> (f (fst a) (fst b) (fst c), zipWith3MMS f (snd a) (snd b) (snd c))) <$> ma <*> mb <*> mc
 
 -- Takes two monadic streams and returns a monster of pairs obtained
 -- by pairing elements at the same index in the argument monsters
