@@ -55,7 +55,7 @@ ma <:: s = MCons (fmap (\a -> (a,s)) ma)
 instance Functor m => Functor (MonStr m) where
   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
   fmap f = transformMS (\a s -> (f a, fmap f s))
- 
+
 
 -- Operations for m Applicative
 

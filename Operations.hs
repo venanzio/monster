@@ -90,6 +90,10 @@ consMMS a s = fmap (a:) s
 prefixesMMS :: Applicative m => MonStr m a -> MonStr m [a]
 prefixesMMS = transformMS (\h t -> ([h], consMMS h (prefixesMMS t)))
 
+-- Prefixes a given monadic stream with a given list of values
+prefixMS :: Applicative m => [a] -> MonStr m a -> MonStr m a
+prefixMS xs s = foldr (<:) s xs
+
 -- Appending the empty list, to make it equivalente to inits in Data.List
 initsMMS :: Applicative m => MonStr m a -> MonStr m [a]
 initsMMS s = [] <: prefixesMMS s
@@ -120,6 +124,16 @@ takeMMS n ms
   | n > 0     = headMS ms : (takeMMS (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMMS: negative argument."
 
+-- Returns the longest prefix of ma that satisfies p
+--  together with the remainder of the monadic stream, 
+--  with the prefix inside the monad m
+--
+-- /Beware/: this function may diverge if every element
+--  of the given stream satisfies the predicate
+spanMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
+spanMMS p ma = unwrapMS ma >>= \(h,t) -> if p h then let ret = spanMMS p t
+                                                     in fmap (\(l, s) -> (h:l, s)) ret
+                                                else return ([], h <: t)
 
 {- Comment by Venanzio: takeMMS' and takeMMS'' give strange results on trees
    Its a similar problem to the one we had for inits:
@@ -256,3 +270,4 @@ unzip3MMS ms = (fmap (\(a,_,_) -> a) ms, fmap (\(_,b,_) -> b) ms, fmap (\(_,_,c)
 filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
                                        else filterMMS p s)
+
