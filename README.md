@@ -91,6 +91,4 @@ Some example for testing.
 *PureStreamEquations* and *MonStreamEquations*: a language to define system of pure stream equations and their interpretation/solution in pure streams and monster, respectively. 
 (This is an initial implementation of the work leading to the proof of undecidability by Sattler and Balestrieri.)
 
-*MonadStream*: Chris' original instance of Monad for monsters. Now integrated in MonStreams, so not needed any more.
-
 *Stream*: library by Swiestra and van Dijk. Keep it until we finished generalizing all the functions, then remove it.
