@@ -129,11 +129,32 @@ takeMMS n ms
 --  with the prefix inside the monad m
 --
 -- /Beware/: this function may diverge if every element
---  of the given stream satisfies the predicate
+--  of the given monadic stream satisfies the predicate
 spanMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
 spanMMS p ma = unwrapMS ma >>= \(h,t) -> if p h then let ret = spanMMS p t
                                                      in fmap (\(l, s) -> (h:l, s)) ret
                                                 else return ([], h <: t)
+
+-- breakMMS is equivalent to spanMMS (not . p)
+--
+-- /Beware/: this function may diverge for the same reason as spanMMS
+breakMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
+breakMMS p = spanMMS (not . p)
+
+-- This will diverge in for the same reason as spanMMS
+takeWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> m [a]
+takeWhileMMS p ma = fmap fst $ spanMMS p ma
+
+-- This will diverge in for the same reason as spanMMS
+dropWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
+dropWhileMMS p ma = absorbMS . (fmap snd) $ spanMMS p ma
+
+-- Partitions the given monadic stream into a pair of monadic streams - one where every 
+--  element satisfies the predicate p, and one with the remaining elements which do not
+partitionMMS :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m (MonStr m a, MonStr m a)
+partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t, t) else partitionMMS p t) in 
+                                                  if p h then (\p -> fmap (\(t, f) -> (h <: t, f)) p) ret
+                                                         else (\p -> fmap (\(t, f) -> (t, h <: f)) p) ret
 
 {- Comment by Venanzio: takeMMS' and takeMMS'' give strange results on trees
    Its a similar problem to the one we had for inits:
