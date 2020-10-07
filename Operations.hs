@@ -60,7 +60,6 @@ instance MonadPlus m => MonadPlus (MonStr m) where
   -- mplus (MCons m1) (MCons m2) = MCons (mplus m1 m2)
 -}
 
-
 -- If m is Foldable, we could define alternative by grafting
 graftMS :: (Functor m, Foldable m) => MonStr m a -> MonStr m a -> MonStr m a
 graftMS s1 s2 = if null s1 then s2
@@ -69,6 +68,14 @@ graftMS s1 s2 = if null s1 then s2
 toMonStr :: (Foldable t, Applicative m, Alternative m) => t a -> MonStr m a
 toMonStr = foldr (<:) empty
 
+-- Unfolds a monadic stream from a seed
+unfoldMS :: Functor m => (b -> (m a, b)) -> b -> MonStr m a
+unfoldMS f b = a <:: unfoldMS f b'
+               where (a, b') = f b
+
+-- Deconstructs a MonStr into its head and tail (not sure if this would work since it duplicates the monadic action)
+outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
+outMS ms = (headMS ms, tailMS ms)
 
 -- Appending two monsters: the second is grafted when there is an empty action
 infixr 5 +++
