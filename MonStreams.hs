@@ -171,8 +171,8 @@ joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
 joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
 
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
-makeMonMatrix f = fmap f 
+makeMonMatrix f = fmap f
 
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
-  as >>= f = joinInnerMS (joinPrelimMS (makeMonMatrix f as))
+  as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
