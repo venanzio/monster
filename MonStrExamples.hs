@@ -66,6 +66,12 @@ xyLL = llist (fmap llist xys)
 -- fromL $ joinMS xyLL
 --   correctly gives the diagonal: (0,0),(1,1),(2,2),(3,3),..]
 
+-- Tests to verify the 3rd monad law
+
+squares = (natsS >>= (\n -> llist [n..])) >>= (\n -> fmap (*n) natsS)
+
+squares' = natsS >>= (\x -> ((\n -> llist [n..]) x) >>= (\n -> fmap (*n) natsS))
+
 
 -- Arbitrarily branching trees - List Monad
 -------------------------------------------
@@ -150,6 +156,12 @@ treeBranchList l = node $ map (\a -> (a,treeBranchList l)) l
 -- Test a couple of the operations with:
 --   printTree $ pruneMMS 3 $ prefixesMMS $ treeBranchList [0,1,2]
 
+-- Tests to verify the 3rd monad law - the two seem equivalent when sliced at height n
+
+ts = (treeBranchList [0,1,2] >>= (\n -> treeBranchList [n,n+1,n+2])) >>= (\n -> treeBranchList [n,n*2,n*3])
+
+ts' = treeBranchList [0,1,2] >>= (\x -> (\n -> treeBranchList [n,n+1,n+2]) x >>= (\n -> treeBranchList [n,n*2,n*3]))
+
 -- Interactive Processes -- IO Monad
 ------------------------------------
 
@@ -192,7 +204,7 @@ sumProc n = MCons $ do
     let n' = n + read s
     return (n', sumProc n')
 
--- Proof of concept of lazy evaluation 
+-- Proof of concept of lazy process evaluation 
 stopAtZero' :: Process Int -> IO [Int]
 stopAtZero' s = do
      ns <- unsafeRunProcess s
