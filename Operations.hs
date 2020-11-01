@@ -82,7 +82,6 @@ infixr 5 +++
 (+++) :: Alternative m => MonStr m a -> MonStr m a -> MonStr m a
 s1 +++ s2 = (headMS s1 <::: ((+++) <$> tailMS s1 <*> pure s2)) <|> s2
 
-
 -- indexing operator when m is a monad
 infixl 9 !!!
 (!!!) :: Monad m => MonStr m a -> Int -> m a
@@ -160,8 +159,8 @@ dropWhileMMS p ma = absorbMS . (fmap snd) $ spanMMS p ma
 --  element satisfies the predicate p, and one with the remaining elements which do not
 partitionMMS :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m (MonStr m a, MonStr m a)
 partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t, t) else partitionMMS p t) in 
-                                                  if p h then (\p -> fmap (\(t, f) -> (h <: t, f)) p) ret
-                                                         else (\p -> fmap (\(t, f) -> (t, h <: f)) p) ret
+                                                  if p h then (\p' -> fmap (\(t, f) -> (h <: t, f)) p') ret
+                                                         else (\p' -> fmap (\(t, f) -> (t, h <: f)) p') ret
 
 {- Comment by Venanzio: takeMMS' and takeMMS'' give strange results on trees
    Its a similar problem to the one we had for inits:

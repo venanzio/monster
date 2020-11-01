@@ -40,6 +40,9 @@ fromL = toList
 natsLess10 :: MonStr Maybe Integer
 natsLess10 = llist [0..9]
 
+natsS :: MonStr Maybe Integer
+natsS = llist [0..]
+
 -- Examples to test the correctness of the Monad instantiation:
 --   verify that joinMS takes the diagonal
 
@@ -137,6 +140,7 @@ t2 = node [(10, node [(11,leaf)
            )
           ,(20, leaf)
           ]
+          
 
 -- Tree that always branches according to a given list
 --  Used for testing functions in Operations.hs

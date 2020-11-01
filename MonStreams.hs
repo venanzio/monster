@@ -1,5 +1,6 @@
 -- Monadic Streams
 --   Venanzio Capretta & Christopher Purdy, 2020
+{-# LANGUAGE RankNTypes #-}
 
 module MonStreams where
 
@@ -64,7 +65,7 @@ pairA :: Applicative m => m a -> m b -> m (a,b)
 pairA = liftA2 (,)
 
 -- appending an m-element in front of an m-stream
-infix 5 <:::
+infixr 5 <:::
 (<:::) :: Applicative m => m a -> m (MonStr m a) -> MonStr m a
 ma <::: ms = MCons (pairA ma ms)
 
@@ -116,14 +117,24 @@ instance Applicative m => Applicative (MonStr m) where
 -- Operations for m Monad
 
 -- When m is a monad we can return a "pure tail"
+--  the tail cannot be recombined with the head to get the same monster, since this would 
+--  result in duplication of a monadic action, potentially leading to a different result
+-- This function should be equivalent to (absorbMS . tailMS)
 tailMMS :: Monad m => MonStr m a -> MonStr m a
 tailMMS = MCons . join . fmap unwrapMS . tailMS
         
 -- "lift" monadic actions from the elements to the stream
+--  !Note! I'm not sure that this works, since the monadic action 
+--         from sm is executed twice, which changes the behaviour 
+--         of the monster in most circumstances
 liftMS :: Monad m => MonStr m (m a) -> m (MonStr m a)
 liftMS sm = do ma <- headMS sm 
                ms <- tailMS sm
                return (ma <::: liftMS ms)
+               
+-- "lift" monadic actions from the elements to the stream
+liftMS' :: Monad m => MonStr m (m a) -> m (MonStr m a)
+liftMS' sm = pure (\(ma,ms) -> ma <::: liftMS' ms) <*> unwrapMS sm
 
 -- Monsters can "absorb" a monadic action
 absorbMS :: Monad m => m (MonStr m a) -> MonStr m a
@@ -140,7 +151,7 @@ type MonMatrix m a = MonStr m (MonStr m a)
 -- "origin" of a monster matrix (first element of the first row)
 originMM :: Monad m => MonMatrix m a -> m a
 originMM mm = headMS mm >>= headMS
-  
+
 -- submatrix one step down the diagonal
 diagonalMM :: Monad m => MonMatrix m a -> m (MonMatrix m a)
 diagonalMM mm = tailMS mm >>= liftMS . fmap tailMS
@@ -149,6 +160,19 @@ diagonalMM mm = tailMS mm >>= liftMS . fmap tailMS
 joinMS :: Monad m => MonMatrix m a -> MonStr m a
 joinMS mm = originMM mm <::: fmap joinMS (diagonalMM mm)
 
+-- These versions seem correct (at least in preliminary testing) for:
+--   - List monad
+--   - Maybe monad 
+--   - State monad
+joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
+joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
+
+joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
+joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
+
+makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
+makeMonMatrix f = fmap f 
+
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
-  as >>= f = joinMS (fmap f as)
+  as >>= f = joinInnerMS (joinPrelimMS (makeMonMatrix f as))
