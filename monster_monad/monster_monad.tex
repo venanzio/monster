@@ -92,6 +92,16 @@ In this way, the "joining" procedure above produces a structure that is the same
 
 The "distributing" step duplicates the monadic action, so recombining the new head and tail would produce a monadic stream with a different behaviour (a different monster, meaning the monad laws wouldn't be satisfied).\\
 
-In a sense though, the pseudo-monsters produced by this join procedure operate similarly to monadic streams - to retrieve the element $a_x$ in this nested tuple, you still need to execute monadic actions $M_0$ to $M_x$ (after applying $snd$ $x$ number of times to reach the nested tuple at layer $x$).
+In a sense though, the pseudo-monsters produced by this join procedure operate similarly to monadic streams - to retrieve the element $a_x$ in this nested tuple, you still need to execute monadic actions $M_0$ to $M_x$ (after applying $snd$ $x$ number of times to reach the nested tuple at layer $x$).\\
+
+It seems that to finally produce a monadic stream from a monster matrix in the $Monad$ ($MonStr$ $m$) typeclass, the monad $ m $ used in the monadic stream needs to satify the property that joining two "equivalent" monadic actions should produce the same monadic action, for example:
+\begin{itemize}
+	\item $ Just $ ($ Just $ $ x $ ) == $ Just $ $ x $
+\end{itemize}
+However, counter-examples seem more common:
+\begin{itemize}
+	\item If you join a $ State $ computation which adds 1 to the state, with another one of the same, you produce a $ State $ computation which adds 2 to the state
+	\item Joining two nested $ IO $ computations which ask the user for an input, produces an $ IO $ computation which asks the user for 2 inputs
+\end{itemize}
 
 \end{document}
