@@ -68,6 +68,10 @@ xyLL = llist (fmap llist xys)
 
 -- Tests to verify the 3rd monad law
 
+natsa = return 1 >>= (\n -> llist [n..])
+
+natsb = (\n -> llist [n..]) 1
+
 squares = (natsS >>= (\n -> llist [n..])) >>= (\n -> fmap (*n) natsS)
 
 squares' = natsS >>= (\x -> ((\n -> llist [n..]) x) >>= (\n -> fmap (*n) natsS))
@@ -156,11 +160,17 @@ treeBranchList l = node $ map (\a -> (a,treeBranchList l)) l
 -- Test a couple of the operations with:
 --   printTree $ pruneMMS 3 $ prefixesMMS $ treeBranchList [0,1,2]
 
+-- Tests to verify the 1st monad law
+
+ts1 = return 1 >>= (\n -> treeBranchList [n,n+1,n+2])
+
+ts1' = (\n -> treeBranchList [n,n+1,n+2]) 1
+
 -- Tests to verify the 3rd monad law - the two seem equivalent when sliced at height n
 
-ts = (treeBranchList [0,1,2] >>= (\n -> treeBranchList [n,n+1,n+2])) >>= (\n -> treeBranchList [n,n*2,n*3])
+ts3 = (treeBranchList [0,1,2] >>= (\n -> treeBranchList [n,n+1,n+2])) >>= (\n -> treeBranchList [n,n*2,n*3])
 
-ts' = treeBranchList [0,1,2] >>= (\x -> (\n -> treeBranchList [n,n+1,n+2]) x >>= (\n -> treeBranchList [n,n*2,n*3]))
+ts3' = treeBranchList [0,1,2] >>= (\x -> (\n -> treeBranchList [n,n+1,n+2]) x >>= (\n -> treeBranchList [n,n*2,n*3]))
 
 -- Interactive Processes -- IO Monad
 ------------------------------------
@@ -228,9 +238,19 @@ runSStr (MCons sts) s = let ((a, sts'), s') = runState sts s
 flipper :: StatefulStream Int Int
 flipper = MCons (state (\n -> ((n, flipper), (n+1) `mod` 2)))
 
+-- generates a stream counting between 0 and (n-1) on a loop
+modCounter :: Int -> StatefulStream Int Int
+modCounter n = MCons (state (\x -> ((x, modCounter n), (x+1) `mod` n)))
+
 -- a stream that generates the fibonnacci numbers
 fibGen :: StatefulStream (Int, Int) Int
 fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 
 fib :: Stream Int
 fib = runSStr fibGen (0, 1)
+
+
+-- Testing for monad laws
+
+c  = takeMS 20 $ runSStr (return 5 >>= (\n -> modCounter n)) 0
+c' = takeMS 20 $ runSStr ((\n -> modCounter n) 5) 0

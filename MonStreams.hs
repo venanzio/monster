@@ -1,6 +1,5 @@
 -- Monadic Streams
 --   Venanzio Capretta & Christopher Purdy, 2020
-{-# LANGUAGE RankNTypes #-}
 
 module MonStreams where
 
@@ -84,7 +83,7 @@ repeatMS :: Applicative m => a -> MonStr m a
 repeatMS a = a <: repeatMS a
 
 transfAppMS :: Applicative m =>
-               (a -> MonStr m a -> b -> MonStr m b -> (c,MonStr m c)) ->
+               (a -> MonStr m a -> b -> MonStr m b -> (c, MonStr m c)) ->
                MonStr m a -> MonStr m b -> MonStr m c
 transfAppMS f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
                               <$> unwrapMS as <*> unwrapMS bs
@@ -161,9 +160,9 @@ joinMS :: Monad m => MonMatrix m a -> MonStr m a
 joinMS mm = originMM mm <::: fmap joinMS (diagonalMM mm)
 
 -- These versions seem correct (at least in preliminary testing) for:
---   - List monad
+--   - List monad - !NOT CORRECT FOR LAW 1!
 --   - Maybe monad 
---   - State monad
+--   - State monad - Also not correct for law 1
 joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
 joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
 
@@ -172,6 +171,9 @@ joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS s
 
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
 makeMonMatrix f = fmap f
+
+outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
+outMS ms = (headMS ms, tailMS ms)
 
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b

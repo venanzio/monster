@@ -169,19 +169,10 @@ partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t,
      while we want to a head to be combined only with its original tail
    Lesson: always use unwrapMS to get head and tail out
 -}
-
--- version of takeMMS where the returned list is inside the monad, rather 
--- than a list of monadic actions
-takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
-takeMMS' n ms
-  | n == 0    = return []
-  | n > 0     = do a <- headMS ms
-                   (a:) <$> takeMMS' (n-1) (tailMMS ms)
-  | otherwise = error "Operations.takeMMS': negative argument."
   
 -- version of the above using sequence instead to make more compact
-takeMMS'' :: Monad m => Int -> MonStr m a -> m [a]
-takeMMS'' n = sequence . (takeMMS n)
+takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
+takeMMS' n = sequence . (takeMMS n)
 
 -- "Internal" version of take: pruning the stream at depth n
 pruneMMS :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
@@ -237,7 +228,7 @@ initMMS'' = mapOutMS $ \hd tl -> if null tl
                                    else hd <: initMMS'' tl
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
--- will cause the function to run indefinitely
+-- will cause the function to diverge
 --  It gives the total numbers of elements in the monster
 lengthMMS :: (Functor m, Foldable m) => MonStr m a -> Int
 lengthMMS = length
@@ -268,13 +259,9 @@ cycleMMS' mas = cycleMMS (unseq (fmap cycle mas))
 --  this performs the same as liftA2 - it seems at the moment but hasn't be verified formally
 zipWithMMS :: Applicative m => (a -> b -> c) -> MonStr m a -> MonStr m b -> MonStr m c
 zipWithMMS = liftA2
--- Previous definition in need of rollback
--- zipWithMMS f (MCons ma) (MCons mb) = MCons $ liftA2 (\a b -> (f (fst a) (fst b), zipWithMMS f (snd a) (snd b))) ma mb
 
 zipWith3MMS :: Applicative m => (a -> b -> c -> d) -> MonStr m a -> MonStr m b -> MonStr m c -> MonStr m d
 zipWith3MMS f ma mb mc = f <$> ma <*> mb <*> mc
--- Previous definition in need of rollback
--- zipWith3MMS f (MCons ma) (MCons mb) (MCons mc) = MCons $ (\a b c -> (f (fst a) (fst b) (fst c), zipWith3MMS f (snd a) (snd b) (snd c))) <$> ma <*> mb <*> mc
 
 -- Takes two monadic streams and returns a monster of pairs obtained
 -- by pairing elements at the same index in the argument monsters
@@ -297,4 +284,19 @@ unzip3MMS ms = (fmap (\(a,_,_) -> a) ms, fmap (\(_,b,_) -> b) ms, fmap (\(_,_,c)
 filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
                                        else filterMMS p s)
+
+-- Takes two monadic streams, and combines the monadic actions, returning the elements from the second stream
+--  this can be used to serialise two IO monsters for example (the actions in each stream are both run at each step)
+combineMMS :: Monad m => MonStr m a -> MonStr m b -> MonStr m b
+combineMMS mas mbs = MCons $ do (a, as) <- unwrapMS mas
+                                fmap (\(e,s) -> (e, combineMMS as s)) (unwrapMS mbs)
+    
+-- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
+distributeInnerMMS :: Monad m => m a -> MonStr m a -> MonStr m a
+distributeInnterMMS ma mas = MCons . join $ (\(a,s) -> fmap (\_ -> (a, distributeMMS ma s)) ma) <$> unwrapMS mas
+
+-- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action first
+distributeOuterMMS' :: Monad m => m a -> MonStr m a -> MonStr m a
+distributeOuterMMS' ma mas = MCons . join $ (\_ -> fmap (\(a, s) -> (a, distributeMMS' ma s)) (unwrapMS mas)) <$> ma
+
 

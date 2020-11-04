@@ -4,6 +4,7 @@
 -}
 
 import MonStreams
+import Operations
 
 data STerm = STArg Int | STTail STerm | STCons ETerm STerm | STRec Int [STerm]
 data ETerm = ETHead STerm
@@ -37,9 +38,7 @@ funST2 terms k alpha1 alpha2 = ((funST terms) !! k) [alpha1, alpha2]
 
 -- It is now possible to run the example functions on monadic streams (like this one below)
 natsLess10 :: MonStr Maybe Integer
-natsLess10 = boundNat 0
-  where boundNat n | n < 10    = MCons $ Just (n, boundNat (n+1))
-                   | otherwise = MCons Nothing 
+natsLess10 = llist [0..9]
 
 -- Evens and Odds
 --   evens s = head s : odds (tail s)
