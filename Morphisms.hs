@@ -3,7 +3,7 @@
 module Morphisms where
 
 import MonStreams
-import MonStrExamples
+import Control.Applicative
 
 -- Monad Morphisms
 
@@ -22,6 +22,9 @@ listMaybeL (x:xs) = Just x
 listMaybeR :: MMorphism [] Maybe
 listMaybeR [] = Nothing
 listMaybeR xs = Just (last xs)
+
+listToZipL :: MMorphism [] ZipList
+listToZipL x = ZipList x
 
 -- Lifting of monad morphisms to monadic streams
 

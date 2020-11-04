@@ -1,0 +1,97 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{times}
+\usepackage{booktabs}
+\usepackage{grid-system}
+\usepackage[document]{ragged2e}
+
+\begin{document}
+	
+The aim here is to find a way to manipulate the monadic actions in a monster matrix to find a join function such that the first and second monad laws are satisfied. The two cases below show how a monster matrix is produced in the case of each of these monad laws)\\
+\vspace{1cm}
+1. fmap $f$ (return $a_0$)
+\begin{center}
+\begin{tabular}{c c c c c c c}
+	     & $M_0 (a_0,$  &       &$M_0 (a_0,$  &       &$M_0 (a_0,$\\
+	     & $M_1 (a_1,$  &       &$M_1 (a_1,$  &       &$M_1 (a_1,$\\
+  $R_M ($& $M_2 (a_2,$  &$R_M ($&$M_2 (a_2,$  &$R_M ($&$M_2 (a_2,$ & $...$\\
+		 & $M_3 (a_3,$  &       &$M_3 (a_3,$  &       &$M_3 (a_3,$\\
+		 & $...$  &,       &$...$  &,       &$...$ &, \\
+\end{tabular}
+\end{center}
+\vspace{1cm}
+2. fmap return $ma$ (where $ma$ :: $MonStr$ $m$ $a$)
+\begin{center}
+\begin{tabular}{c c c c c c c}
+	     & $R_M (a_0,$  &       &$R_M (a_1,$  &       &$R_M (a_2,$\\
+	     & $R_M (a_0,$  &       &$R_M (a_1,$  &       &$R_M (a_2,$\\
+  $M_0 ($& $R_M (a_0,$  &$M_1 ($&$R_M (a_1,$  &$M_2 ($&$R_M (a_2,$ & $...$\\
+		 & $R_M (a_0,$  &       &$R_M (a_1,$  &       &$R_M (a_2,$\\
+		 & $...$  &,       &$...$  &,       &$...$ &, \\
+\end{tabular}
+\end{center}
+
+Now to start "joining" the inner and outer monsters. Taking the diagonal by joining monadic actions in the inner monster at each point in the outer monster gives:\\
+\vspace{1cm}
+1.
+\begin{align*}
+	R_M ( M_0 (a_0), R_M ( M^0_1 (a_1), R_M ( M^0_2 (a_2), ...\\
+\end{align*}
+2. 
+\begin{align*}
+	M_0 ( R_M (a_0), M_1 ( R_M (a_1), M_2 ( R_M (a_2), ...\\
+\end{align*}
+\\
+where: 
+\begin{itemize}
+	\item{$M_x (a_x)$ denotes a monadic action in monad $M$ returning a value $a$, evaluated at position $x$ in its corresponding monadic stream}
+	\item{$M^x_y (a_y)$ denotes the sequence of monadic actions $M_x ( M_{x+1} (... M_y ( a_y ) ... ) )$, returning the element at index $y$ in the corresponding monadic stream}
+	\item{$R_M$ denotes the "do nothing" monadic action for monad $M$ - the monadic action produced by return of type $M (a)$}
+\end{itemize}
+
+Assuming $M$ satisfies the monad laws, you can join $R_M$ with any action $M (a)$ and produce $M (a)$, and this commutes (Kleisli composition forms). Using the notation above, joining $M^x_y (a)$ with $M_{y+1} (a)$ gives $M^x_{y+1} (a)$.\\
+
+With these, you can "distribute" each monad across its head and tail using $headMS$ and $tailMS$, and then join the nested monadic actions produced by $tailMS$ (this is the function of $tailMMS$, equivalent to ($absorbMS$ . $tailMS$)). $fork\:(f,g)\:x$ produces the tuple $(f x, g x)$:\\
+\vspace{1cm}
+1.
+\begin{align*}
+	&fork (headMS,tailMMS) \;\$\; R_M ( M_0 (a_0), R_M ( M^0_1 (a_1), R_M ( ...\\
+	&=\\
+	&\bigg( R_M ( M_0 (a_0) ), R_M ( R_M ( M^0_1 (a_1), R_M ( ... \bigg)\\
+	&=\\
+	&\bigg( M_0 (a_0), R_M ( M^0_1 (a_1), R_M ( ... \bigg) \\\\
+	&\text{calling this on the second element of the tuple and recursing gives the infinitely nested tuple:}\\\\
+	&\bigg( M_0 (a_0), \bigg( M^0_1 (a_1), \bigg( M^0_2 (a_2) , \bigg( M^0_3 (a_3), ... \bigg)
+\end{align*}
+2. 
+\begin{align*}
+	&fork (headMS,tailMMS) \;\$\; M_0 ( R_M (a_0), M_1 ( R_M (a_1), M_2 ( ...\\
+	&=\\
+	&\bigg( M_0 ( R_M (a_0) ), M_0 ( M_1 ( R_M (a_1), M_2 ( ... \bigg)\\
+	&=\\
+	&\bigg( M_0 (a_0), M^0_1 ( R_M (a_1), M_2 ( ... \bigg) \\\\
+	&\text{calling this on the second element of the tuple and recursing gives the infinitely nested tuple:}\\\\
+	&\bigg( M_0 (a_0), \bigg( M^0_1 (a_1), \bigg( M^0_2 (a_2) , \bigg( M^0_3 (a_3), ... \bigg)
+\end{align*}
+
+Both of these apply the same sequence of monadic actions $M^0_x$ when you extract the element $a_x$.\\
+
+If you take a monster of type $M (a)$, you can transform it in the same way to produce the same structure:
+
+\begin{align*}
+	&fork (headMS,tailMMS) \;\$\; M_0 ( a_0, M_1 ( a_1, M_2 ( ...\\
+	&=\\
+	&\bigg( M_0 (a_0), M_0 ( M_1 ( a_1, M_2 ( ... \bigg)\\
+	&=\\
+	&\bigg( M_0 (a_0), M^0_1 ( a_1, M_2 ( ... \bigg) \\\\
+	&\text{recursively apply the same function on the second element of the tuple, and continue this:}\\\\
+	&\bigg( M_0 (a_0), \bigg( M^0_1 (a_1), \bigg( M^0_2 (a_2) , \bigg( M^0_3 (a_3), ... \bigg)
+\end{align*}
+
+In this way, the "joining" procedure above produces a structure that is the same as the one produced by the distribution procedure on a valid monadic stream. If there was some way of "factoring" back out the monadic action, then this method of creating a join function would be possible, but this doesn't seem possible.\\ 
+
+The "distributing" step duplicates the monadic action, so recombining the new head and tail would produce a monadic stream with a different behaviour (a different monster, meaning the monad laws wouldn't be satisfied).\\
+
+In a sense though, the pseudo-monsters produced by this join procedure operate similarly to monadic streams - to retrieve the element $a_x$ in this nested tuple, you still need to execute monadic actions $M_0$ to $M_x$ (after applying $snd$ $x$ number of times to reach the nested tuple at layer $x$).
+
+\end{document}

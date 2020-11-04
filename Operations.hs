@@ -284,6 +284,14 @@ unzip3MMS ms = (fmap (\(a,_,_) -> a) ms, fmap (\(_,b,_) -> b) ms, fmap (\(_,_,c)
 filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
                                        else filterMMS p s)
+                                       
+wordsMMS :: Monad m => MonStr m Char -> MonStr m String
+wordsMMS mcs = MCons $ do (c,s) <- unwrapMS mcs
+                          if c == ' ' then return ([], wordsMMS s)
+                                      else fmap (\(str, s') -> (c:str, s')) (unwrapMS (wordsMMS s))
+                     
+-- unwordsMMS :: Monad m => MonStr m Char
+-- unwordsMMS
 
 -- Takes two monadic streams, and combines the monadic actions, returning the elements from the second stream
 --  this can be used to serialise two IO monsters for example (the actions in each stream are both run at each step)
@@ -293,10 +301,10 @@ combineMMS mas mbs = MCons $ do (a, as) <- unwrapMS mas
     
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
 distributeInnerMMS :: Monad m => m a -> MonStr m a -> MonStr m a
-distributeInnterMMS ma mas = MCons . join $ (\(a,s) -> fmap (\_ -> (a, distributeMMS ma s)) ma) <$> unwrapMS mas
+distributeInnerMMS ma mas = MCons . join $ (\(a,s) -> fmap (\_ -> (a, distributeInnerMMS ma s)) ma) <$> unwrapMS mas
 
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action first
-distributeOuterMMS' :: Monad m => m a -> MonStr m a -> MonStr m a
-distributeOuterMMS' ma mas = MCons . join $ (\_ -> fmap (\(a, s) -> (a, distributeMMS' ma s)) (unwrapMS mas)) <$> ma
+distributeOuterMMS :: Monad m => m a -> MonStr m a -> MonStr m a
+distributeOuterMMS ma mas = MCons . join $ (\_ -> fmap (\(a, s) -> (a, distributeOuterMMS ma s)) (unwrapMS mas)) <$> ma
 
 

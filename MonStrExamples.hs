@@ -8,6 +8,7 @@ module MonStrExamples where
 import MonStreams
 import PureStreams
 import Operations
+import Morphisms
 
 import Control.Applicative
 import Control.Monad
@@ -43,6 +44,9 @@ natsLess10 = llist [0..9]
 natsS :: MonStr Maybe Integer
 natsS = llist [0..]
 
+sentence :: MonStr Maybe Char
+sentence = llist (unwords ["we","want","a","shrubbery",""])
+
 -- Examples to test the correctness of the Monad instantiation:
 --   verify that joinMS takes the diagonal
 
@@ -76,6 +80,8 @@ squares = (natsS >>= (\n -> llist [n..])) >>= (\n -> fmap (*n) natsS)
 
 squares' = natsS >>= (\x -> ((\n -> llist [n..]) x) >>= (\n -> fmap (*n) natsS))
 
+showMonStr :: Applicative m => MonStr m a -> m String
+showMonStr ma = fmap (\_ -> "a MonStr") (unwrapMS ma)
 
 -- Arbitrarily branching trees - List Monad
 -------------------------------------------
@@ -171,6 +177,11 @@ ts1' = (\n -> treeBranchList [n,n+1,n+2]) 1
 ts3 = (treeBranchList [0,1,2] >>= (\n -> treeBranchList [n,n+1,n+2])) >>= (\n -> treeBranchList [n,n*2,n*3])
 
 ts3' = treeBranchList [0,1,2] >>= (\x -> (\n -> treeBranchList [n,n+1,n+2]) x >>= (\n -> treeBranchList [n,n*2,n*3]))
+
+
+
+-- Notes
+-- - ma :: MonStr ZipList a seems to satisfy the property pairA (headMS ma) (tailMS ma) == ma
 
 -- Interactive Processes -- IO Monad
 ------------------------------------

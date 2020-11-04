@@ -41,6 +41,9 @@ headMS = fmap fst . unwrapMS
 tailMS :: Functor m => MonStr m a -> m (MonStr m a)
 tailMS = fmap snd . unwrapMS
 
+
+--recombineMS :: m a -> m (MonStr m a)
+
 -- Transform a monster by mapping head and tail to new head and tail
 transformMS :: Functor m => 
                (a -> MonStr m a -> (b, MonStr m b)) ->
@@ -168,6 +171,12 @@ joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (abso
 
 joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
 joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
+
+
+-- This approach will work - don't join the actions, and then factor them out afterwards
+-- joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
+-- joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
+
 
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
 makeMonMatrix f = fmap f
