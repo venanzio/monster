@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.15)  4 NOV 2020 15:34
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.15)  5 NOV 2020 15:31
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -104,20 +104,49 @@ Package: booktabs 2016/04/27 v1.618033 publication quality tables
 \@lastruleclass=\count103
 \@thisrulewidth=\dimen124
 )
+(/usr/local/texlive/2018/texmf-dist/tex/latex/listings/listings.sty
+(/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks19
+)
+\lst@mode=\count104
+\lst@gtempboxa=\box28
+\lst@token=\toks20
+\lst@length=\count105
+\lst@currlwidth=\dimen125
+\lst@column=\count106
+\lst@pos=\count107
+\lst@lostspace=\dimen126
+\lst@width=\dimen127
+\lst@newlines=\count108
+\lst@lineno=\count109
+\lst@maxwidth=\dimen128
+
+(/usr/local/texlive/2018/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2015/06/04 1.6 (Carsten Heinz)
+\c@lstnumber=\count110
+\lst@skipnumbers=\count111
+\lst@framebox=\box29
+)
+(/usr/local/texlive/2018/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2015/06/04 1.6 listings configuration
+))
+Package: listings 2015/06/04 1.6 (Carsten Heinz)
+
 (/usr/local/texlive/2018/texmf-dist/tex/latex/grid-system/grid-system.sty
 Package: grid-system 2014/02/16 v. 0.3.0 LaTeX Grid System
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/tools/calc.sty
 Package: calc 2017/05/25 v4.3 Infix arithmetic (KKT,FJ)
-\calc@Acount=\count104
-\calc@Bcount=\count105
-\calc@Adimen=\dimen125
-\calc@Bdimen=\dimen126
+\calc@Acount=\count112
+\calc@Bcount=\count113
+\calc@Adimen=\dimen129
+\calc@Bdimen=\dimen130
 \calc@Askip=\skip46
 \calc@Bskip=\skip47
 LaTeX Info: Redefining \setlength on input line 80.
 LaTeX Info: Redefining \addtolength on input line 81.
-\calc@Ccount=\count106
+\calc@Ccount=\count114
 \calc@Cskip=\skip48
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/xkeyval/xkeyval.sty
@@ -125,11 +154,10 @@ Package: xkeyval 2014/12/03 v2.7a package option processing (HA)
 
 (/usr/local/texlive/2018/texmf-dist/tex/generic/xkeyval/xkeyval.tex
 (/usr/local/texlive/2018/texmf-dist/tex/generic/xkeyval/xkvutils.tex
-\XKV@toks=\toks19
-\XKV@tempa@toks=\toks20
-
-(/usr/local/texlive/2018/texmf-dist/tex/generic/xkeyval/keyval.tex))
-\XKV@depth=\count107
+\XKV@toks=\toks21
+\XKV@tempa@toks=\toks22
+)
+\XKV@depth=\count115
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
 (/usr/local/texlive/2018/texmf-dist/tex/latex/base/ifthen.sty
@@ -146,9 +174,9 @@ Package: forloop 2006/09/18 v3.0 For Loops for LaTeX
 )
 \gridsystem@cellsep=\skip49
 \gridsystem@one@cellwidth=\skip50
-\c@gridsystem@cellinrow=\count108
-\c@gridsystem@cellcount=\count109
-\c@gridsystem@stripecount=\count110
+\c@gridsystem@cellinrow=\count116
+\c@gridsystem@cellcount=\count117
+\c@gridsystem@stripecount=\count118
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/ms/ragged2e.sty
 Package: ragged2e 2009/05/21 v2.1 ragged2e Package (MS)
@@ -162,9 +190,9 @@ Package: everysel 2011/10/28 v1.2 EverySelectfont Package (MS)
 )
 (/usr/local/texlive/2018/texmf-dist/tex/latex/footmisc/footmisc.sty
 Package: footmisc 2011/06/06 v5.5b a miscellany of footnote facilities
-\FN@temptoken=\toks21
-\footnotemargin=\dimen127
-\c@pp@next@reset=\count111
+\FN@temptoken=\toks23
+\footnotemargin=\dimen131
+\c@pp@next@reset=\count119
 Package footmisc Info: Declaring symbol style bringhurst on input line 855.
 Package footmisc Info: Declaring symbol style chicago on input line 863.
 Package footmisc Info: Declaring symbol style wiley on input line 872.
@@ -192,78 +220,130 @@ Package footmisc Info: Declaring symbol style lamport*-robust on input line 924
 (./monster_monad.aux)
 \openout1 = `monster_monad.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
-LaTeX Font Info:    ... okay on input line 8.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 8.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 9.
+LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 9.
+LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 9.
+LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 9.
+LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 9.
+LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 9.
+LaTeX Font Info:    ... okay on input line 9.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 9.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
-Package ragged2e Info: ABD: executing \RaggedRight on input line 8.
+\c@lstlisting=\count120
+Package ragged2e Info: ABD: executing \RaggedRight on input line 9.
 
 ABD: EverySelectfont initializing macros
-LaTeX Info: Redefining \selectfont on input line 8.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 47.
+LaTeX Info: Redefining \selectfont on input line 9.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 11.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 13.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 52.
 
 (/usr/local/texlive/2018/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 47.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 52.
  [1
 
 {/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (25.39577pt too wide) detected at line 65
+Overfull \hbox (25.39577pt too wide) detected at line 74
 []
  []
 
 
-Overfull \hbox (25.39577pt too wide) detected at line 75
-[]
- []
-
-
-Overfull \hbox (13.15633pt too wide) detected at line 89
+Overfull \hbox (25.39577pt too wide) detected at line 84
 []
  []
 
 [2]
-Overfull \hbox (3.47826pt too wide) in paragraph at lines 97--98
+Overfull \hbox (13.15633pt too wide) detected at line 98
+[]
+ []
+
+[3]
+Overfull \hbox (3.47826pt too wide) in paragraph at lines 106--107
 []\OT1/ptm/m/n/10 It seems that to fi-nally pro-duce a monadic stream from a mo
 n-ster ma-trix in the $\OML/cmm/m/it/10 Monad$ 
  []
 
-[3] (./monster_monad.aux) ) 
+
+Overfull \hbox (4.48447pt too wide) in paragraph at lines 116--116
+[]\OT1/ptm/b/n/14.4 Cases for each law re-sult-ing from use of joinIn-nerMS  
+ []
+
+
+Overfull \hbox (21.4845pt too wide) detected at line 132
+[]
+ []
+
+
+LaTeX Warning: Command \textendash invalid in math mode on input line 134.
+
+
+Overfull \hbox (4.1129pt too wide) in paragraph at lines 134--134
+[]\OT1/ptm/m/n/10 In con-trast, $\OML/cmm/m/it/10 f a$ \OT1/ptm/m/n/10 where $\
+OML/cmm/m/it/10 f  \OT1/cmr/m/n/10 ::  (\OML/cmm/m/it/10 a \OT1/cmr/m/n/10 { \O
+ML/cmm/m/it/10 >  MonStr m a\OT1/cmr/m/n/10 )$ \OT1/ptm/m/n/10 re-turns: $\OML/
+cmm/m/it/10 M[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]; M[]\OT1/cmr/m/n/10 (\OML/
+cmm/m/it/10 a[]; M[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 a[]; :::$\OT1/ptm/m/n/10 
+, 
+ []
+
+[4]
+Overfull \hbox (9.00647pt too wide) detected at line 159
+[]
+ []
+
+[5]
+LaTeX Font Info:    Try loading font information for OML+ptm on input line 192.
+
+ (/usr/local/texlive/2018/texmf-dist/tex/latex/psnfss/omlptm.fd
+File: omlptm.fd 
+)
+LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <10> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 192.
+
+Overfull \hbox (57.00409pt too wide) in paragraph at lines 193--194
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+
+ []
+
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 197.
+[6] [7] (./monster_monad.aux) ) 
 Here is how much of TeX's memory you used:
- 1545 strings out of 492649
- 21034 string characters out of 6129622
- 93077 words of memory out of 5000000
- 5434 multiletter control sequences out of 15000+600000
- 6693 words of font info for 20 fonts, out of 8000000 for 9000
+ 3201 strings out of 492649
+ 42813 string characters out of 6129622
+ 113536 words of memory out of 5000000
+ 7059 multiletter control sequences out of 15000+600000
+ 17679 words of font info for 42 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 28i,12n,22p,342b,160s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvips/
-base/8r.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmex10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mmi10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-mi7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
-0.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.p
-fb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pf
-b></usr/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
-Output written on monster_monad.pdf (3 pages, 71868 bytes).
+ 28i,13n,32p,380b,1211s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2018/texmf-dist/fonts/enc/dv
+ips/base/8r.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmex10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmmi10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmmi12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmmi7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mr10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr
+7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10
+.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr
+/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/tex
+live/2018/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on monster_monad.pdf (7 pages, 115394 bytes).
 PDF statistics:
- 43 PDF objects out of 1000 (max. 8388607)
- 30 compressed objects within 1 object stream
+ 69 PDF objects out of 1000 (max. 8388607)
+ 49 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

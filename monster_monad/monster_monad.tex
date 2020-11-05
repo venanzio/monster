@@ -2,12 +2,17 @@
 \usepackage{amsmath}
 \usepackage{times}
 \usepackage{booktabs}
+\usepackage{listings}
 \usepackage{grid-system}
 \usepackage[document]{ragged2e}
 
 \begin{document}
 	
-The aim here is to find a way to manipulate the monadic actions in a monster matrix to find a join function such that the first and second monad laws are satisfied. The two cases below show how a monster matrix is produced in the case of each of these monad laws)\\
+\section{Preliminary ideas}
+	
+\subsection{Definition of $ joinPrelimMS $}
+	
+The aim here is to find a way to manipulate the monadic actions in a monster matrix to find a join function such that the first and second monad laws are satisfied. The two cases below show how a monster matrix is produced in the case of each of these monad laws. This manipulation corresponds to the function $joinPrelimMS$ in MonStreams.hs.\\
 \vspace{1cm}
 1. fmap $f$ (return $a_0$)
 \begin{center}
@@ -48,6 +53,10 @@ where:
 	\item{$M^x_y (a_y)$ denotes the sequence of monadic actions $M_x ( M_{x+1} (... M_y ( a_y ) ... ) )$, returning the element at index $y$ in the corresponding monadic stream}
 	\item{$R_M$ denotes the "do nothing" monadic action for monad $M$ - the monadic action produced by return of type $M (a)$}
 \end{itemize}
+
+\subsection{Going beyond the initial $ joinPrelimMS $}
+
+This is an attempt to see whether you can manipulate the stream resutling from the previous function (in a different way to $ joinInnerMS $ in section 2) to preserve the first two monad laws. The third law isn't currently considered (since the first two are enough trouble at the moment).\\
 
 Assuming $M$ satisfies the monad laws, you can join $R_M$ with any action $M (a)$ and produce $M (a)$, and this commutes (Kleisli composition forms). Using the notation above, joining $M^x_y (a)$ with $M_{y+1} (a)$ gives $M^x_{y+1} (a)$.\\
 
@@ -102,6 +111,150 @@ However, counter-examples seem more common:
 \begin{itemize}
 	\item If you join a $ State $ computation which adds 1 to the state, with another one of the same, you produce a $ State $ computation which adds 2 to the state
 	\item Joining two nested $ IO $ computations which ask the user for an input, produces an $ IO $ computation which asks the user for 2 inputs
+\end{itemize}
+
+\section{Cases for each law resulting from use of joinInnerMS}
+
+Consecutive monadic actions returning a single element are written without parentheses to reduce clutter.\\
+
+$ joinInnerMS $ is a function which, for a monster $MonStr\ m\ (m\ a)$, moves the tail at each level of the monster inside its monadic element. Basically transforms $M_0(M_a(a),M_1(...$ to $M_0(M_a(a, M_1(... $, by using fmap to insert the monadic stream tail inside the monad of the element (see the definition in MonStream.hs).
+
+\subsection{Left identity}
+$return\ a\ >>=\ f\ ==\ f\ a$
+
+This case results in the follwing call to bind:\\
+\begin{align*}
+&(joinPrelimMS\ .\ joinInnerMS)\ \$\ fmap\ f\ (return\ a) \\
+&=\\
+&R_MM_0 ( a_0, R_MM_0M_1 (a_1, R_MM_0M_1M_2 (a_2, ...\\
+&= &\text{[joining the monadic actions]}\\
+&M_0 ( a_0, M^0_1 ( a_1, M^0_2 ( a_2, ... \\
+\end{align*}
+
+In contrast, $ f\ a $ where $ f\ ::\ (a\ –>\ MonStr\ m\ a) $ returns: $M_0 (a_0, M_1 (a_1, M_2 (a_2, ...$, so the two sides of the equation are not equal.\\
+To see why imaging taking the second element of both streams:
+
+ \begin{align*}
+ & \big(M_0 ( a_0, M^0_1 ( a_1, M^0_2 ( a_2, ... \big)\ !!!\ 1 & \text{[$!!!$ is the indexing operator]}\\
+ &=\\
+ & M_0 (M^0_1 ( a_1 )) == M_0M_0M_1 ( a_1 )\\
+ & \\
+ & \big(M_0 (a_0, M_1 (a_1, M_2 (a_2, ... \big)\ !!! \ 1\\
+ & =\\
+ & M_0 (M_1 ( a_1 )) == M_0M_1 ( a_1 )
+ \end{align*}
+ 
+ As shown, the returned monadic action in the first instance has a duplication of $M_0$ - if this was a $State$ monadic action which modifies an existing state for example, this would change the behaviour of the monadic stream, potentially returning a different value for $ a_1 $ if the return value of the computation was dependant on the value of the state.
+
+\subsection{Right identity}
+$m\ >>=\ return\ ==\ m$
+
+This case results in the follwing call to bind:\\
+\begin{align*}
+	&(joinPrelimMS\ .\ joinInnerMS)\ (fmap\ return\ m) \\
+	&=\\
+	&M_0R_M ( a_0, M_1R_MR_M (a_1, M_2R_MR_MR_M (a_2, ...\\
+	&= &\text{[joining the monadic actions]}\\
+	&M_0 ( a_0, M_1 ( a_1, M_2 ( a_2, ... \\
+\end{align*}
+
+This property seems to hold for any monad $M$ - only "seems" since it \textit{looks} like a valid monster is produced with the actions in the correct order, and experimenting with $ State $ and $ [\ ] $ monads seem to verify this assumption, but it hasn't been proven explcitly.
+
+\section{Required properties of the inner monad}
+
+This section looks specifically at the monster produced on the LHS of the left identity monad law, and compares it to the "clean" monster produced on the RHS. This is done by performing some operations and seeing if their behaviour is the same or different.\\
+
+Looking at the left identity above, it seems like the monad used in a monster needs to satisfy the property that any "equivalent" monadic action performed twice will result in the same monadic action if they are joined.\\
+
+In the case of taking the second element:
+\begin{align*}
+ & \big(M_0 ( a_0, M^0_1 ( a_1, M^0_2 ( a_2, ... \big)\ !!!\ 1\\
+ &=\\
+	& M_0M_0M_1 (a_1) = M_0M_1 (a_1)
+\end{align*}
+
+In the case of taking the third element:
+\begin{align*}
+& M_0M_0M_1M_0M_1M_2 (a_2) \\
+=\ & M_0M_1M_0M_1M_2 (a_2) & \text{[join the top two actions]}\\
+=\ & (M_0M_1)(M_0M_1)M_2 (a_2) & \text{[group equal "composite" actions]}\\
+=\ & M_0M_1M_2 (a_2) & \text{[join the composite actions]}\\
+\end{align*}
+
+It is valid to group actions, since the assumed property states that the same two actions performed sequentially results in the same overall action (using join).
+
+\subsection{Commutativity}
+
+What if an arbitrary monadic action was inserted at an arbitrary depth in the monster? Does this produce the same behaviour on both of the above monsters?\\
+
+I'm going to use the function:
+\begin{lstlisting}
+insertAct :: MonStr m a -> MonStr m a
+insertAct = fmap (\(a,s) -> join (fmap (\(a',s') -> M_x (a',s')) s)
+\end{lstlisting}
+to insert a new action. It could be extended to introduce the action at any level by adding arbitrarily many $fmap$s, recursing down each tail $s$.
+
+\subsubsection{RHS "clean" monster}
+
+For "clean" monsters (ones not produced in the monadic stream join operation)
+\begin{align*}
+& insertAct\ \$\ M_0(a_0, M_1(a_1, M_2 (a_2,... & \text{[inserting a monadic action $M_x$ ]}\\
+=\ & M_0(a_0, M_1M_x(a_1, M_2 (a_2,... 
+\end{align*}
+Now take the nth element and you get the pile of monadic actions:
+\begin{align*}
+M_0M_1M_xM_2M_3M_4... (a_n)\\
+\end{align*}
+If $n = 2$:
+\begin{align*}
+M_0M_1M_xM_2 (a_2)\\
+\end{align*}
+
+\subsubsection{LHS monster produced by bind}
+
+Now to do the same for one produced by the monadic stream created in joining the left identity:
+\begin{align*}
+& insertAct\ \$\ M_0(a_0, M^0_1(a_1, M^0_2 (a_2,... & \text{[inserting a monadic action $M_x$]}\\
+=\ & M_0(a_0, M^0_1M_x(a_1, M^0_2 (a_2,... \\
+\end{align*}
+
+Now take the nth element, resulting in the sequence of actions (expanded for clarity):
+\begin{align*}
+& M_0M_0M_1M_xM_0M_1M_2M_0M_1M_2M_3... (a_n)
+\end{align*}
+If $n = 2$:
+\begin{align*}
+& M_0M_0M_1M_xM_0M_1M_2 (a_2)\\
+=&\ M_0M_1M_xM_0M_1M_2 (a_2)
+\end{align*}
+
+Here we hit a problem - you can't combine the two groups of monadic actions $M_0M_1$ to reduce them using join, since they aren't next to eachother. This removes that reduction as an option to show the equality of the two monsters. \\
+
+\subsubsection{Resolution}
+
+For this to work, the monadic actions also need to be \textbf{commutative}, which would allow the following reduction:
+\begin{align*}
+& M_0M_1M_xM_0M_1M_2 (a_2)\\
+=&\ (M_0M_1)M_x(M_0M_1)M_2 (a_2) &\text{[grouping actions]}\\
+=&\ (M_0M_1)(M_0M_1)M_xM_2 (a_2) &\text{[applying commutativity]}\\
+=&\ M_0M_1M_xM_2 (a_2)
+\end{align*}
+
+This results in the same monster as the "clean" RHS.\\
+
+So far, it seems that in order for a monadic stream of a monad $M$ to itself be a monad, $M$ needs to have at least these properties:
+\begin{itemize}
+	\item Two monadic actions which perform the same action, should join to produce the same action - \textbf{indempotency}
+	\item The order in which monadic actions are applied should be have no effect on the result - \textbf{commutativity} 
+\end{itemize}
+
+https://dl.acm.org/doi/pdf/10.1145/1596550.1596553 - commutative monads:
+\begin{itemize}
+	\item Writer (with a commutative monoid)
+	\item Identity
+	\item Maybe
+	\item Reader
+	\item FiniteSet/Powerset
 \end{itemize}
 
 \end{document}
