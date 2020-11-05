@@ -236,10 +236,9 @@ stopAtZero' s = do
 
 type StatefulStream s a = MonStr (State s) a
 
--- collapseStateStream :: StatefulStream s a -> State s a
--- collapseStateStream (MCons sts) s = do
---                                       let ((a, sts'), s') = runState sts s
---                                       sts >>= collapseStateStream sts' s'
+compileST :: Monad m => MonStr (StateT s m) a -> s -> MonStr m a
+compileST (MCons sts) s = MCons $ do ((a, sts'), s') <- runStateT sts s
+                                     return (a, compileST sts' s')
 
 runSStr :: StatefulStream s a -> s -> Stream a
 runSStr (MCons sts) s = let ((a, sts'), s') = runState sts s

@@ -292,19 +292,3 @@ wordsMMS mcs = MCons $ do (c,s) <- unwrapMS mcs
                      
 -- unwordsMMS :: Monad m => MonStr m Char
 -- unwordsMMS
-
--- Takes two monadic streams, and combines the monadic actions, returning the elements from the second stream
---  this can be used to serialise two IO monsters for example (the actions in each stream are both run at each step)
-combineMMS :: Monad m => MonStr m a -> MonStr m b -> MonStr m b
-combineMMS mas mbs = MCons $ do (a, as) <- unwrapMS mas
-                                fmap (\(e,s) -> (e, combineMMS as s)) (unwrapMS mbs)
-    
--- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
-distributeInnerMMS :: Monad m => m a -> MonStr m a -> MonStr m a
-distributeInnerMMS ma mas = MCons . join $ (\(a,s) -> fmap (\_ -> (a, distributeInnerMMS ma s)) ma) <$> unwrapMS mas
-
--- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action first
-distributeOuterMMS :: Monad m => m a -> MonStr m a -> MonStr m a
-distributeOuterMMS ma mas = MCons . join $ (\_ -> fmap (\(a, s) -> (a, distributeOuterMMS ma s)) (unwrapMS mas)) <$> ma
-
-

@@ -162,20 +162,13 @@ diagonalMM mm = tailMS mm >>= liftMS . fmap tailMS
 joinMS :: Monad m => MonMatrix m a -> MonStr m a
 joinMS mm = originMM mm <::: fmap joinMS (diagonalMM mm)
 
--- These versions seem correct (at least in preliminary testing) for:
---   - List monad - !NOT CORRECT FOR LAW 1!
---   - Maybe monad 
---   - State monad - Also not correct for law 1
+-- These versions seem to be the way to join the inner and outer streams resulting in the least duplication of monadic action
+--  they only satisfy the monad laws for monads which have certain properties (need to find what these are)
 joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
 joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
 
 joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
 joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
-
-
--- This approach will work - don't join the actions, and then factor them out afterwards
--- joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
--- joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
 
 
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
