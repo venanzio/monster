@@ -188,6 +188,10 @@ ts3' = treeBranchList [0,1,2] >>= (\x -> (\n -> treeBranchList [n,n+1,n+2]) x >>
 
 type Process a = MonStr IO a
 
+runVoidProcess :: Process () -> IO ()
+runVoidProcess (MCons s) = do (a,s') <- s
+                              runVoidProcess s'
+
 -- Perhaps needed to abstract what is returned by runProcess to a higher level - this allows for 
 --  many different kinds of processes to be created (i.e. ones returning a Maybe value) - cannot be stopped
 runProcess :: (Monad m, Monoid (m a)) => Process a -> IO (m a)

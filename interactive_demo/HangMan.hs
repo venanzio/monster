@@ -1,4 +1,4 @@
-module HangMan where
+module Main where
  
 import MonStreams
 import PureStreams
@@ -7,6 +7,9 @@ import MonStrExamples
 import Combinators
 import Control.Monad.State
  
+main :: IO ()
+main = playHangman
+
 playHangman :: IO ()
 playHangman = do putStrLn "Pick a word:"
                  s <- getLine
