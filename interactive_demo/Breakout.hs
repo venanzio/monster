@@ -73,29 +73,76 @@ userInp :: IO Int
 userInp = do c <- getChar
              return (ord c)
 
-game :: MonStr (StateT String IO) ()
-game = MCons $ do line <- get
-                  arrow <- lift $ maxtime 100 getArrow Nothing
-                  let ln@(l,ast:r) = break (=='*') line in
-                     do (case arrow of
-                            Nothing -> return ()
-                            Just a -> case a of
-                                         L -> case l of 
-                                                 [] -> return ()
-                                                 xs -> put (init l ++ ast:(last l):r)
-                                         R -> case r of 
-                                                 []     -> return ()
-                                                 (x:xs) -> put (l ++ x:ast:xs)
-                                         _ -> return ())
-                        out <- get
-                        lift $ putStr "\r"
-                        lift $ putStr out
-                        return ((), game)
+screenWidth :: Int 
+screenWidth = 80
+
+screenHeight :: Int
+screenHeight = 24
+
+ballSpeed :: Double
+ballSpeed = 0.5
+             
+             
+type GameState = (Int, (Double, Double), (Double, Double))
+
+movePaddle :: MonStr (StateT GameState IO) ()
+movePaddle = MCons $ do (batp, ballp, ballv) <- get
+                        arrow <- lift $ maxtime 100000 getArrow Nothing
+                        do (case arrow of
+                               Nothing -> return ()
+                               Just a -> case a of
+                                            L -> if batp == 0 then return () else put ((batp - 1), ballp, ballv)
+                                            R -> if batp == 73 then return () else put ((batp + 1), ballp, ballv)
+                                            _ -> return ())
+                           return ((), movePaddle)
+               
+constrainBallY :: (Double,Double) -> (Double, Double) -> ((Double,Double),(Double, Double))
+constrainBallY (bx,by) (bvx,bvy) = if by <= 1.0 then ((bx,1.0),(bvx,-bvy))
+                                              else if by >= fromIntegral screenHeight then (((fromIntegral screenWidth) / 2, 3.0), (0,1))
+                                                                         else ((bx,by),(bvx,bvy))
+                           
+constrainBall :: (Double,Double) -> (Double, Double) -> ((Double,Double),(Double, Double))
+constrainBall (bx,by) (bvx,bvy) = if bx <= 0 then constrainBallY (0,by) (-bvx,bvy)
+                                             else if bx >= fromIntegral screenWidth then constrainBallY ((fromIntegral screenWidth)-0.1,by) (-bvx,bvy)
+                                                                       else constrainBallY (bx,by) (bvx,bvy)
+                           
+batCollision :: GameState -> GameState
+batCollision r@(batp, (bx,by), (bvx,bvy)) = if (round by == 22) && (signum(bvy) > 0) then 
+                                               (if bx >= fromIntegral (batp-1) && bx < fromIntegral (batp+7) then (batp, (bx,by), (((2.0/7.0) * (bx - fromIntegral batp)) - 1,-bvy))
+                                                                                                         else r) 
+                                                                                     else r
+                           
+moveBall :: StateT GameState IO ()
+moveBall = do (batp, ballp, ballv) <- get 
+              let ((bx,by), (bvx,bvy)) = constrainBall ballp ballv 
+                  (batp', (bx',by'), (bvx',bvy')) = batCollision (batp, (bx,by), (bvx,bvy)) in
+                  put (batp', (bx' + (ballSpeed * bvx'), by' + (ballSpeed * bvy')), (bvx',bvy'))
+
+emptyLine :: String
+emptyLine = (replicate 80 ' ') ++ ['\n']
+
+emptyLines :: Int -> String
+emptyLines n = concat (replicate n emptyLine)
+                       
+printGame :: MonStr (StateT GameState IO) ()
+printGame = MCons $ do (batp, ballp, ballv) <- get
+                       -- printing the ball, y in [0,24), x in [0,80), y = 0 is the top of the screen
+                       (let (bx,by) = (\(x,y) -> (round x, round y)) ballp in
+                           do lift $ putStr (emptyLines (by-1))
+                              lift $ putStr $ (replicate bx ' ') ++ '*':(replicate ((screenWidth-1) - bx) ' ' ++ ['\n'])
+                              lift $ putStr (emptyLines ((screenHeight-3)-(by-1)))
+                           )
+                       -- printing bat
+                       lift $ putStr $ (replicate batp ' ') ++ "=======" ++ (replicate ((screenWidth-8) - batp) ' ')
+                       lift $ putStr (replicate 2 '\n')
+                       return ((), printGame)
+               
+game :: MonStr (StateT GameState IO) ()
+game = (moveBall |:> movePaddle) >>> printGame
 
 main :: IO ()
 main = do hSetBuffering stdin NoBuffering
           hSetEcho stdin False
-          putStr "            *             "
-          runVoidProcess (compileST game "            *             ")
+          runVoidProcess (compileST game (screenWidth `div` 2,((fromIntegral screenWidth/2),3.0),(0,1.0)))
 
           
