@@ -85,16 +85,15 @@ ballSpeed = 0.5
              
 type GameState = (Int, (Double, Double), (Double, Double))
 
-movePaddle :: MonStr (StateT GameState IO) ()
-movePaddle = MCons $ do (batp, ballp, ballv) <- get
-                        arrow <- lift $ maxtime 100000 getArrow Nothing
-                        do (case arrow of
-                               Nothing -> return ()
-                               Just a -> case a of
-                                            L -> if batp == 0 then return () else put ((batp - 1), ballp, ballv)
-                                            R -> if batp == 73 then return () else put ((batp + 1), ballp, ballv)
-                                            _ -> return ())
-                           return ((), movePaddle)
+movePaddle :: StateT GameState IO ()
+movePaddle = do (batp, ballp, ballv) <- get
+                arrow <- lift $ maxtime 100000 getArrow Nothing
+                case arrow of
+                   Nothing -> return ()
+                   Just a -> case a of
+                                L -> if batp == 0 then return () else put ((batp - 1), ballp, ballv)
+                                R -> if batp == 73 then return () else put ((batp + 1), ballp, ballv)
+                                _ -> return ()
                
 constrainBallY :: (Double,Double) -> (Double, Double) -> ((Double,Double),(Double, Double))
 constrainBallY (bx,by) (bvx,bvy) = if by <= 1.0 then ((bx,1.0),(bvx,-bvy))
@@ -124,21 +123,21 @@ emptyLine = (replicate 80 ' ') ++ ['\n']
 emptyLines :: Int -> String
 emptyLines n = concat (replicate n emptyLine)
                        
-printGame :: MonStr (StateT GameState IO) ()
-printGame = MCons $ do (batp, ballp, ballv) <- get
-                       -- printing the ball, y in [0,24), x in [0,80), y = 0 is the top of the screen
-                       (let (bx,by) = (\(x,y) -> (round x, round y)) ballp in
-                           do lift $ putStr (emptyLines (by-1))
-                              lift $ putStr $ (replicate bx ' ') ++ '*':(replicate ((screenWidth-1) - bx) ' ' ++ ['\n'])
-                              lift $ putStr (emptyLines ((screenHeight-3)-(by-1)))
-                           )
-                       -- printing bat
-                       lift $ putStr $ (replicate batp ' ') ++ "=======" ++ (replicate ((screenWidth-8) - batp) ' ')
-                       lift $ putStr (replicate 2 '\n')
-                       return ((), printGame)
-               
+printGame :: StateT GameState IO ()
+printGame = do (batp, ballp, ballv) <- get
+               -- printing the ball, y in [0,24), x in [0,80), y = 0 is the top of the screen
+               (let (bx,by) = (\(x,y) -> (round x, round y)) ballp in
+                   do lift $ putStr (emptyLines (by-1))
+                      lift $ putStr $ (replicate bx ' ') ++ '*':(replicate ((screenWidth-1) - bx) ' ' ++ ['\n'])
+                      lift $ putStr (emptyLines ((screenHeight-3)-(by-1)))
+                   )
+               -- printing bat
+               lift $ putStr $ (replicate batp ' ') ++ "=======" ++ (replicate ((screenWidth-8) - batp) ' ')
+               lift $ putStr (replicate 2 '\n')
+
+-- Using combinators and streamify to turn the actions into a continuous process          
 game :: MonStr (StateT GameState IO) ()
-game = (moveBall |:> movePaddle) >>> printGame
+game = (streamify movePaddle) |:> moveBall |:> printGame
 
 main :: IO ()
 main = do hSetBuffering stdin NoBuffering

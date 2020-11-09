@@ -15,6 +15,7 @@
 module Operations where
 
 import MonStreams
+import PureStreams
 
 import Control.Applicative
 import Control.Monad
@@ -73,9 +74,25 @@ unfoldMS :: Functor m => (b -> (m a, b)) -> b -> MonStr m a
 unfoldMS f b = a <:: unfoldMS f b'
                where (a, b') = f b
 
--- Deconstructs a MonStr into its head and tail (not sure if this would work since it duplicates the monadic action)
+-- Produces the infinite sequence of repeated applications of
+--  f to x
+iterateMS :: Functor m => (m a -> m a) -> m a -> MonStr m a
+iterateMS f x = x <:: iterateMS f (f x)
+
+-- Deconstructs a MonStr into its head and tail - the head
+--  and tail cannot be recombined to produce the same monster
+--  unless the monad satisfies certain properties
 outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
 outMS ms = (headMS ms, tailMS ms)
+
+scanMMS :: Applicative m => (a -> b -> a) -> a -> MonStr m b -> MonStr m a
+scanMMS f z s = z <: scanH f z s
+                where scanH f z s = MCons $ (\(a, s') -> (f z a, scanH f (f z a) s')) <$> unwrapMS s
+
+-- A verison of scanMMS without a starting value argument - works 
+--  very nicely on trees
+scanMMS1 :: Monad m => (a -> a -> a) -> MonStr m a -> MonStr m a
+scanMMS1 f s = absorbMS $ (\(a, s') -> scanMMS f a s') <$> unwrapMS s
 
 -- Appending two monsters: the second is grafted when there is an empty action
 infixr 5 +++
@@ -87,7 +104,7 @@ infixl 9 !!!
 (!!!) :: Monad m => MonStr m a -> Int -> m a
 s !!! n = headMS $ (iterate tailMMS s) !! n
 
--- Appending an element in from of each entry in a monster of lists
+-- Appending an element in front of each entry in a monster of lists
 consMMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
 consMMS a s = fmap (a:) s
 
@@ -97,37 +114,45 @@ prefixesMMS :: Applicative m => MonStr m a -> MonStr m [a]
 prefixesMMS = transformMS (\h t -> ([h], consMMS h (prefixesMMS t)))
 
 -- Prefixes a given monadic stream with a given list of values
-prefixMS :: Applicative m => [a] -> MonStr m a -> MonStr m a
-prefixMS xs s = foldr (<:) s xs
+prefixMMS :: Applicative m => [a] -> MonStr m a -> MonStr m a
+prefixMMS xs s = foldr (<:) s xs
 
--- Appending the empty list, to make it equivalente to inits in Data.List
+-- Prefixes a given monadic stream with a given list of m values
+prefixMS' :: Functor m => [m a] -> MonStr m a -> MonStr m a
+prefixMS' xs s = foldr (<::) s xs
+
+-- Appending the empty list, to make it equivalent to inits in Data.List
 initsMMS :: Applicative m => MonStr m a -> MonStr m [a]
 initsMMS s = [] <: prefixesMMS s
 
+-- Constructs a list containing all of the suffix monsters of
+--  the argument - equivalent to tails in Stream.hs
+tailsMMS :: Monad m => MonStr m a -> [MonStr m a]
+tailsMMS mas = mas:(tailsMMS (tailMMS mas))
 
 -- Version of "take": returns the list of the first n elements
 --  For trees, we expect to get:
---    takeMS returns the list paths of depth n
---    takeMMS returns the list of slices at depths less than n
+--    takeMMS returns the list paths of depth n
+--    takeMMS'' returns the list of slices at depths less than n
 
 -- Returns the list of first n elements
 --  In case of trees: paths of length n (ignores shorter paths)
-takeMS :: Monad m => Int -> MonStr m a -> m [a]
-takeMS n s
+takeMMS :: Monad m => Int -> MonStr m a -> m [a]
+takeMMS n s
   | n == 0 = return []
-  | n > 0  = unwrapMS s >>= \(h,t) -> fmap (h:) (takeMS (n-1) t)
-  | otherwise = error "Operations.takeMS: negative argument."
+  | n > 0  = unwrapMS s >>= \(h,t) -> fmap (h:) (takeMMS (n-1) t)
+  | otherwise = error "Operations.takeMMS: negative argument."
 
 -- Simpler alternative: nth elements of the inits
-takeMS' :: Monad m => Int -> MonStr m a -> m [a]
-takeMS' n s = initsMMS s !!! n
+takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
+takeMMS' n s = initsMMS s !!! n
 
 -- Extracting the list of the first n heads (each inside the monad)
 --  In case of trees: slices at depths less than n
-takeMMS :: Monad m => Int -> MonStr m a -> [m a]
-takeMMS n ms
+takeMMS'' :: Monad m => Int -> MonStr m a -> [m a]
+takeMMS'' n ms
   | n == 0    = []
-  | n > 0     = headMS ms : (takeMMS (n - 1) (tailMMS ms))
+  | n > 0     = headMS ms : (takeMMS'' (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMMS: negative argument."
 
 -- Returns the longest prefix of ma that satisfies p
@@ -141,7 +166,7 @@ spanMMS p ma = unwrapMS ma >>= \(h,t) -> if p h then let ret = spanMMS p t
                                                      in fmap (\(l, s) -> (h:l, s)) ret
                                                 else return ([], h <: t)
 
--- breakMMS is equivalent to spanMMS (not . p)
+-- breakMMS p is equivalent to spanMMS (not . p)
 --
 -- /Beware/: this function may diverge for the same reason as spanMMS
 breakMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
@@ -169,10 +194,6 @@ partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t,
      while we want to a head to be combined only with its original tail
    Lesson: always use unwrapMS to get head and tail out
 -}
-  
--- version of the above using sequence instead to make more compact
-takeMMS' :: Monad m => Int -> MonStr m a -> m [a]
-takeMMS' n = sequence . (takeMMS n)
 
 -- "Internal" version of take: pruning the stream at depth n
 pruneMMS :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
@@ -189,15 +210,22 @@ dropMMS n ms
   
 -- Splits the MonStr at the given index
 splitAtMMS :: Monad m => Int -> MonStr m a -> ([m a], MonStr m a)
-splitAtMMS n ms = (takeMMS n ms, dropMMS n ms)
+splitAtMMS n ms = (takeMMS'' n ms, dropMMS n ms)
 
 splitAtMMS' :: Monad m => Int -> MonStr m a -> (m [a], MonStr m a)
-splitAtMMS' n ms = (takeMS' n ms, dropMMS n ms)
+splitAtMMS' n ms = (takeMMS' n ms, dropMMS n ms)
 
 -- "Internal" split
 splitAtMS :: MonadPlus m => Int -> MonStr m a -> (MonStr m a, MonStr m a)
 splitAtMS n s = (pruneMMS n s, dropMMS n s)
 
+-- Intersperses elements of ms with ma
+intersperseMS :: Functor m => m a -> MonStr m a -> MonStr m a
+intersperseMS ma = transformMS (\h t -> (h, ma <:: (intersperseMS ma t)))
+
+-- Interleaves the elements (and actions) of two monadic streams
+interleaveMS :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
+interleaveMS mas mbs = transformMS (\h t -> (h, interleaveMS mbs t)) mas
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely

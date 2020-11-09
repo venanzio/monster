@@ -70,6 +70,10 @@ Instances of Functor, Applicative, Monad
 Definition of generalization to monster of functions
 defined in Data.List and in the Stream package by Swiestra and van Dijk
 
+## Combinators
+
+Defines functions which combine monsters, and perform operators such as interleaving monadic actions into an existing monster, and creating a monster from a single action
+
 ## PureStreams
 
 Defines pure streams as Identity-monsters.

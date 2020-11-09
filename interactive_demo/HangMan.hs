@@ -17,7 +17,7 @@ playHangman = do putStrLn "Pick a word:"
                  return ()
 
 runHangman :: String -> IO [Bool]
-runHangman s = stopAtPred (== False) (compileST (traceGame $:> lift endEarly $:> game) [(c,False) | c <- s])
+runHangman s = stopAtPred (== False) (compileST (game $:> traceGame $:> lift endEarly) [(c,False) | c <- s])
  
 game :: MonStr (StateT ([(Char, Bool)]) IO) Bool
 game = MCons $ do cs <- get
