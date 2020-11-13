@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.15)  5 NOV 2020 15:31
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.15)  11 NOV 2020 10:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -320,30 +320,44 @@ Overfull \hbox (57.00409pt too wide) in paragraph at lines 193--194
 
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 197.
-[6] [7] (./monster_monad.aux) ) 
+[6] [7] (./monster_monad.bbl
+
+! Package inputenc Error: Unicode character ⋆ (U+22C6)
+(inputenc)                not set up for use with LaTeX.
+
+See the inputenc package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.5 \newblock Idempotent monads and ⋆
+                                       -functors.
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+) [8] (./monster_monad.aux) ) 
 Here is how much of TeX's memory you used:
- 3201 strings out of 492649
- 42813 string characters out of 6129622
- 113536 words of memory out of 5000000
- 7059 multiletter control sequences out of 15000+600000
+ 3206 strings out of 492649
+ 42879 string characters out of 6129622
+ 113539 words of memory out of 5000000
+ 7061 multiletter control sequences out of 15000+600000
  17679 words of font info for 42 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  28i,13n,32p,380b,1211s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2018/texmf-dist/fonts/enc/dv
-ips/base/8r.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmex10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmmi12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmmi7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mr10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr
-7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10
-.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr
-/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/tex
-live/2018/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on monster_monad.pdf (7 pages, 115394 bytes).
+{/usr/local/texlive/2018/texmf-dist/fonts/enc/dvip
+s/base/8r.enc}</usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmex10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmmi10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmmi12.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/c
+mmi7.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr
+10.pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.
+pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.p
+fb></usr/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/l
+ocal/texlive/2018/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texli
+ve/2018/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on monster_monad.pdf (8 pages, 120120 bytes).
 PDF statistics:
- 69 PDF objects out of 1000 (max. 8388607)
- 49 compressed objects within 1 object stream
+ 72 PDF objects out of 1000 (max. 8388607)
+ 51 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

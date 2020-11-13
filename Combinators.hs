@@ -15,8 +15,14 @@ infixr 5 >>>
 (>>>) :: Monad m => MonStr m a -> MonStr m b -> MonStr m b
 mas >>> mbs = MCons $ do (a, as) <- unwrapMS mas
                          fmap (\(e,s) -> (e, as >>> s)) (unwrapMS mbs)
-                                
--- (&&&) :: Monad m => MonStr m a -> MonStr
+
+-- Pairs elements of two streams
+(&&&) :: Monad m => MonStr m a -> MonStr m b -> MonStr m (a, b)
+ma &&& mb = (,) <$> ma <*> mb
+
+-- 'Lifts' a binary functions to act on monsters of pairs
+mfunc2 :: Monad m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
+mfunc2 f = fmap (uncurry f)
     
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
 --  throws away the return value of the given monadic action

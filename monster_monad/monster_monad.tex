@@ -248,6 +248,8 @@ So far, it seems that in order for a monadic stream of a monad $M$ to itself be 
 	\item The order in which monadic actions are applied should be have no effect on the result - \textbf{commutativity} 
 \end{itemize}
 
+\subsubsection{Monads which may satisfy these properties}
+
 https://dl.acm.org/doi/pdf/10.1145/1596550.1596553 - commutative monads:
 \begin{itemize}
 	\item Writer (with a commutative monoid)
@@ -256,5 +258,10 @@ https://dl.acm.org/doi/pdf/10.1145/1596550.1596553 - commutative monads:
 	\item Reader
 	\item FiniteSet/Powerset
 \end{itemize}
+
+Clark and Wisbauer give a very in-depth categorical desciption of indempotent monads \cite{indempotent_monads}.
+
+\bibliography{biblio.bib}
+\bibliographystyle{abbrv}
 
 \end{document}

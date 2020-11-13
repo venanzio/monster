@@ -9,6 +9,7 @@ import MonStreams
 import PureStreams
 import Operations
 import Morphisms
+import Combinators
 
 import Control.Applicative
 import Control.Monad
