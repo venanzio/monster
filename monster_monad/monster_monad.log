@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.15)  11 NOV 2020 10:36
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.15)  18 NOV 2020 14:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -313,13 +313,23 @@ File: omlptm.fd
 LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <10> not available
 (Font)              Font shape `OML/cmm/m/it' tried instead on input line 192.
 
-Overfull \hbox (57.00409pt too wide) in paragraph at lines 193--194
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+Overfull \hbox (27.00378pt too wide) in paragraph at lines 192--193
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
 
+
+Overfull \hbox (69.00421pt too wide) in paragraph at lines 193--194
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][] 
+ []
+
+
+Overfull \hbox (51.00403pt too wide) in paragraph at lines 195--196
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 197.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 200.
 [6] [7] (./monster_monad.bbl
 
 ! Package inputenc Error: Unicode character ⋆ (U+22C6)
@@ -337,8 +347,8 @@ You may provide a definition with
 ) [8] (./monster_monad.aux) ) 
 Here is how much of TeX's memory you used:
  3206 strings out of 492649
- 42879 string characters out of 6129622
- 113539 words of memory out of 5000000
+ 42873 string characters out of 6129622
+ 116539 words of memory out of 5000000
  7061 multiletter control sequences out of 15000+600000
  17679 words of font info for 42 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -354,7 +364,7 @@ pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.p
 fb></usr/local/texlive/2018/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/l
 ocal/texlive/2018/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texli
 ve/2018/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on monster_monad.pdf (8 pages, 120120 bytes).
+Output written on monster_monad.pdf (8 pages, 120562 bytes).
 PDF statistics:
  72 PDF objects out of 1000 (max. 8388607)
  51 compressed objects within 1 object stream

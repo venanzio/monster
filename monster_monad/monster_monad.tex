@@ -189,10 +189,13 @@ What if an arbitrary monadic action was inserted at an arbitrary depth in the mo
 
 I'm going to use the function:
 \begin{lstlisting}
-insertAct :: MonStr m a -> MonStr m a
-insertAct = fmap (\(a,s) -> join (fmap (\(a',s') -> M_x (a',s')) s)
+insertAct :: Monad m => Int -> m a -> MonStr m a -> MonStr m a
+insertAct 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h,t)) ma) 
+                                  <$> unwrapMS mas
+insertAct n ma mas = MCons $ (\(h,t) -> (h, insertAct (n-1) ma t)) 
+                                  <$> unwrapMS mas
 \end{lstlisting}
-to insert a new action. It could be extended to introduce the action at any level by adding arbitrarily many $fmap$s, recursing down each tail $s$.
+to insert a new action. This can be used to insert a single monadic action at any level in the stream (discarding the new monadic actions result). My usage of it below assumes some arbitrary action $M_x$ and an insertion depth $n$ equal to 2, just to simplify notation.
 
 \subsubsection{RHS "clean" monster}
 
