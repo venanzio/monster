@@ -105,27 +105,31 @@
   </tr>
   <tr>
     <td>group</td>
-    <td>-</td> 
+    <td>groupMMS</td> 
   </tr>
   <tr>
     <td>isPrefixOf</td>
-    <td>-</td> 
+    <td>isPrefixOfMMS</td> 
   </tr>
   <tr>
     <td>!! (indexing)</td>
     <td>!!!</td> 
   </tr>
   <tr>
+    <td>elemIndex</td>
+    <td>elemIndexMMS</td> 
+  </tr>
+  <tr>
     <td>elemIndicies</td>
-    <td>-</td> 
+    <td>elemIndiciesMMS</td> 
   </tr>
   <tr>
     <td>findIndex</td>
-    <td>-</td> 
+    <td>findIndexMMS</td> 
   </tr>
   <tr>
     <td>findIndicies</td>
-    <td>-</td> 
+    <td>findIndiciesMMS</td> 
   </tr>
   <tr>
     <td>zip variations</td>
@@ -133,7 +137,7 @@
   </tr>
   <tr>
     <td>distribute</td>
-    <td>-</td> 
+    <td>Doesn't work unless the join operation is indempotent - otherwise will drastically change behaviour of the monster in general</td> 
   </tr>
   <tr>
     <td>unzip variations</td>
@@ -145,15 +149,15 @@
   </tr>
   <tr>
     <td>unwords</td>
-    <td>-</td> 
+    <td>unwordsMMS</td> 
   </tr>
   <tr>
     <td>lines</td>
-    <td>-</td> 
+    <td>linesMMS</td> 
   </tr>
   <tr>
     <td>unlines</td>
-    <td>-</td> 
+    <td>unlinesMMS</td> 
   </tr>
   <tr>
     <td>toList</td>

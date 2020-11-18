@@ -172,11 +172,11 @@ spanMMS p ma = unwrapMS ma >>= \(h,t) -> if p h then let ret = spanMMS p t
 breakMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
 breakMMS p = spanMMS (not . p)
 
--- This will diverge in for the same reason as spanMMS
+-- This may diverge for the same reason as spanMMS
 takeWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> m [a]
 takeWhileMMS p ma = fmap fst $ spanMMS p ma
 
--- This will diverge in for the same reason as spanMMS
+-- This may diverge for the same reason as spanMMS
 dropWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 dropWhileMMS p ma = absorbMS . (fmap snd) $ spanMMS p ma
 
@@ -186,6 +186,16 @@ partitionMMS :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m (MonStr 
 partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t, t) else partitionMMS p t) in 
                                                   if p h then (\p' -> fmap (\(t, f) -> (h <: t, f)) p') ret
                                                          else (\p' -> fmap (\(t, f) -> (t, h <: f)) p') ret
+
+-- Groups consecutive equal elements of the monster into lists
+groupMMS :: (Monad m, Eq a) => MonStr m a -> MonStr m [a]
+groupMMS mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMMS t')) (spanMMS (==h) t)) <$> unwrapMS mas
+
+-- isPrefixOfMMS returns True if the first argument is a prefix of the second, and False otherwise
+--  will diverge if the monsters being compared are the same and are infinite
+isPrefixOfMMS :: (Monad m, Foldable m, Eq a) => MonStr m a -> MonStr m a -> m Bool
+isPrefixOfMMS ma mb = join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMMS t t')) <$> unwrapMS ma <*> unwrapMS mb
+
 
 {- Comment by Venanzio: takeMMS' and takeMMS'' give strange results on trees
    Its a similar problem to the one we had for inits:
@@ -252,8 +262,8 @@ initMMS' = sequence . initMMS
 -- version of initMMS where the last element is removed from the given finite MonStr
 initMMS'' :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
 initMMS'' = mapOutMS $ \hd tl -> if null tl
-                                   then tl
-                                   else hd <: initMMS'' tl
+                                    then tl
+                                    else hd <: initMMS'' tl
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to diverge
@@ -312,11 +322,37 @@ unzip3MMS ms = (fmap (\(a,_,_) -> a) ms, fmap (\(_,b,_) -> b) ms, fmap (\(_,_,c)
 filterMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
 filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
                                        else filterMMS p s)
+
+-- Functions to separate/join words and lines within monsters of strings/characters
                                        
 wordsMMS :: Monad m => MonStr m Char -> MonStr m String
 wordsMMS mcs = MCons $ do (c,s) <- unwrapMS mcs
                           if c == ' ' then return ([], wordsMMS s)
                                       else fmap (\(str, s') -> (c:str, s')) (unwrapMS (wordsMMS s))
                      
--- unwordsMMS :: Monad m => MonStr m Char
--- unwordsMMS
+unwordsMMS :: Monad m => MonStr m String -> MonStr m Char
+unwordsMMS mss = MCons $ (\(s,c) -> if null s then (' ', unwordsMMS c) else (head s, unwordsMMS (tail s <: c))) <$> unwrapMS mss    
+
+linesMMS :: Monad m => MonStr m Char -> MonStr m String
+linesMMS mcs = MCons $ do (c,s) <- unwrapMS mcs
+                          if c == '\n' then return ([], linesMMS s)
+                                      else fmap (\(str, s') -> (c:str, s')) (unwrapMS (linesMMS s))
+                     
+unlinesMMS :: Monad m => MonStr m String -> MonStr m Char
+unlinesMMS mss = MCons $ (\(s,c) -> if null s then ('\n', unlinesMMS c) else (head s, unlinesMMS (tail s <: c))) <$> unwrapMS mss                              
+
+-- Functions for finding indices of elements which satify given predicates
+
+findIndexMMS :: Monad m => (a -> Bool) -> MonStr m a -> m Int
+findIndexMMS p = indexFrom 0
+                 where indexFrom ix mas = join $ (\(h,t) -> if p h then return ix else (indexFrom $! (ix+1)) t) <$> unwrapMS mas
+
+elemIndexMMS :: (Monad m, Eq a) => a -> MonStr m a -> m Int
+elemIndexMMS x = findIndexMMS (==x)
+
+findIndicesMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m Int
+findIndicesMMS p = indicesFrom 0
+                   where indicesFrom ix mas = MCons . join $ (\(h,t) -> let ixs = (indicesFrom $! (ix+1)) t in if p h then return (ix, ixs) else (unwrapMS ixs)) <$> unwrapMS mas
+                  
+elemIndicesMMS :: (Monad m, Eq a) => a -> MonStr m a -> MonStr m Int
+elemIndicesMMS x = findIndicesMMS (==x)

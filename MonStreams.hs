@@ -52,7 +52,7 @@ transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
 
 -- Appending an m-element in front of a stream
 infixr 5 <::
-(<::) :: (Functor m) => m a -> MonStr m a -> MonStr m a
+(<::) :: Functor m => m a -> MonStr m a -> MonStr m a
 ma <:: s = MCons (fmap (\a -> (a,s)) ma)
 
 instance Functor m => Functor (MonStr m) where
@@ -169,7 +169,6 @@ joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (abso
 
 joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
 joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
-
 
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
 makeMonMatrix f = fmap f

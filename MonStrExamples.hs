@@ -42,6 +42,9 @@ fromL = toList
 natsLess10 :: MonStr Maybe Integer
 natsLess10 = llist [0..9]
 
+nats2To18 :: MonStr Maybe Integer
+nats2To18 = llist [2..18]
+
 natsS :: MonStr Maybe Integer
 natsS = llist [0..]
 

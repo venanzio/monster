@@ -1,6 +1,7 @@
 module Combinators where
  
 import Control.Monad
+import Control.Applicative
 import MonStreams
 import Operations
 
@@ -10,17 +11,17 @@ streamify ma = MCons $ do a <- ma
                           return (a, streamify ma)
 
 -- Takes two monadic streams, and combines the monadic actions at each point in the stream, returning the elements from the second stream
---  this can be used to serialise two IO monsters for example (the actions in each stream are both run at each step)
+--  this can be used to interleave the actions in two IO monsters for example (the actions in each stream are both run at each step)
 infixr 5 >>>
 (>>>) :: Monad m => MonStr m a -> MonStr m b -> MonStr m b
 mas >>> mbs = MCons $ do (a, as) <- unwrapMS mas
                          fmap (\(e,s) -> (e, as >>> s)) (unwrapMS mbs)
 
 -- Pairs elements of two streams
-(&&&) :: Monad m => MonStr m a -> MonStr m b -> MonStr m (a, b)
-ma &&& mb = (,) <$> ma <*> mb
+(&&&) :: Applicative m => MonStr m a -> MonStr m b -> MonStr m (a, b)
+ma &&& mb = liftA2 (,) ma mb
 
--- 'Lifts' a binary functions to act on monsters of pairs
+-- Lifts a binary functions to act on monsters of pairs
 mfunc2 :: Monad m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
 mfunc2 f = fmap (uncurry f)
     

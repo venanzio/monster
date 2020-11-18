@@ -6,10 +6,11 @@ import Operations
 import Combinators
 import MonStrExamples
 import Control.Monad.State
+import Graphics.HGL
 
 -- compile with: ghc Breakout.hs -i"../" -o breakout -package "mtl-2.2.2" -O2
 
--- Took the ArrowKey parsing from https://github.com/jhod0/Haskell-Mastermind
+-- Took the ArrowKey parsing method from https://github.com/jhod0/Haskell-Mastermind
 
 data ArrowKey = U | D | L | R deriving Show
 
@@ -37,7 +38,7 @@ parseArrow = do c <- getChar
    
    
    
--- Found on Haskell wikibooks, inspired the function below                
+-- Found on Haskell wikibooks, informed the waitForFirst function below                
 compete :: [IO a] -> IO a
 compete actions = do
     mvar <- newEmptyMVar
