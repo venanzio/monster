@@ -35,8 +35,7 @@ parseArrow = do c <- getChar
                                    'D' -> return $ Just L
                                    _   -> return Nothing
                    _      -> return Nothing
-   
-   
+
    
 -- Found on Haskell wikibooks, informed the waitForFirst function below                
 compete :: [IO a] -> IO a
@@ -104,7 +103,7 @@ constrainBallY (bx,by) (bvx,bvy) = if by <= 1.0 then ((bx,1.0),(bvx,-bvy))
 constrainBall :: (Double,Double) -> (Double, Double) -> ((Double,Double),(Double, Double))
 constrainBall (bx,by) (bvx,bvy) = if bx <= 0 then constrainBallY (0,by) (-bvx,bvy)
                                              else if bx >= fromIntegral screenWidth then constrainBallY ((fromIntegral screenWidth)-0.1,by) (-bvx,bvy)
-                                                                       else constrainBallY (bx,by) (bvx,bvy)
+                                                                                    else constrainBallY (bx,by) (bvx,bvy)
                            
 batCollision :: GameState -> GameState
 batCollision r@(batp, (bx,by), (bvx,bvy)) = if (round by == 22) && (signum(bvy) > 0) then 
