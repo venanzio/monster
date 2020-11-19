@@ -70,6 +70,12 @@ genPairListMonStr = do l <- (listOf1 (arbitrary :: Gen (Int,Int)))
 --         The correct interpretation is probably: 
 --           - Return Nothing if the Data.List function throws an "empty list" exception
 --           - Return Just [] if the Data.List function returns []
+ 
+-- Also need to bear in mind useful distributions of testing data:
+-- https://www.schoolofhaskell.com/user/pbv/an-introduction-to-quickcheck-testing
+--  - split / span / *other things returning lists based on predicates* are likely to return 
+--    very unbalanced lists a lot of the time, since the random predicates and delimeters are
+--    unlikely to be specific to the lists in question.
 
 -- PASSES
 prop_inits :: Property
