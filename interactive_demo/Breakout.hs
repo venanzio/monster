@@ -6,7 +6,6 @@ import Operations
 import Combinators
 import MonStrExamples
 import Control.Monad.State
-import Graphics.HGL
 
 -- compile with: ghc Breakout.hs -i"../" -o breakout -package "mtl-2.2.2" -O2
 
@@ -83,7 +82,7 @@ ballSpeed :: Double
 ballSpeed = 0.5
              
              
-type GameState = (Int, (Double, Double), (Double, Double))
+type GameState = (Int, (Double, Double), (Double, Double), Window)
 
 movePaddle :: StateT GameState IO ()
 movePaddle = do (batp, ballp, ballv) <- get
@@ -143,5 +142,3 @@ main :: IO ()
 main = do hSetBuffering stdin NoBuffering
           hSetEcho stdin False
           runVoidProcess (compileST game (screenWidth `div` 2,((fromIntegral screenWidth/2),3.0),(0,1.0)))
-
-          
