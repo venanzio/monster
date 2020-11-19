@@ -1,11 +1,19 @@
 # TODO
 
-#####Table of functions from Stream.hs to generalise/try to generalise for monsters
+#### Tasks
+* Show isomorphism between lists and Maybe-monsters
+* Show isomorphism between Identity-monsters and Streams (from Stream.hs)
+* Test that functions in Operations and Data.List are analogous (when functioning on Maybe-monsters and lists respectively) - in progress
+* Test that functions in Operations and Stream are analogous (when functioning on Identity-monsters and Streams respectively)
+* Define equivalence of monadic streams
+* Get HGL (Haskell Graphics Library) installed and working to make Breakout more playable
+
+####Table of functions from Stream.hs to generalise/try to generalise for monsters
 
 <table>
   <tr>
     <th>Streams</th>
-    <th>MonStreams</th> 
+    <th>MonStreams</th>
   </tr>
   <tr>
     <td>head</td>
@@ -165,6 +173,6 @@
   </tr>
   <tr>
     <td>fromList</td>
-    <td>toMonStr</td> 
+    <td>toMonStr</td>
   </tr>
 </table>
