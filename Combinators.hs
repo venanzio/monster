@@ -1,11 +1,11 @@
 module Combinators where
- 
+
 import Control.Monad
 import Control.Applicative
 import MonStreams
 import Operations
 
--- Takes a monadic action and turns it into a monster 
+-- Takes a monadic action and turns it into a monster
 streamify :: Monad m => m a -> MonStr m a
 streamify ma = MCons $ do a <- ma
                           return (a, streamify ma)
@@ -24,7 +24,7 @@ ma &&& mb = liftA2 (,) ma mb
 -- Lifts a binary functions to act on monsters of pairs
 mfunc2 :: Monad m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
 mfunc2 f = fmap (uncurry f)
-    
+
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
 --  throws away the return value of the given monadic action
 infixl 5 |:>
@@ -49,7 +49,7 @@ mas $:> mf = MCons . join $ (\(a,s) -> fmap (\f -> (f a, s $:> mf)) mf) <$> unwr
 infixr 5 $:<
 ($:<) :: Monad m => m (a -> b) -> MonStr m a -> MonStr m b
 mf $:< mas = MCons . join $ (\f -> fmap (\(a, s) -> (f a, mf $:< s)) (unwrapMS mas)) <$> mf
-                  
+
 insertAct :: Monad m => Int -> m a -> MonStr m a -> MonStr m a
 insertAct 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h,t)) ma) <$> unwrapMS mas
 insertAct n ma mas = MCons $ (\(h,t) -> (h, insertAct (n-1) ma t)) <$> unwrapMS mas

@@ -9,9 +9,6 @@ import Foreign
 import Foreign.C.Error
 import Foreign.C.Types
 
-
-
-
 -- Trick for calculating alignment of a type, taken from
 -- http://www.haskell.org/haskellwiki/FFICookBook#Working_with_structs
 -- #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)

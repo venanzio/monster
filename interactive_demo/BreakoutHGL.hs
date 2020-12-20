@@ -60,29 +60,24 @@ constrainBall (bx,by) (bvx,bvy) = if bx <= 0 then constrainBallY (0,by) (-bvx,bv
                                              else if bx >= fromIntegral screenWidth then constrainBallY ((fromIntegral screenWidth)-0.1,by) (-bvx,bvy)
                                                                                     else constrainBallY (bx,by) (bvx,bvy)
 
--- Currently doesn't seem to work for bouncing from underneath
-calculateBounce :: (Double, Double) -> (Double, Double) -> Double -> Double -> (Double, Double)
-calculateBounce (bx,by) (bvx,bvy) cx width = (ballSpeed * sin (a*offset), (-ballSpeed) * cos (a*offset))
-                                             where offset = negate $ ((cx + (width/2.0)) - bx)/(cx + (width/2.0))
-                                                   a      = 2 * pi
+calculateBounce :: (Double, Double) -> (Double, Double) -> (Double, Double) -> (Double, Double) -> ((Double, Double), (Double, Double))
+calculateBounce (bx,by) (bvx,bvy) (cx,cy) (width, height) = -- check which side its on, then check collision with that side - dont worry about corners
 
 batCollision :: GameState -> GameState
-batCollision r@(batp, (bx,by), (bvx,bvy), blockps, w) = if (round by > 220 && round by <= 230) && (signum (bvy) > 0) then 
-                                                        (if bx >= fromIntegral (batp-10) && bx < fromIntegral (batp+70) then (batp, (bx,220), calculateBounce (bx,by) (bvx,bvy) (fromIntegral batp) 60.0,blockps,w)
-                                                                                                                        else r) 
-                                                                                                  else r
+batCollision r@(batp, (bx,by), (bvx,bvy), blockps, w) = (batp, (bx',by'), (bvx',bvy'), blockps, w)
+                                                        where ((bx',by'),(bvx',bvy')) = calculateBounce (bx,by) (bvx,bvy) (fromIntegral batp, 220.0) (60.0,10.0)
 
 blockCollisions :: GameState -> GameState
 blockCollisions r@(batp, (bx,by), (bvx,bvy), [], w)          = r
 blockCollisions r@(batp, (bx,by), (bvx,bvy), (b:blockps), w) = case singleBlockCollision (bx,by) (bvx,bvy) b of 
-                                                                  Just (nxv,nyv) -> (batp, (bx,by), (nxv,nyv), blockps, w)
-                                                                  Nothing        -> (\(bp,bap,bav,bs,w) -> (bp,bap,bav,(b:bs),w)) $ blockCollisions (batp, (bx,by), (bvx,bvy), blockps, w)
+                                                                  Just (newp,newv) -> (batp, newp, newv, blockps, w)
+                                                                  Nothing -> (\(bp,bap,bav,bs,w) -> (bp,bap,bav,(b:bs),w)) $ blockCollisions (batp, (bx,by), (bvx,bvy), blockps, w)
                                                                   
 -- Block positions indicate bottom left corner of blocks, and blocks are 20x10
 -- Maybe returns a new ball speed
-singleBlockCollision :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Maybe (Double,Double) 
+singleBlockCollision :: (Double, Double) -> (Double, Double) -> (Double, Double) -> Maybe ((Double,Double), (Double,Double))
 singleBlockCollision (bx,by) (bvx,bvy) (blx, bly) = if (bx > blx - 1 && bx < blx + 21) then
-                                                       if (by > bly && by < bly + 10) then Just (calculateBounce (bx,by) (bvx,bvy) blx 20.0)
+                                                       if (by > bly && by < bly + 10) then Just (calculateBounce (bx,by) (bvx,bvy) (blx,bly) (20.0,10.0))
                                                                                       else Nothing
                                                                                        else Nothing
                                            

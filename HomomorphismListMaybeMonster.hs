@@ -34,6 +34,11 @@ instance Eq a => Eq (MonStr Maybe a) where
    
 instance Show a => Show (MonStr Maybe a) where
    show (MCons m) = show m
+   
+repeatIOAction :: Int -> IO () -> IO ()     -- Inputs: integer and IO. Outputs: IO 
+repeatIOAction 0 _      = return ()         -- exit recursive loop here
+repeatIOAction n action = do action         -- action to perform
+                             repeatIOAction (n-1) action 
 
 -- Tests for isomorphism between list and maybe monster, with llist and toList as the two morphisms between the types
 
@@ -103,6 +108,10 @@ prop_take'' = forAll (genListMonStr >*< chooseInt (0,1000)) $
                  \((l, ms), n) -> takeMMS'' n ms === fmap Just (take n l)
 
 -- PASSES
+prop_drop :: Property
+prop_drop = forAll (genListMonStr >*< chooseInt (0,1000)) $
+               \((l, ms), n) -> drop n l == toList (dropMMS n ms)
+-- PASSES
 prop_scan :: Property
 prop_scan = forAll ((genListMonStr >*< chooseInt (-1000,1000)) >*< (arbitrary :: Gen(Fun (Int,Int) Int)) ) $ 
                \(((l,ms),n),(Fn2 f)) -> toList (scanMMS f n ms) === scanl f n l
@@ -151,7 +160,7 @@ prop_last :: Property
 prop_last = forAll genListMonStr $ 
                \(l,ms) -> lastMMS ms === Just (last l)
 
--- PASSES            
+-- PASSES
 prop_zip :: Property
 prop_zip = forAll (genListMonStr >*< genListMonStr) $ 
               \((l,ms),(l',ms')) -> toList (zipMMS ms ms') === zip l l'
@@ -171,8 +180,73 @@ prop_filter :: Property
 prop_filter = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
                  \((l,ms),(Fn p)) -> toList (filterMMS p ms) === filter p l
 
--- ! Not implemented ! - need to find a way to generate strings with a high percentage of spaces to test this well
+-- PASSES
+prop_map :: Property
+prop_map = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Int)) ) $ 
+              \((l,ms),(Fn f)) -> toList (fmap f ms) === map f l
+
+-- PASSES
+prop_head :: Property
+prop_head = forAll genListMonStr $
+               \(l, ms) -> Just (head l) === headMS ms
+
+-- PASSES
+prop_tail :: Property
+prop_tail = forAll genListMonStr $
+               \(l, ms) -> Just (tail l) === fmap toList (tailMS ms)
+
+-- PASSES
+prop_tail' :: Property
+prop_tail' = forAll genListMonStr $
+                \(l, ms) -> tail l === toList (tailMMS ms)
+
+-- PASSES
+prop_index :: Property
+prop_index = forAll (genListMonStr >*< chooseInt (0,1000)) $
+                \((l, ms), n) -> let i = min n (length l - 1) in 
+                                    Just (l !! i) === ms !!! i
+
+-- !!! FAILS !!! - makes use of spanMMS so groupMMS is broken for the same reason
+prop_group :: Property
+prop_group = forAll genListMonStr $
+                 \(l, ms) -> group l === toList (groupMMS ms)
+                 
+-- PASSES
+prop_partition :: Property
+prop_partition = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
+                    \((l, ms),(Fn p)) -> Just (partition p l) === fmap (\(a,b) -> (toList a, toList b)) (partitionMMS p ms)
+
+-- !!! FAILS !!! - when the index is larger than the list, splitAtMMS returns lots of 'Nothing's padding the end of the first list in the pair
+prop_splitAt :: Property
+prop_splitAt = forAll (genListMonStr >*< chooseInt (0,1000)) $
+                  \((l, ms), n) -> ((\(a,b) -> (fmap Just a, llist b)) (splitAt n l)) === splitAtMMS n ms
+
+-- !!! FAILS !!! - not sure why, works for any small tests I've given it 
+prop_takeWhile :: Property
+prop_takeWhile = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
+                    \((l, ms),(Fn p)) -> Just (takeWhile p l) === takeWhileMMS p ms
+
+-- PASSES
+prop_dropWhile :: Property
+prop_dropWhile = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
+                    \((l, ms),(Fn p)) -> dropWhile p l === toList (dropWhileMMS p ms)
+
+-- PASSES
+prop_intersperse :: Property
+prop_intersperse = forAll ( genListMonStr >*< (arbitrary :: Gen(Int)) ) $
+                       \((l, ms),n) -> intersperse n l === toList (intersperseMS (Just n) ms)
+ 
+-- ! Not implemented ! - need to find a way to generate either a prefix or not (maybe generate a bool, then if true generate a random int below the length of the list and test with the prefix of the list of that length - if false generate a random list to test as prefix)
+prop_isPrefixOf :: Property
+prop_isPrefixOf = undefined
+
+-- ! Not implemented ! - need to find a way to generate strings with a high chance of spaces to test this well
 prop_words :: Property
 prop_words = undefined
-                      
-                 
+
+-- ! Not implemented !
+prop_elemIndex :: Property
+prop_elemIndex = undefined
+
+
+
