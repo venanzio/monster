@@ -69,9 +69,9 @@ genPairListMonStr = do l <- (listOf1 (arbitrary :: Gen (Int,Int)))
                        return (l, llist l)
 
 -- Tests to compare functions in Operations to those in Data.List
---  !NOTE! Might want to take a second look at tests where the list
---         is wrapped in Just - could be better to map empty list to
---         Nothing instead of Just []
+--  !NOTE! Might want to take a second look at function/related tests where 
+--         the list is wrapped in Just - could be better to map empty list
+--         to Nothing instead of Just []
 --         The correct interpretation is probably: 
 --           - Return Nothing if the Data.List function throws an "empty list" exception
 --           - Return Just [] if the Data.List function returns []
@@ -240,13 +240,35 @@ prop_intersperse = forAll ( genListMonStr >*< (arbitrary :: Gen(Int)) ) $
 prop_isPrefixOf :: Property
 prop_isPrefixOf = undefined
 
--- ! Not implemented ! - need to find a way to generate strings with a high chance of spaces to test this well
-prop_words :: Property
-prop_words = undefined
-
 -- ! Not implemented !
 prop_elemIndex :: Property
 prop_elemIndex = undefined
 
+-- ! Not implemented !
+prop_elemIndicies :: Property
+prop_elemIndicies = undefined
 
+-- ! Not implemented !
+prop_findIndex :: Property
+prop_findIndex = undefined
+
+-- ! Not implemented !
+prop_findIndicies :: Property
+prop_findIndicies = undefined
+
+-- ! Not implemented ! - need to find a way to generate strings with a high chance of spaces to test this well
+prop_words :: Property
+prop_words = undefined
+
+-- ! Not implemented ! - need to find a way to generate strings with a high chance of new lines to test this well
+prop_lines :: Property
+prop_lines = undefined
+
+-- ! Not implemented ! - need to find a way to generate strings with a high chance of spaces to test this well
+prop_unwords :: Property
+prop_unwords = undefined
+
+-- ! Not implemented ! - need to find a way to generate strings with a high chance of new lines to test this well
+prop_unlines :: Property
+prop_unlines = undefined
 

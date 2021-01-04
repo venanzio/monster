@@ -119,7 +119,7 @@
   <tr>
     <td>dropWhile</td>
     <td>dropWhileMMS</td> 
-	<td>PASSES</td>
+	<td>Passes</td>
   </tr>
   <tr>
     <td>span</td>
@@ -214,11 +214,11 @@
   <tr>
     <td>toList</td>
     <td>toList from foldable instance</td>
-	<td>Yes</td>
+	<td>Passes</td>
   </tr>
   <tr>
     <td>fromList</td>
     <td>toMonStr</td>
-	<td>Yes</td>
+	<td>Passes</td>
   </tr>
 </table>

@@ -41,9 +41,6 @@ headMS = fmap fst . unwrapMS
 tailMS :: Functor m => MonStr m a -> m (MonStr m a)
 tailMS = fmap snd . unwrapMS
 
-
---recombineMS :: m a -> m (MonStr m a)
-
 -- Transform a monster by mapping head and tail to new head and tail
 transformMS :: Functor m => 
                (a -> MonStr m a -> (b, MonStr m b)) ->
