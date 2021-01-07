@@ -289,7 +289,11 @@ rowMM (x,y) = MCons $ do
   -- (x,y) <: rowMM (x,y+1)
 
 coordMM :: (Int,Int) -> MonMatrix (State Int) (Int,Int)
-coordMM (x,y) = rowMM (x,y) <: coordMM (x+1,y)
+coordMM (x,y) = MCons $ do
+  s <- get
+  put (s+100)
+  return (rowMM (x,y), coordMM (x+1,y))
+  -- rowMM (x,y) <: coordMM (x+1,y)
 
 -- Using the two definitions of join gives different state behaviour
 jC  = takeMMS 20 $ runMS (joinMS (coordMM (0,0))) 0

@@ -162,12 +162,12 @@ joinMS :: Monad m => MonMatrix m a -> MonStr m a
 joinMS mm = originMM mm <::: fmap joinMS (diagonalMM mm)
 -}
 
--- Compute origine and submatrix (one step down diagonal) at the same time
+-- Compute origin and submatrix (one step down diagonal) at the same time
 joinMS :: Monad m => MonMatrix m a -> MonStr m a
 joinMS mm = MCons $ 
-  do (r, mm0) <- unwrapMS mm
-     (o,_) <- unwrapMS r
-     let mm1 = fmap tailMMS mm0
+  do (r, mm0) <- unwrapMS mm      -- first row and remaining rows
+     (o,_) <- unwrapMS r          -- origin: head of first row
+     let mm1 = fmap tailMMS mm0   -- delete first column
      return (o, joinMS mm1)
 
 
