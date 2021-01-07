@@ -272,3 +272,29 @@ fib = runSStr fibGen (0, 1)
 
 c  = takeMMS 20 $ runSStr (return 5 >>= (\n -> modCounter n)) 0
 c' = takeMMS 20 $ runSStr ((\n -> modCounter n) 5) 0
+
+
+
+-- Experimenting with State Monster Matrices
+
+runMS :: StatefulStream s a -> s -> Stream (s,a)
+runMS (MCons sts) s = let ((a, sts'), s') = runState sts s
+                      in (s,a) <: (runMS sts' s')
+
+rowMM :: (Int,Int) -> StatefulStream Int (Int,Int)
+rowMM (x,y) = MCons $ do
+  s <- get
+  put (s+1)
+  return ((x,y),rowMM (x,y+1))
+  -- (x,y) <: rowMM (x,y+1)
+
+coordMM :: (Int,Int) -> MonMatrix (State Int) (Int,Int)
+coordMM (x,y) = MCons $ do
+  s <- get
+  put (s+100)
+  return (rowMM (x,y), coordMM (x+1,y))
+  -- rowMM (x,y) <: coordMM (x+1,y)
+
+-- Using the two definitions of join gives different state behaviour
+jC  = takeMMS 20 $ runMS (joinMS (coordMM (0,0))) 0
+jC' = takeMMS 20 $ runMS (joinMS' (coordMM (0,0))) 0

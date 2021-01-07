@@ -156,8 +156,22 @@ diagonalMM :: Monad m => MonMatrix m a -> m (MonMatrix m a)
 diagonalMM mm = tailMS mm >>= liftMS . fmap tailMS
 
 -- Join operation for the MonStr monad - travels down the diagonal
+--   This is incorrect: the same action is duplicated and executed many times
+{-
 joinMS :: Monad m => MonMatrix m a -> MonStr m a
 joinMS mm = originMM mm <::: fmap joinMS (diagonalMM mm)
+-}
+
+-- Compute origin and submatrix (one step down diagonal) at the same time
+joinMS :: Monad m => MonMatrix m a -> MonStr m a
+joinMS mm = MCons $ 
+  do (r, mm0) <- unwrapMS mm      -- first row and remaining rows
+     (o,_) <- unwrapMS r          -- origin: head of first row
+     let mm1 = fmap tailMMS mm0   -- delete first column
+     return (o, joinMS mm1)
+
+
+
 
 -- These versions seem to be the way to join the inner and outer streams resulting in the least duplication of monadic action
 --  they only satisfy the monad laws for monads which have certain properties (need to find what these are)
@@ -169,6 +183,9 @@ joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS s
 
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
 makeMonMatrix f = fmap f
+
+joinMS' ::  Monad m => MonMatrix m a -> MonStr m a
+joinMS' = joinInnerMS . joinPrelimMS
 
 outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
 outMS ms = (headMS ms, tailMS ms)
