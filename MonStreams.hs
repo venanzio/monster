@@ -170,6 +170,9 @@ joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS s
 makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
 makeMonMatrix f = fmap f
 
+joinMS' ::  Monad m => MonMatrix m a -> MonStr m a
+joinMS' = joinInnerMS . joinPrelimMS
+
 outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
 outMS ms = (headMS ms, tailMS ms)
 
