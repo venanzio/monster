@@ -7,9 +7,11 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 import Test.QuickCheck
 import Test.QuickCheck.Gen.Unsafe
+import Test.QuickCheck.All
 import MonStreams
 import Operations
 import Control.Monad
@@ -19,6 +21,10 @@ import Combinators
 import Data.List
 import Data.Maybe
 
+-- This instance creates very basic monadic streams, where each action is the return "do-nothing" action in that monad
+--   For example a generated List-monster would look like: [x_0,[x_1,[x_2,[x_3,...,
+--   and a generated Maybe-monster would look like: Just (x_0, Just (x_1, Just (x_2, Just (x_3, ...
+--   where x_n is a random
 instance (Monad m, Arbitrary a) => Arbitrary (MonStr m a) where
    arbitrary = fmap MCons $ promote (return (liftM2 (,) arbitrary arbitrary))
   
@@ -42,11 +48,11 @@ repeatIOAction n action = do action         -- action to perform
 
 -- Tests for isomorphism between list and maybe monster, with llist and toList as the two morphisms between the types
 
-propMonStr :: Property
-propMonStr = forAll genMaybeMonStr $ (\mas -> mas === llist (toList mas))
+prop_monStr :: Property
+prop_monStr = forAll genMaybeMonStr $ (\mas -> mas === llist (toList mas))
 
-propList :: Property
-propList = forAll (listOf1 (chooseInt (-1000,1000))) $ (\ls -> ls === toList (llist ls))
+prop_list :: Property
+prop_list = forAll (listOf1 (chooseInt (-1000,1000))) $ (\ls -> ls === toList (llist ls))
 
 -- Helper functions to generate lists and monsters for the tests below 
 
@@ -272,3 +278,7 @@ prop_unwords = undefined
 prop_unlines :: Property
 prop_unlines = undefined
 
+---- Runs all tests ----
+return []
+runTests :: IO Bool
+runTests = $quickCheckAll
