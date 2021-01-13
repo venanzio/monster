@@ -1,0 +1,57 @@
+\documentclass{article}
+
+\title{Programming with Monsters}
+\author{Venanzio Capretta and Christopher Purdy}
+
+\begin{document}
+\bibliographystyle{plain}
+
+\maketitle
+
+\begin{abstract}
+We define Monadic Streams (MonStr),
+give several instantiations and application.
+We give instantiation of the Functor, Applicative, Monad classes: the laws are valid under some conditions on the underlying monad.
+\end{abstract}
+
+\section{Introduction}
+
+Intuitive explanation of Monadic Streams and motivation.
+
+\section{Monadic Streams}
+
+Formal definition of Monadic Streams.
+
+\section{Examples}
+
+Instantiations with Identity (Pure Streams), Maybe (Lazy Lists), List (Trees), IO (Processes), State (Stateful Streams).
+
+Definition of the {\em standard} function on those data types in a general way.
+
+\section{Instances of Functor, Applicative, Monad}
+
+Show that monadic streams are an instance of these three classes, under some assumptions about the underlying monad.
+
+So far we determined that we think that MonStr satisfies the monad laws if the underlying monad is commutative and idempotent \cite{idempotent_monads}. (Proof?)
+
+What about Applicative?
+
+Give conterexamples where it isn't a monad (using State).
+
+Also examples when it is a monad even if the underlying monad is not commutative and idempotent: with List as underlying monad we obtain Trees, which are a monad. Can this be generalized.
+
+\section{Applications}
+
+Show a few application and motivate the usefulness of Monadic Streams.
+
+\section{Conclusions}
+
+Discussion of related literature.
+
+Open problems.
+
+Future Work.
+
+\bibliography{biblio.bib}
+
+\end{document}
