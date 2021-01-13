@@ -270,8 +270,8 @@ fib = runSStr fibGen (0, 1)
 
 -- Testing for monad laws
 
-c  = takeMMS 20 $ runSStr (return 5 >>= (\n -> modCounter n)) 0
-c' = takeMMS 20 $ runSStr ((\n -> modCounter n) 5) 0
+c  = takeMMS 20 $ runMS (return 5 >>= modCounter) 0
+c' = takeMMS 20 $ runMS (modCounter 5) 0
 
 
 

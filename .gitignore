@@ -4,3 +4,9 @@
 # compiled files
 *.hi
 *.o
+
+*.lb
+*.aux
+*.bbl
+*.blg
+*.log
