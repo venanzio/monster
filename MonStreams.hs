@@ -70,7 +70,7 @@ ma <::: ms = MCons (pairA ma ms)
 
 -- Appends a pure element to the beginning of the given monadic stream
 infixr 5 <:
-(<:) :: (Applicative m) => a -> MonStr m a -> MonStr m a
+(<:) :: Applicative m => a -> MonStr m a -> MonStr m a
 a <: s = pure a <:: s
 
 -- Double Applicative
@@ -112,7 +112,6 @@ instance Applicative m => Applicative (MonStr m) where
   We should instead "go down the diagonal" as for Monad below.
 -}
 
-
 -- Operations for m Monad
 
 -- When m is a monad we can return a "pure tail"
@@ -121,6 +120,11 @@ instance Applicative m => Applicative (MonStr m) where
 -- This function should be equivalent to (absorbMS . tailMS)
 tailMMS :: Monad m => MonStr m a -> MonStr m a
 tailMMS = MCons . join . fmap unwrapMS . tailMS
+
+-- Tail for m Foldable
+tailF :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
+tailF ma = let t = tailMS ma in
+              if null t then error "Empty monadic stream" else (MCons . join . fmap unwrapMS) t
         
 -- "lift" monadic actions from the elements to the stream
 --  !Note! I'm not sure that this works, since the monadic action 

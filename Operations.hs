@@ -130,6 +130,10 @@ initsMMS s = [] <: prefixesMMS s
 tailsMMS :: Monad m => MonStr m a -> [MonStr m a]
 tailsMMS mas = mas:(tailsMMS (tailMMS mas))
 
+-- tails with Foldable type constraint
+tailsF :: (Monad m, Foldable m) => MonStr m a -> [MonStr m a]
+tailsF mas = if null (unwrapMS mas) then [mas] else mas:(tailsF (tailF mas))
+
 -- Version of "take": returns the list of the first n elements
 --  For trees, we expect to get:
 --    takeMMS returns the list paths of depth n
@@ -155,6 +159,14 @@ takeMMS'' n ms
   | n > 0     = headMS ms : (takeMMS'' (n - 1) (tailMMS ms))
   | otherwise = error "Operations.takeMMS: negative argument."
 
+-- Take with Foldable type constraint
+takeF :: (Monad m, Foldable m) => Int -> MonStr m a -> [m a]
+takeF n ms
+  | n == 0    = []
+  | null (unwrapMS ms) = []
+  | n > 0     = headMS ms : (takeF (n - 1) (tailF ms))
+  | otherwise = error "Operations.takeF: negative argument."
+
 -- Returns the longest prefix of ma that satisfies p
 --  together with the remainder of the monadic stream, 
 --  with the prefix inside the monad m
@@ -162,9 +174,17 @@ takeMMS'' n ms
 -- /Beware/: this function may diverge if every element
 --  of the given monadic stream satisfies the predicate
 spanMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
-spanMMS p ma = unwrapMS ma >>= \(h,t) -> if p h then let ret = spanMMS p t
-                                                     in fmap (\(l, s) -> (h:l, s)) ret
+spanMMS p ma = unwrapMS ma >>= \(h,t) -> if p h then let ret = spanMMS p t in 
+                                                        fmap (\(l, s) -> (h:l, s)) ret
                                                 else return ([], h <: t)
+
+-- Span with Foldable type constraint
+spanF :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
+spanF p mas = if null ma then return ([], mas) 
+                         else ma >>= \(h,t) -> if p h then let ret = spanF p t in 
+                                                              fmap (\(l, s) -> (h:l, s)) ret
+                                                      else return ([], h <: t)
+              where ma = unwrapMS mas
 
 -- breakMMS p is equivalent to spanMMS (not . p)
 --
@@ -175,6 +195,10 @@ breakMMS p = spanMMS (not . p)
 -- This may diverge for the same reason as spanMMS
 takeWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> m [a]
 takeWhileMMS p ma = fmap fst $ spanMMS p ma
+
+-- takeWhile with Foldable type constraint
+takeWhileF :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m [a]
+takeWhileF p ma = fmap fst $ spanF p ma
 
 -- This may diverge for the same reason as spanMMS
 dropWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m a
@@ -190,6 +214,10 @@ partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t,
 -- Groups consecutive equal elements of the monster into lists
 groupMMS :: (Monad m, Eq a) => MonStr m a -> MonStr m [a]
 groupMMS mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMMS t')) (spanMMS (==h) t)) <$> unwrapMS mas
+
+-- Group with FOldable type constraint
+groupF :: (Monad m, Eq a, Foldable m) => MonStr m a -> MonStr m [a]
+groupF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupF t')) (spanF (==h) t)) <$> unwrapMS mas
 
 -- isPrefixOfMMS returns True if the first argument is a prefix of the second, and False otherwise
 --  will diverge if the monsters being compared are the same and are infinite
@@ -224,6 +252,10 @@ splitAtMMS n ms = (takeMMS'' n ms, dropMMS n ms)
 
 splitAtMMS' :: Monad m => Int -> MonStr m a -> (m [a], MonStr m a)
 splitAtMMS' n ms = (takeMMS' n ms, dropMMS n ms)
+
+-- Splits the MonStr using takeF, with a Foldable type constraint
+splitAtF :: (Monad m, Foldable m) => Int -> MonStr m a -> ([m a], MonStr m a)
+splitAtF n ms = (takeF n ms, dropMMS n ms)
 
 -- "Internal" split
 splitAtMS :: MonadPlus m => Int -> MonStr m a -> (MonStr m a, MonStr m a)
