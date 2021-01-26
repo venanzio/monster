@@ -88,6 +88,9 @@ genPairListMonStr = do l <- (listOf1 (arbitrary :: Gen (Int,Int)))
 --    very unbalanced lists a lot of the time, since the random predicates and delimeters are
 --    unlikely to be specific to the lists in question.
 
+-- All of the tests suffixed with F indicate that the underlying monad in the monster has 
+--  to be Foldable for the test to pass
+
 -- PASSES
 prop_inits :: Property
 prop_inits = forAll genListMonStr $

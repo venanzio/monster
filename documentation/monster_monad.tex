@@ -247,7 +247,7 @@ This results in the same monster as the "clean" RHS.\\
 
 So far, it seems that in order for a monadic stream of a monad $M$ to itself be a monad, $M$ needs to have at least these properties:
 \begin{itemize}
-	\item Two monadic actions which perform the same action, should join to produce the same action - \textbf{indempotency}
+	\item Two monadic actions which perform the same action, should join to produce the same action - \textbf{idempotency}
 	\item The order in which monadic actions are applied should be have no effect on the result - \textbf{commutativity} 
 \end{itemize}
 
@@ -262,7 +262,7 @@ https://dl.acm.org/doi/pdf/10.1145/1596550.1596553 - commutative monads:
 	\item FiniteSet/Powerset
 \end{itemize}
 
-Clark and Wisbauer give a very in-depth categorical desciption of indempotent monads \cite{indempotent_monads}.
+Clark and Wisbauer give a very in-depth categorical desciption of idempotent monads \cite{idempotent_monads}.
 
 \bibliography{biblio.bib}
 \bibliographystyle{abbrv}

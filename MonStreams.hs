@@ -5,6 +5,7 @@ module MonStreams where
 
 import Control.Applicative
 import Control.Monad
+import Control.Comonad
 
 -- Type of monadic streams
 -- m is not required to be a monad
@@ -178,7 +179,7 @@ joinMS mm = MCons $
 
 
 -- These versions seem to be the way to join the inner and outer streams resulting in the least duplication of monadic action
---  they only satisfy the monad laws for monads which have certain properties (need to find what these are)
+--  they only satisfy the monad laws for monads which have certain properties (discussed in monster_monad.tex)
 joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
 joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
 
@@ -197,3 +198,14 @@ outMS ms = (headMS ms, tailMS ms)
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
   as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
+
+
+instance Comonad w => Comonad (MonStr w) where
+  --extract :: MonStr w a -> a
+  extract = extract . headMS
+  
+  duplicate (MCons s) = MCons $ fmap (\(h,t) -> (MCons s, duplicate t)) s
+  
+  --extend :: (MonStr w a -> b) -> MonStr w a -> MonStr w b
+  --extend f s = MCons (fmap (\t -> (f (repeatExtend (headMS s)), extend f t)) (tailMS s))
+               --where repeatExtend wa = MCons (fmap (\x -> (x, repeatExtract wa)) wa)
