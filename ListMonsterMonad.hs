@@ -6,8 +6,11 @@
 -}
 import Test.QuickCheck
 import Control.Monad
+import Control.Comonad
 import MonStreams
-import MonStrExamples
+import Control.Monad
+import Operations
+import qualified Data.List.NonEmpty as NE
 
 -- Definition of tree monad from https://dkalemis.wordpress.com/2014/03/22/trees-as-monads/
 
@@ -99,22 +102,72 @@ prop_assoc = forAll (chooseInt (1,5)) $ (\n -> (factors >=> (nextFive >=> lessTh
 -}
 
 {-
-joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
-joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
+ A cofree comonad over an alternative functor yeilds a monad 
+  - see instance here http://hackage.haskell.org/package/free-3.4.1/docs/Control-Comonad-Cofree.html, repeated below
 
-joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
-joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
 
-makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
-makeMonMatrix f = fmap f
-
-joinMS' ::  Monad m => MonMatrix m a -> MonStr m a
-joinMS' = joinInnerMS . joinPrelimMS
-
-outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
-outMS ms = (headMS ms, tailMS ms)
-
-instance Monad m => Monad (MonStr m) where
-  -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
-  as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
+instance Alternative f => Monad (Cofree f) where
+  return x = x :< empty
+  (a :< m) >>= k = case k a of
+                     b :< n -> b :< (n <|> fmap (>>= k) m)
+ 
+ It's clear here that the fact that monadic streams guard the first value with the functor means that this approach 
+ cannot work for defining the monad instance for monadic streams
+                     
 -}
+
+
+
+{-
+
+ Monadic streams with the non-empty list functor are identical to cofree over lists?
+
+-}
+
+-- Used to transform monadic stream into cofree below
+data Freedom f a b = F a (f b)
+
+-- This type is isomorphic to Cofree (seems fairly certain looking at the shape)
+--  MCons (F a f((), MCons (F a f((), ...   ~=    a :< f (a :< f (a :< f (....
+type CofreeMonStr f a = MonStr (Freedom f a) () 
+
+-- NonEmptyTree a = MCons ((a, NonEmptyTree a) :| [(a, NonEmptyTree a)])
+type NonEmptyTree a = MonStr NE.NonEmpty a
+
+
+joinCMS :: (Applicative f, Comonad f) => MonStr f (MonStr f a) -> MonStr f a
+joinCMS mm = MCons $ fmap (\(as,ss) -> (extract as, joinCMS (fmap (\(MCons s) -> snd (extract s)) ss))) (unwrapMS mm)
+
+{-
+instance (Applicative f, Comonad f) => Monad (MonStr f) where
+   s >>= f = joinCMS (fmap f s)
+-}
+{-
+instance Comonad NonEmpty where
+  extend f w@ ~(_ :| aas) = f w :| case aas of
+      []     -> []
+      (a:as) -> toList (extend f (a :| as))
+  extract ~(a :| _) = a
+
+instance Monad NonEmpty where
+  ~(a :| as) >>= f = b :| (bs ++ bs')
+    where b :| bs = f a
+          bs' = as >>= toList . f
+          toList ~(c :| cs) = c : cs
+-}
+
+
+happyTreeFunc :: Int -> NonEmptyTree Int
+happyTreeFunc n = MCons ((n, happyTreeFunc (n*2)) NE.:| [(x, happyTreeFunc (x*2)) | x <- [1..n]])
+
+sadTreeFunc :: Int -> NonEmptyTree Int
+sadTreeFunc n = MCons ((n, sadTreeFunc (n `div` 2)) NE.:| [(x, sadTreeFunc (x `div` 2)) | x <- [1..n]])
+
+steadyTreeFunc :: Int -> NonEmptyTree Int
+steadyTreeFunc n = MCons ((n, steadyTreeFunc (n + 1)) NE.:| [(n + x, steadyTreeFunc (n + x + 1)) | x <- [1..n]])
+
+tf1 = return >=> steadyTreeFunc
+tf2 = happyTreeFunc >=> return
+
+tf3a = happyTreeFunc >=> (sadTreeFunc >=> steadyTreeFunc)
+tf3b = (happyTreeFunc >=> sadTreeFunc) >=> steadyTreeFunc

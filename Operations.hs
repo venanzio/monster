@@ -45,7 +45,7 @@ instance Alternative m => Alternative (MonStr m) where
   -- s1 <|> s2 = transformMS (\h t -> (h, t <|> s2)) s1 <|> s2
   (MCons m1) <|> (MCons m2) = MCons (m1 <|> m2)
 
-instance MonadPlus m => MonadPlus (MonStr m) where
+--instance MonadPlus m => MonadPlus (MonStr m) where
   -- no instantiation needed for mzero and mplus:
   --  the same as empty and <|>
 

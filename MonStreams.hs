@@ -181,7 +181,7 @@ joinMS mm = MCons $
 -- These versions seem to be the way to join the inner and outer streams resulting in the least duplication of monadic action
 --  they only satisfy the monad laws for monads which have certain properties (discussed in monster_monad.tex)
 joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
-joinPrelimMS mm = MCons $ pure (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) <*> unwrapMS mm
+joinPrelimMS mm = MCons $ fmap (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) (unwrapMS mm)
 
 joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
 joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
@@ -200,12 +200,14 @@ instance Monad m => Monad (MonStr m) where
   as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
 
 
+{- It seems that a monadic stream with an underlying comonad forms a comonad itself 
+    - The laws are satisfied as far as I've been able to check with ad-hoc reasoning
+-}
 instance Comonad w => Comonad (MonStr w) where
   --extract :: MonStr w a -> a
   extract = extract . headMS
   
+  --duplicate :: MonStr w a -> MonStr w (MonStr w a)
   duplicate (MCons s) = MCons $ fmap (\(h,t) -> (MCons s, duplicate t)) s
-  
-  --extend :: (MonStr w a -> b) -> MonStr w a -> MonStr w b
-  --extend f s = MCons (fmap (\t -> (f (repeatExtend (headMS s)), extend f t)) (tailMS s))
-               --where repeatExtend wa = MCons (fmap (\x -> (x, repeatExtract wa)) wa)
+
+
