@@ -4,13 +4,13 @@
   since they model the idea of a potentially infinite stream of data being collapsed by a function, with
   the whole data structure being able to be copied again for further computations (using duplicate)
 
- This file is used to test the comonad laws with the store comonad, to verify whether monadic streams are
-  indeed comonads (if the underlying functor is also comonadic)
+ This file is used to test the comonad laws with the store (and maybe other) comonad(s), to verify whether 
+  monadic streams are indeed comonads (if they are over a comonadic functor)
 
  https://stackoverflow.com/questions/16551734/can-a-monad-be-a-comonad - see the second answer here
 
   It seems that monadic streams are ~almost~ equivalent to the cofree functor construction, and hence
-  maybe some things that are true about cofree instanciated with different types of functor are also
+  maybe ~some~ things that are true about cofree instanciated with different types of functor are also
   true for monadic streams
 
   Cofree f a = (a, f (Cofree f a))
