@@ -1,7 +1,33 @@
 \documentclass{article}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
 
 \title{Programming with Monsters}
 \author{Venanzio Capretta and Christopher Purdy}
+
+% lstlisting setup for Haskell
+\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\rmfamily,
+  showspaces=false,
+  keywordstyle=\bfseries\rmfamily,
+  columns=flexible,
+  basicstyle=\small\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+%format 
 
 \begin{document}
 \bibliographystyle{plain}
@@ -53,6 +79,75 @@ What about Applicative?
 Give conterexamples where it isn't a monad (using State).
 
 Also examples when it is a monad even if the underlying monad is not commutative and idempotent: with List as underlying monad we obtain Trees, which are a monad. Can this be generalized.
+
+\subsection{Functor instance in Haskell}
+
+\begin{lstlisting}
+	unwrapMS :: MonStr m a -> m (a, MonStr m a)
+	unwrapMS (MCons m) = m
+
+	transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) -> 
+	                                MonStr m a -> MonStr m b
+	transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
+
+	instance Functor m => Functor (MonStr m) where
+	   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
+	   fmap f = transformMS (\a s -> (f a, fmap f s))
+\end{lstlisting}
+
+\subsubsection{Functor proof}
+
+Proof of $fmap\ id == id$\\
+
+\begin{lstlisting}
+	fmap id = transformMS (\a s *'$\to$'* id a, fmap id s)
+	-- definition of `transformMS`
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (\a s *'$\to$'* (id a, fmap id s)) h t) (unwrapMS s)
+	-- application of `(\a s *'$\to$'* (id a, fmap id s))` to `h t`
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (id h, fmap id t)) (unwrapMS s)
+	-- take as assumption that `fmap id t == id t` - coinductive hypothesis?
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (id h, id t)) (unwrapMS s)
+	-- definition of `id`
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (h,t)) (unwrapMS s)
+	-- definition of `id`
+	= \s *'$\to$'* MCons $ fmap id (unwrapMS s)
+	-- `unwrapMS` returns and element in a functor, so `fmap id == id` in this case 
+	--  This doesn't seem formal enough?
+	= \s *'$\to$'* MCons $ id (unwrapMS s)
+	-- application of `id`
+	= \s *'$\to$'* MCons $ (unwrapMS s)
+	-- definition of `unwrapMS`
+	= \s *'$\to$'* MCons $ (\(MCons m) *'$\to$'* m) s
+	-- `unwrapMS` and `MCons` are inverse functions
+	--  This step could be more formal by showing that they are inverses somehow?
+	= \s *'$\to$'* id s 
+	-- application of `id`
+	= \s *'$\to$'* s
+	-- definition of `id`
+	= id
+	*'\hfill$\qed$'*
+	
+\end{lstlisting}
+Proof of $fmap\ (f \circ g) == fmap\ f \circ fmap\ g $
+
+\begin{lstlisting}
+	fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
+	-- definition of `transformMS`
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (\a s *'$\to$'* ((f . g) a, fmap (f . g) s)) h t) (unwrapMS s)
+	-- application of `(\a s *'$\to$'* ((f . g) a, fmap (f . g) s))` to `h t`
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* ((f . g) h, fmap (f . g) t)) (unwrapMS s)`
+	-- take as assumption that `fmap (f . g) t == (fmap f . fmap g) t` - coinductive hypothesis?
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* ((f . g) h, (fmap f . fmap g) t)) (unwrapMS s)
+	-- definition of bimap on pairs - `(,)` is a bifunctor - not sure if this leads anywhere?
+	-- = \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* bimap (f . g) (fmap f . fmap g) (h, t)) (unwrapMS s)
+	...
+	= (fmap f) . (fmap g)`
+	-- definition of `fmap` for monadic streams
+	= (transformMS (\a s *'$\to$'* f a, fmap f s)) . (transformMS (\a s *'$\to$'* g a, fmap g s))
+	-- definition of `transformMS`
+	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (\a s *'$\to$'* (f a, fmap f s)) h t) (unwrapMS s) . 
+		\s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (\a s *'$\to$'* (g a, fmap g s)) h t) (unwrapMS)
+\end{lstlisting}
 
 \section{Applications}
 
