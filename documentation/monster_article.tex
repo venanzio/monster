@@ -83,16 +83,16 @@ Also examples when it is a monad even if the underlying monad is not commutative
 \subsection{Functor instance in Haskell}
 
 \begin{lstlisting}
-	unwrapMS :: MonStr m a -> m (a, MonStr m a)
+	unwrapMS :: MonStr m a *'$\to$'* m (a, MonStr m a)
 	unwrapMS (MCons m) = m
 
-	transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) -> 
-	                                MonStr m a -> MonStr m b
-	transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
+	transformMS :: Functor m *'$\Rightarrow$'* (a *'$\to$'* MonStr m a *'$\to$'* (b, MonStr m b)) *'$\to$'* 
+	                                MonStr m a *'$\to$'* MonStr m b
+	transformMS f s = MCons $ fmap (\(h,t) *'$\to$'* f h t) (unwrapMS s)
 
-	instance Functor m => Functor (MonStr m) where
-	   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
-	   fmap f = transformMS (\a s -> (f a, fmap f s))
+	instance Functor m *'$\Rightarrow$'* Functor (MonStr m) where
+	   -- fmap :: (a *'$\to$'* b) *'$\to$'* MonStr m a *'$\to$'* MonStr m b
+	   fmap f = transformMS (\a s *'$\to$'* (f a, fmap f s))
 \end{lstlisting}
 
 \subsubsection{Functor proof}
@@ -118,7 +118,9 @@ Proof of $fmap\ id == id$\\
 	= \s *'$\to$'* MCons $ (unwrapMS s)
 	-- definition of `unwrapMS`
 	= \s *'$\to$'* MCons $ (\(MCons m) *'$\to$'* m) s
-	-- `unwrapMS` and `MCons` are inverse functions
+	-- definition of `MCons` type constructor as a unary function
+	= \s *'$\to$'* (\m *'$\to$'* MCons m) $ (\(MCons m) *'$\to$'* m) s
+	-- "clearly" inverse functions?
 	--  This step could be more formal by showing that they are inverses somehow?
 	= \s *'$\to$'* id s 
 	-- application of `id`
@@ -128,7 +130,7 @@ Proof of $fmap\ id == id$\\
 	*'\hfill$\qed$'*
 	
 \end{lstlisting}
-Proof of $fmap\ (f \circ g) == fmap\ f \circ fmap\ g $
+Proof of $fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g) $
 
 \begin{lstlisting}
 	fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
@@ -141,7 +143,9 @@ Proof of $fmap\ (f \circ g) == fmap\ f \circ fmap\ g $
 	-- definition of bimap on pairs - `(,)` is a bifunctor - not sure if this leads anywhere?
 	-- = \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* bimap (f . g) (fmap f . fmap g) (h, t)) (unwrapMS s)
 	...
-	= (fmap f) . (fmap g)`
+	-- attempting to join both ends of the proof somehow
+	...
+	= (fmap f) . (fmap g)
 	-- definition of `fmap` for monadic streams
 	= (transformMS (\a s *'$\to$'* f a, fmap f s)) . (transformMS (\a s *'$\to$'* g a, fmap g s))
 	-- definition of `transformMS`
