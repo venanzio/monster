@@ -60,6 +60,21 @@ $$
 $$
 Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$.
 
+It is important to make two observations about $M$.
+
+First, $M$ does not need to be a monad for the definition to make sense.
+In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being just a functor.
+So we will take $M$ to be any type operator (but see second observation) and we will explicitely state what properties we assume about it.
+The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
+
+The second observation is that it is not guaranteed in general that the functor $F\,X = M\,(A\times X)$ has a final coalgebra.
+So the definition of $\stream{M,A}$ is not meaningful for all $M$s.
+A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F$ is a container if $M$ is \cite{capretta/fowler:2017}.
+This is the case for all the instances that we consider (but there are well known counterexamples, like the powerset functor and the continuation functor).
+
+Therefore we will silently assume that $M$ is a container and that the final coalgebra exists.
+Cofinality means that we can define functions into the coalgebra by {\em corecursion} and we can prove properties of its elements by {\em coinduction}.
+
 \section{Examples}
 
 Instantiations with Identity (Pure Streams), Maybe (Lazy Lists), List (Trees), IO (Processes), State (Stateful Streams).
@@ -143,7 +158,7 @@ fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
 \end{lstlisting}
 
 
-We also use the fact that the monster constructor \verb+MCon+ and the funcotion \verb+unwrapMS+ that removes it are inverse of each other.
+We also use the fact that the monster constructor \verb+MCon+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
 
 \begin{lstlisting}
 fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
