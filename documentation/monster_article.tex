@@ -1,31 +1,17 @@
 \documentclass{article}
+
+\usepackage{amssymb,amsmath,amsthm}
 \usepackage{listings}
-\usepackage{amsthm}
+
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 
 \title{Programming with Monsters}
 \author{Venanzio Capretta and Christopher Purdy}
 
-% lstlisting setup for Haskell
-\lstset{
-  frame=none,
-  xleftmargin=2pt,
-  belowcaptionskip=\bigskipamount,
-  captionpos=b,
-  escapeinside={*'}{'*},
-  language=haskell,
-  tabsize=2,
-  emphstyle={\bf},
-  commentstyle=\it,
-  stringstyle=\mdseries\rmfamily,
-  showspaces=false,
-  keywordstyle=\bfseries\rmfamily,
-  columns=flexible,
-  basicstyle=\small\sffamily,
-  showstringspaces=false,
-  morecomment=[l]\%,
-}
+
+\usepackage{notations}
+
 
 %format 
 
@@ -60,7 +46,19 @@ Intuitive explanation of Monadic Streams and motivation.
 
 \section{Monadic Streams}
 
-Formal definition of Monadic Streams.
+A monadic stream is a sequence of values in which every stage is obtained by triggering a monadic action.
+If $\sigma$ is such a stream, it will consist of an action for a certain monad $M$ that, when executed, will return a head (first element) and a tail (continuation of the stream).
+This process can be continued in a non-well-founded way: streams constitute a coinductive type.
+
+Formally the type of streams over a monad $M$ (let's call them $M$-monsters) is defined as:
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{M,A}:\set\\
+\quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}.
+\end{array}
+$$
+Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$.
 
 \section{Examples}
 
