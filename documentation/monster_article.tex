@@ -124,21 +124,13 @@ Proof of $fmap\ id == id$\\
 	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (h,t)) (unwrapMS s)
 	-- definition of `id`
 	= \s *'$\to$'* MCons $ fmap id (unwrapMS s)
-	-- `unwrapMS` returns and element in a functor, so `fmap id == id` in this case 
-	--  This doesn't seem formal enough?
+	-- `unwrapMS` returns an element in a functor, so `fmap id == id` in this case
 	= \s *'$\to$'* MCons $ id (unwrapMS s)
 	-- application of `id`
 	= \s *'$\to$'* MCons $ (unwrapMS s)
-	-- definition of `unwrapMS`
-	= \s *'$\to$'* MCons $ (\(MCons m) *'$\to$'* m) s
-	-- definition of `MCons` type constructor as a unary function
-	= \s *'$\to$'* (\m *'$\to$'* MCons m) $ (\(MCons m) *'$\to$'* m) s
-	-- "clearly" inverse functions?
-	--  This step could be more formal by showing that they are inverses somehow?
+	-- MCons and unwrapMS are inverses
 	= \s *'$\to$'* id s 
-	-- application of `id`
 	= \s *'$\to$'* s
-	-- definition of `id`
 	= id
 	*'\hfill$\qed$'*
 	

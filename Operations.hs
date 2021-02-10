@@ -192,6 +192,10 @@ spanF p mas = if null ma then return ([], mas)
 breakMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
 breakMMS p = spanMMS (not . p)
 
+-- Break with Foldable type constraint (using spanF)
+breakF :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
+breakF p = spanF (not . p)
+
 -- This may diverge for the same reason as spanMMS
 takeWhileMMS :: Monad m => (a -> Bool) -> MonStr m a -> m [a]
 takeWhileMMS p ma = fmap fst $ spanMMS p ma
@@ -215,14 +219,16 @@ partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t,
 groupMMS :: (Monad m, Eq a) => MonStr m a -> MonStr m [a]
 groupMMS mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMMS t')) (spanMMS (==h) t)) <$> unwrapMS mas
 
--- Group with FOldable type constraint
+-- Group with Foldable type constraint
 groupF :: (Monad m, Eq a, Foldable m) => MonStr m a -> MonStr m [a]
 groupF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupF t')) (spanF (==h) t)) <$> unwrapMS mas
 
 -- isPrefixOfMMS returns True if the first argument is a prefix of the second, and False otherwise
 --  will diverge if the monsters being compared are the same and are infinite
 isPrefixOfMMS :: (Monad m, Foldable m, Eq a) => MonStr m a -> MonStr m a -> m Bool
-isPrefixOfMMS ma mb = join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMMS t t')) <$> unwrapMS ma <*> unwrapMS mb
+isPrefixOfMMS ma mb = if null ma 
+                      then return True 
+                      else join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMMS t t')) <$> unwrapMS ma <*> unwrapMS mb
 
 
 {- Comment by Venanzio: takeMMS' and takeMMS'' give strange results on trees
@@ -357,23 +363,28 @@ filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
 
 -- Functions to separate/join words and lines within monsters of strings/characters
                                        
-wordsMMS :: Monad m => MonStr m Char -> MonStr m String
-wordsMMS mcs = MCons $ do (c,s) <- unwrapMS mcs
-                          if c == ' ' then return ([], wordsMMS s)
-                                      else fmap (\(str, s') -> (c:str, s')) (unwrapMS (wordsMMS s))
-                     
-unwordsMMS :: Monad m => MonStr m String -> MonStr m Char
-unwordsMMS mss = MCons $ (\(s,c) -> if null s then (' ', unwordsMMS c) else (head s, unwordsMMS (tail s <: c))) <$> unwrapMS mss    
+wordsFA :: (Monad m, Foldable m, Alternative m) => MonStr m Char -> MonStr m String
+wordsFA mcs = if null mcs then empty
+                 else mapOutMS f (MCons $ fmap (\(h,t) -> (h, wordsFA (dropMMS 1 t))) (spanF (not . (`elem` [' ','\t','\n','\f','\v','\r'])) mcs))
+                 where f = (\a s -> if null a then s else a <: s)
+ 
+unwordsFA :: (Monad m, Foldable m, Alternative m) => MonStr m String -> MonStr m Char
+unwordsFA mss = if null mss then empty 
+                   else mapOutMS f (MCons $ (\(s,c) -> if null s then (' ', unwordsFA c) else (head s, unwordsFA (tail s <: c))) <$> unwrapMS mss)
+                   where f = (\a s -> if a == ' ' && null s then s else a <: s)
 
-linesMMS :: Monad m => MonStr m Char -> MonStr m String
-linesMMS mcs = MCons $ do (c,s) <- unwrapMS mcs
-                          if c == '\n' then return ([], linesMMS s)
-                                      else fmap (\(str, s') -> (c:str, s')) (unwrapMS (linesMMS s))
+linesFA :: (Monad m, Foldable m, Alternative m) => MonStr m Char -> MonStr m String
+linesFA mcs = if null mcs then empty
+                 else MCons $ fmap (\(h,t) -> (h, linesFA (dropMMS 1 t))) (spanF (not . (== '\n')) mcs)
                      
-unlinesMMS :: Monad m => MonStr m String -> MonStr m Char
-unlinesMMS mss = MCons $ (\(s,c) -> if null s then ('\n', unlinesMMS c) else (head s, unlinesMMS (tail s <: c))) <$> unwrapMS mss                              
+unlinesFA :: (Monad m, Foldable m, Alternative m) => MonStr m String -> MonStr m Char
+unlinesFA mss = if null mss then empty 
+                   else MCons $ (\(s,c) -> if null s then ('\n', unlinesFA c) else (head s, unlinesFA (tail s <: c))) <$> unwrapMS mss   
 
 -- Functions for finding indices of elements which satify given predicates
+--  These only work on finite monadic streams, and passing an infinite monadic stream
+--  will only terminate for findIndexMMS and elemIndexMMS, in the case that something
+--  satisfying the predicate is found
 
 findIndexMMS :: Monad m => (a -> Bool) -> MonStr m a -> m Int
 findIndexMMS p = indexFrom 0

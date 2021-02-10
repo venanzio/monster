@@ -40,11 +40,6 @@ instance Eq a => Eq (MonStr Maybe a) where
    
 instance Show a => Show (MonStr Maybe a) where
    show (MCons m) = show m
-   
-repeatIOAction :: Int -> IO () -> IO ()     -- Inputs: integer and IO. Outputs: IO 
-repeatIOAction 0 _      = return ()         -- exit recursive loop here
-repeatIOAction n action = do action         -- action to perform
-                             repeatIOAction (n-1) action 
 
 -- Tests for isomorphism between list and maybe monster, with llist and toList as the two morphisms between the types
 
@@ -66,8 +61,9 @@ genList :: Gen ([Int])
 genList = listOf1 (chooseInt (-1000,1000))
 
 -- Generates a random list and Maybe-monster with the same values
+                   
 genListMonStr :: Gen ([Int], MonStr Maybe Int)
-genListMonStr = do l <- (listOf1 (chooseInt (-1000,1000)))
+genListMonStr = do l <- (listOf1 (arbitrary :: Gen Int))
                    return (l, llist l)
                    
 genPairListMonStr :: Gen ([(Int,Int)], MonStr Maybe (Int,Int))
@@ -155,9 +151,10 @@ prop_spanF :: Property
 prop_spanF = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
                 \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (spanF p ms) === Just (span p l)
         
--- ! Not implemented ! - will definitely fail since it relies on prop_span passing
+-- PASSES
 prop_break :: Property
-prop_break = undefined
+prop_break = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
+                \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (breakF p ms) === Just (break p l)
 
 -- PASSES
 prop_init :: Property
@@ -255,7 +252,7 @@ prop_splitAtF :: Property
 prop_splitAtF = forAll (genListMonStr >*< chooseInt (0,1000)) $
                    \((l, ms), n) -> ((\(a,b) -> (fmap Just a, llist b)) (splitAt n l)) === splitAtF n ms
 
--- !!! FAILS !!! - makes use of spanMMS which is broken
+-- !!! FAILS !!! - makes use of spanMMS which is broken for non-foldable monsters
 prop_takeWhile :: Property
 prop_takeWhile = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
                     \((l, ms),(Fn p)) -> Just (takeWhile p l) === takeWhileMMS p ms
@@ -275,41 +272,72 @@ prop_intersperse :: Property
 prop_intersperse = forAll ( genListMonStr >*< (arbitrary :: Gen(Int)) ) $
                        \((l, ms),n) -> intersperse n l === toList (intersperseMS (Just n) ms)
  
--- ! Not implemented ! - need to find a way to generate either a prefix or not (maybe generate a bool, then if true generate a random int below the length of the list and test with the prefix of the list of that length - if false generate a random list to test as prefix)
+genPrefixListMonStr :: Gen (([Int], [Int]), (MonStr Maybe Int, MonStr Maybe Int))
+genPrefixListMonStr = do b <- (arbitrary :: Gen Bool)
+                         l <- (listOf1 (arbitrary :: Gen Int))
+                         l2 <- (listOf1 (arbitrary :: Gen Int))
+                         i <- choose (0, length l)
+                         if not b then return ((l2, l),(llist l2, llist l))
+                                  else let p = take i l in
+                                          return ((p, l), (llist p, llist l)) 
+ 
+-- PASSES
 prop_isPrefixOf :: Property
-prop_isPrefixOf = undefined
+prop_isPrefixOf = forAll genPrefixListMonStr $
+                     \((p,l), (ps, ms)) -> Just (isPrefixOf p l) === isPrefixOfMMS ps ms
 
--- ! Not implemented !
+
+genElemListMonStr :: Gen ([Int], MonStr Maybe Int, Int)
+genElemListMonStr = do (l,ms) <- genListMonStr
+                       b <- (arbitrary :: Gen Bool)
+                       i <- arbitrary
+                       n <- choose (0, (length l) - 1)
+                       return $ if b then (l, ms, i) else (l, ms, l !! n)
+
+-- PASSES
 prop_elemIndex :: Property
-prop_elemIndex = undefined
+prop_elemIndex = forAll genElemListMonStr $
+                    \(l,ms,n) -> elemIndex n l === elemIndexMMS n ms
 
--- ! Not implemented !
+-- PASSES
 prop_elemIndicies :: Property
-prop_elemIndicies = undefined
+prop_elemIndicies = forAll genElemListMonStr $
+                       \(l,ms,n) -> elemIndices n l === toList (elemIndicesMMS n ms)
 
--- ! Not implemented !
+-- PASSES - not entirely sure if the generated functions give any non-trivial results
 prop_findIndex :: Property
-prop_findIndex = undefined
+prop_findIndex = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $
+                    \((l, ms), (Fn p)) -> findIndex p l === findIndexMMS p ms
 
--- ! Not implemented !
+-- PASSES - not entirely sure if the generated functions give any non-trivial results
 prop_findIndicies :: Property
-prop_findIndicies = undefined
+prop_findIndicies = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $
+                       \((l, ms), (Fn p)) -> findIndices p l === toList (findIndicesMMS p ms)
 
--- ! Not implemented ! - need to find a way to generate strings with a high chance of spaces to test this well
+genCharListMonStr :: Gen ([Char], MonStr Maybe Char)
+genCharListMonStr = do l <- (listOf1 arbChar)
+                       return (l, llist l)
+                    where arbChar = frequency [(1, return ' '),(1, return '\n'),(5, arbitrary :: Gen Char)]
+
+-- PASSES
 prop_words :: Property
-prop_words = undefined
+prop_words = forAll genCharListMonStr $
+                \(l, ms) -> words l === toList (wordsFA ms)
 
--- ! Not implemented ! - need to find a way to generate strings with a high chance of new lines to test this well
+-- PASSES
 prop_lines :: Property
-prop_lines = undefined
+prop_lines = forAll genCharListMonStr $
+                \(l, ms) -> lines l === toList (linesFA ms)
 
--- ! Not implemented ! - need to find a way to generate strings with a high chance of spaces to test this well
+-- PASSES
 prop_unwords :: Property
-prop_unwords = undefined
+prop_unwords = forAll genCharListMonStr $
+                  \(l, ms) -> unwords (words l) === toList (unwordsFA (wordsFA ms))
 
--- ! Not implemented ! - need to find a way to generate strings with a high chance of new lines to test this well
+-- PASSES
 prop_unlines :: Property
-prop_unlines = undefined
+prop_unlines = forAll genCharListMonStr $
+                  \(l, ms) -> unlines (lines l) === toList (unlinesFA (linesFA ms))
 
 ---- Runs all tests ----
 return []
