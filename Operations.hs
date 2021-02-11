@@ -267,9 +267,13 @@ splitAtF n ms = (takeF n ms, dropMMS n ms)
 splitAtMS :: MonadPlus m => Int -> MonStr m a -> (MonStr m a, MonStr m a)
 splitAtMS n s = (pruneMMS n s, dropMMS n s)
 
--- Intersperses elements of ms with ma
+-- Intersperses elements of ms with ma - works better for infinite streams
 intersperseMS :: Functor m => m a -> MonStr m a -> MonStr m a
 intersperseMS ma = transformMS (\h t -> (h, ma <:: (intersperseMS ma t)))
+
+-- Intersperses elements of ms with ma - works correctly for finite streams (as per Data.List implementation)
+intersperseF :: (Monad m, Foldable m) => m a -> MonStr m a -> MonStr m a
+intersperseF ma = initF . (intersperseMS ma)
 
 -- Interleaves the elements (and actions) of two monadic streams
 interleaveMS :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
@@ -298,10 +302,10 @@ initMMS' :: (Monad m, Foldable m) => MonStr m a -> m [a]
 initMMS' = sequence . initMMS
               
 -- version of initMMS where the last element is removed from the given finite MonStr
-initMMS'' :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
-initMMS'' = mapOutMS $ \hd tl -> if null tl
-                                    then tl
-                                    else hd <: initMMS'' tl
+initF :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
+initF = mapOutMS $ \hd tl -> if null tl
+                                then tl
+                                else hd <: initF tl
 
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to diverge
@@ -362,7 +366,9 @@ filterMMS p = mapOutMS (\a s -> if p a then a <: filterMMS p s
                                        else filterMMS p s)
 
 -- Functions to separate/join words and lines within monsters of strings/characters
-                                       
+--  Different versions may be needed for infinite monadic streams
+
+-- Doesn't pick up on thin space character '\8201'
 wordsFA :: (Monad m, Foldable m, Alternative m) => MonStr m Char -> MonStr m String
 wordsFA mcs = if null mcs then empty
                  else mapOutMS f (MCons $ fmap (\(h,t) -> (h, wordsFA (dropMMS 1 t))) (spanF (not . (`elem` [' ','\t','\n','\f','\v','\r'])) mcs))
