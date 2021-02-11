@@ -176,8 +176,6 @@ joinMS mm = MCons $
      return (o, joinMS mm1)
 
 
-
-
 -- These versions seem to be the way to join the inner and outer streams resulting in the least duplication of monadic action
 --  they only satisfy the monad laws for monads which have certain properties (discussed in monster_monad.tex)
 joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
@@ -200,8 +198,9 @@ instance Monad m => Monad (MonStr m) where
   as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
 
 
-{- It seems that a monadic stream with an underlying comonad forms a comonad itself 
-    - The laws are satisfied as far as I've been able to check with ad-hoc reasoning
+{- 
+  It seems that a monadic stream with an underlying comonad forms a comonad itself 
+   The laws are satisfied as far as I've been able to check with ad-hoc reasoning
 -}
 instance Comonad w => Comonad (MonStr w) where
   --extract :: MonStr w a -> a

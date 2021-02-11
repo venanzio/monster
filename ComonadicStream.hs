@@ -25,14 +25,6 @@ import Control.Comonad
 import Control.Comonad.Store
 import MonStreams
 
-{-
-instance Comonad (Store s) where
-  extract (Store f s) = f s
-  duplicate (Store f s) = Store (Store f) s
--}
-
-type StoreStream s a = MonStr (Store s) a
-
 headCMS :: Comonad w => MonStr w a -> a
 headCMS (MCons s) = fst (extract s)
 
@@ -42,6 +34,15 @@ tailCMS (MCons s) = snd (extract s)
 takeCMS :: Comonad w => Int -> MonStr w a -> [a]
 takeCMS 0 s = []
 takeCMS n s = headCMS s : takeCMS (n-1) (tailCMS s)
+
+-- Testing comonad laws using the store comonad as the underlying functor
+{-
+instance Comonad (Store s) where
+  extract (Store f s) = f s
+  duplicate (Store f s) = Store (Store f) s
+-}
+
+type StoreStream s a = MonStr (Store s) a
 
 intStoreStream :: Int -> StoreStream Int Int
 intStoreStream n = MCons $ store (\x -> (n, intStoreStream (n+1))) n
