@@ -21,6 +21,8 @@
 
 -}
 
+module ComonadicStream where
+
 import Control.Comonad
 import Control.Comonad.Store
 import MonStreams

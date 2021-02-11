@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex monster_article"] 1613002230 "monster_article.aux" "monster_article.bbl" "monster_article" 1613002230
+["bibtex monster_article"] 1613049934 "monster_article.aux" "monster_article.bbl" "monster_article" 1613049935
   "/usr/local/texlive/2020basic/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
   "biblio.bib" 1612977681 2548 8a89692d5c11e12da1a222d999e7b6e6 ""
-  "monster_article.aux" 1613002230 1098 7eb2d99ca106e65f7c32d0da2c3171fc "pdflatex"
+  "monster_article.aux" 1613049935 1098 e34bb62182d5cd433184cdd363c68e12 "pdflatex"
   (generated)
   "monster_article.blg"
   "monster_article.bbl"
-["pdflatex"] 1613002230 "monster_article.tex" "monster_article.pdf" "monster_article" 1613002230
+["pdflatex"] 1613049934 "monster_article.tex" "monster_article.pdf" "monster_article" 1613049935
   "/Users/chrispy/Library/texlive/2020basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcss0900.600pk" 1612370794 9524 3f305af727eea9b7ca9a3393020c81dd ""
   "/Users/chrispy/Library/texlive/2020basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcti0900.600pk" 1612370793 12516 4a6962464423f6f1d794e5e5ee2312b3 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/jknappen/ec/tcss0900.tfm" 1136768653 1536 ba0169ee8bc017972775b933313cbbb0 ""
@@ -96,11 +96,11 @@
   "/usr/local/texlive/2020basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1610992723 79517 5b36a9bbe085f1aa88763a06c8348abf ""
   "/usr/local/texlive/2020basic/texmf-var/web2c/pdftex/pdflatex.fmt" 1610977543 1835985 6cfb98968f94383956126d83cb2e7260 ""
   "/usr/local/texlive/2020basic/texmf.cnf" 1586277716 628 4346f9a816ba8e5dc36d93d5100b369e ""
-  "monster_article.aux" 1613002230 1098 7eb2d99ca106e65f7c32d0da2c3171fc "pdflatex"
-  "monster_article.bbl" 1613002230 791 7a7de34945a82c9cb4d5ba9a83d75b49 "bibtex monster_article"
-  "monster_article.tex" 1612977949 8935 1802f934b17ef453d905dfa7d11d8706 ""
+  "monster_article.aux" 1613049935 1098 e34bb62182d5cd433184cdd363c68e12 "pdflatex"
+  "monster_article.bbl" 1613049934 791 7a7de34945a82c9cb4d5ba9a83d75b49 "bibtex monster_article"
+  "monster_article.tex" 1613002263 8917 54eda2425a88ce68d96b6830dda0d336 ""
   "notations.sty" 1612977681 3860 b6db7e88ca3c4a76f2e595ca2742423b ""
   (generated)
+  "monster_article.pdf"
   "monster_article.log"
   "monster_article.aux"
-  "monster_article.pdf"
