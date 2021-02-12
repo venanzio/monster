@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex monster_article"] 1613155406 "monster_article.aux" "monster_article.bbl" "monster_article" 1613155406
+["bibtex monster_article"] 1613155406 "monster_article.aux" "monster_article.bbl" "monster_article" 1613156033
   "/usr/local/texlive/2020basic/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
   "biblio.bib" 1612977681 2548 8a89692d5c11e12da1a222d999e7b6e6 ""
-  "monster_article.aux" 1613155406 1325 9e3672149376f73cf1d93d03169fb1c8 "pdflatex"
+  "monster_article.aux" 1613156032 1325 9e3672149376f73cf1d93d03169fb1c8 "pdflatex"
   (generated)
   "monster_article.blg"
   "monster_article.bbl"
-["pdflatex"] 1613155406 "monster_article.tex" "monster_article.pdf" "monster_article" 1613155406
+["pdflatex"] 1613156032 "monster_article.tex" "monster_article.pdf" "monster_article" 1613156033
   "/Users/chrispy/Library/texlive/2020basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcss0900.600pk" 1612370794 9524 3f305af727eea9b7ca9a3393020c81dd ""
   "/Users/chrispy/Library/texlive/2020basic/texmf-var/fonts/pk/ljfour/jknappen/ec/tcti0900.600pk" 1612370793 12516 4a6962464423f6f1d794e5e5ee2312b3 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/jknappen/ec/tcss0900.tfm" 1136768653 1536 ba0169ee8bc017972775b933313cbbb0 ""
@@ -14,7 +14,6 @@
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex9.tfm" 1246382020 996 a18840b13b499c08ac2de96a99eda4bc ""
-  "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmmib9.tfm" 1246382020 1528 159d57adcba064aab4277245c826577d ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1246382020 924 9904cf1d39e9767e7a3622f2a125a565 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm" 1246382020 928 2dc8d444221b7a635bb58038579b861a ""
@@ -65,7 +64,6 @@
   "/usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb" 1248133631 37944 359e864bd06cde3b1cf57bb20757fb06 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb" 1248133631 36310 f5ddc6715cc60deb16d9db5ded6a9391 ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb" 1248133631 31099 c85edf1dd5b9e826d67c9c7293b6786c ""
-  "/usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib9.pfb" 1248133631 36510 24bd6e95867d9b5c2691bf9144a22cda ""
   "/usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1248133631 34694 ad62b13721ee8eda1dcc8993c8bd7041 ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/generic/babel-english/english.ldf" 1496785618 7008 9ff5fdcc865b01beca2b0fe4a46231d4 ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/generic/babel/babel.def" 1584910379 91221 9f3e17ba1169b085116fbeae6d53cd6a ""
@@ -84,7 +82,6 @@
   "/usr/local/texlive/2020basic/texmf-dist/tex/latex/amsmath/amstext.sty" 1523134290 2432 8ff93b1137020e8f21930562a874ae66 ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/latex/base/article.cls" 1580683321 20023 e427dd9e17e239bf926ef3aab67fe35e ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/latex/base/inputenc.sty" 1580683321 5050 8933a39ad74377accd18991c5eb90c58 ""
-  "/usr/local/texlive/2020basic/texmf-dist/tex/latex/base/omlcmr.fd" 1580683321 2471 93c7889092ef3d83d375b915c5381dfe ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/latex/base/omscmr.fd" 1580683321 2470 59e43b502a8bea3a12f4954945302e40 ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/latex/base/size10.clo" 1580683321 8446 9874cccac5fee462272c582807dbbf56 ""
   "/usr/local/texlive/2020basic/texmf-dist/tex/latex/base/ts1cmss.fd" 1580683321 2375 fe833e3acc278b7908322897ea9616fe ""
@@ -99,11 +96,11 @@
   "/usr/local/texlive/2020basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1610992723 79517 5b36a9bbe085f1aa88763a06c8348abf ""
   "/usr/local/texlive/2020basic/texmf-var/web2c/pdftex/pdflatex.fmt" 1610977543 1835985 6cfb98968f94383956126d83cb2e7260 ""
   "/usr/local/texlive/2020basic/texmf.cnf" 1586277716 628 4346f9a816ba8e5dc36d93d5100b369e ""
-  "monster_article.aux" 1613155406 1325 9e3672149376f73cf1d93d03169fb1c8 "pdflatex"
+  "monster_article.aux" 1613156032 1325 9e3672149376f73cf1d93d03169fb1c8 "pdflatex"
   "monster_article.bbl" 1613155406 791 7a7de34945a82c9cb4d5ba9a83d75b49 "bibtex monster_article"
-  "monster_article.tex" 1613155350 10863 8c43dc866831b1483643c825d2322d39 ""
+  "monster_article.tex" 1613156027 10971 c77b5a2412494aaa79f293f09b32ae29 ""
   "notations.sty" 1612977681 3860 b6db7e88ca3c4a76f2e595ca2742423b ""
   (generated)
-  "monster_article.pdf"
-  "monster_article.log"
   "monster_article.aux"
+  "monster_article.log"
+  "monster_article.pdf"

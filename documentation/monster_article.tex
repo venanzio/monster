@@ -148,7 +148,7 @@ fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
          = MCons $ fmap tr(f) (unwrapMS s)
 \end{lstlisting}
 
-We also use the fact that the monster constructor \verb+MCon+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
+We also use the fact that the monster constructor \verb+MCons+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
 
 \begin{lstlisting}
 fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
@@ -172,12 +172,12 @@ fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
 \subsection{Comonad instance in Haskell}
 
 \begin{lstlisting}
-instance Comonad w => Comonad (MonStr w) where
-  --extract :: MonStr w a -> a
+instance Comonad w *'$\Rightarrow$'* Comonad (MonStr w) where
+  --extract :: MonStr w a *'$\to$'* a
   extract = extract . headMS
   
-  --duplicate :: MonStr w a -> MonStr w (MonStr w a)
-  duplicate s = MCons $ fmap (\(h,t) -> (s, duplicate t)) (unwrapMS s)
+  --duplicate :: MonStr w a *'$\to$'* MonStr w (MonStr w a)
+  duplicate s = MCons $ fmap (\(h,t) *'$\to$'* (s, duplicate t)) (unwrapMS s)
 \end{lstlisting}
 
 \verb+headMS+ returns the first element of the first pair in the monster, wrapped in the underlying functor. Since this functor is required to be a comonad, extract can be used to return the wrapped values inside.
@@ -191,27 +191,27 @@ The \verb+duplicate+ instance for monadic streams forms this "monster matrix": \
 Proof that \verb+extract . duplicate == id+
 
 \begin{lstlisting}
-extract . duplicate = \s -> (extract . headMS) . duplicate $ s
-= \s -> (extract . headMS) (duplicate s)
+extract . duplicate = \s *'$\to$'* (extract . headMS) . duplicate $ s
+= \s *'$\to$'* (extract . headMS) (duplicate s)
 -- duplicate forms a monster matrix
-= \s -> (extract . headMS) mm(s)
+= \s *'$\to$'* (extract . headMS) mm(s)
 -- the first element of the monster matrix is the original stream, as per the definition above.
 -- taking the head returns the original stream guarded by the operator m, and extract then retrives 
 -- s due to m being a comonad
-= \s -> s
+= \s *'$\to$'* s
 = id
 \end{lstlisting}
 
 Proof that \verb+fmap extract . duplicate == id+
 
 \begin{lstlisting}
-fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
+fmap extract . duplicate = \s *'$\to$'* fmap (extract . headMS) mm(s)
 -- by functoriality of underlying operator m
-= \s -> (fmap extract) . (fmap headMS) $ mm(s)
+= \s *'$\to$'* (fmap extract) . (fmap headMS) $ mm(s)
 -- fmapping headMS replaces the monster at each step in the monster matrix with its
 -- head, inside the operator. extract then removes these comonadic operators, resulting 
 -- in the same monster that we started with
-= \s -> s
+= \s *'$\to$'* s
 = id
 \end{lstlisting}
 
