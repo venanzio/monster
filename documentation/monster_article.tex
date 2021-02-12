@@ -110,7 +110,7 @@ Also examples when it is a monad even if the underlying monad is not commutative
 
 \subsubsection{Functor proof}
 
-Proof that $fmap\ id == id$\\
+Proof that \verb+fmap\ id == id+
 
 \begin{lstlisting}
 	fmap id = transformMS (\a s *'$\to$'* id a, fmap id s)
@@ -134,7 +134,7 @@ Proof that $fmap\ id == id$\\
 	*'\hfill$\qed$'*
 \end{lstlisting}
 
-Proof that $fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g) $
+Proof that \verb+fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g)+
 
 To simplify notation in the proof, we introduce the notation \verb+tr(f)+ for the expression \verb+\(h,t) -> (f h, fmap f t)+.
 
@@ -188,7 +188,7 @@ The \verb+duplicate+ instance for monadic streams forms this "monster matrix": \
 
 \subsubsection{Comonad proof}
 
-Proof that $extract . duplicate == id$
+Proof that \verb+extract . duplicate == id+
 
 \begin{lstlisting}
 extract . duplicate = \s -> (extract . headMS) . duplicate $ s
@@ -202,7 +202,7 @@ extract . duplicate = \s -> (extract . headMS) . duplicate $ s
 = id
 \end{lstlisting}
 
-Proof that $fmap extract . duplicate == id$
+Proof that \verb+fmap extract . duplicate == id+
 
 \begin{lstlisting}
 fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
@@ -215,7 +215,7 @@ fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
 = id
 \end{lstlisting}
 
-Proof that $duplicate . duplicate == fmap duplicate . duplicate$
+Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
 
 \section{Applications}
 

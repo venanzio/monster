@@ -114,6 +114,9 @@ INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/tfm/jknappen/ec/tcti0900.tfm
 INPUT /usr/local/texlive/2020basic/texmf-dist/tex/latex/base/omscmr.fd
 INPUT /usr/local/texlive/2020basic/texmf-dist/tex/latex/base/omscmr.fd
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
+INPUT /usr/local/texlive/2020basic/texmf-dist/tex/latex/base/omlcmr.fd
+INPUT /usr/local/texlive/2020basic/texmf-dist/tex/latex/base/omlcmr.fd
+INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmmib9.tfm
 INPUT monster_article.bbl
 INPUT monster_article.bbl
 INPUT monster_article.aux
@@ -125,6 +128,7 @@ INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmb
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb
+INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib9.pfb
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb
 INPUT /usr/local/texlive/2020basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb
