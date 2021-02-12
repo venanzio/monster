@@ -129,7 +129,7 @@ data Freedom f a b = F a (f b)
 
 -- This type is isomorphic to Cofree (seems fairly certain looking at the shape)
 --  MCons (F a f((), MCons (F a f((), ...   ~=    a :< f (a :< f (a :< f (....
-type CofreeMonStr f a = MonStr (Freedom f a) () 
+type CofreeMonStr f a = MonStr (Freedom f a) ()
 
 -- NonEmptyTree a = MCons ((a, NonEmptyTree a) :| [(a, NonEmptyTree a)])
 type NonEmptyTree a = MonStr NE.NonEmpty a

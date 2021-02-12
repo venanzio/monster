@@ -110,7 +110,7 @@ Also examples when it is a monad even if the underlying monad is not commutative
 
 \subsubsection{Functor proof}
 
-Proof of $fmap\ id == id$\\
+Proof that $fmap\ id == id$\\
 
 \begin{lstlisting}
 	fmap id = transformMS (\a s *'$\to$'* id a, fmap id s)
@@ -134,11 +134,11 @@ Proof of $fmap\ id == id$\\
 	*'\hfill$\qed$'*
 \end{lstlisting}
 
-Proof of $fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g) $
+Proof that $fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g) $
 
 To simplify notation in the proof, we introduce the notation \verb+tr(f)+ for the expression \verb+\(h,t) -> (f h, fmap f t)+.
 
-We're going to use the fact that the underlying operator \verb+m+ is a functor and so satisfied the functor laws, and also that the pairing operator \verb+(,)+ is functorial in both arguments.
+We're going to use the fact that the underlying operator \verb+m+ is a functor and so satisfies the functor laws, and also that the pairing operator \verb+(,)+ is functorial in both arguments.
 
 By definition of \verb+fmap+ for monsters, we have that
 \begin{lstlisting}
@@ -147,7 +147,6 @@ fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
          = MCons $ fmap (\ (h,t) -> (f h, fmap f t)) (unwrapMS s)
          = MCons $ fmap tr(f) (unwrapMS s)
 \end{lstlisting}
-
 
 We also use the fact that the monster constructor \verb+MCon+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
 
@@ -170,9 +169,57 @@ fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
 = fmap f . fmap g
 \end{lstlisting}
 
+\subsection{Comonad instance in Haskell}
+
+\begin{lstlisting}
+instance Comonad w => Comonad (MonStr w) where
+  --extract :: MonStr w a -> a
+  extract = extract . headMS
+  
+  --duplicate :: MonStr w a -> MonStr w (MonStr w a)
+  duplicate s = MCons $ fmap (\(h,t) -> (s, duplicate t)) (unwrapMS s)
+\end{lstlisting}
+
+\verb+headMS+ returns the first element of the first pair in the monster, wrapped in the underlying functor. Since this functor is required to be a comonad, extract can be used to return the wrapped values inside.
+
+We introduce \verb+mm(s)+ for the "monster matrix" formed by a monadic stream \verb+s+ - this is defined as a monster where the first element is \verb+s+, the second is the tail of \verb+s+, the third is the tail of the tail of \verb+s+, and so on.
+
+The \verb+duplicate+ instance for monadic streams forms this "monster matrix": \verb+duplicate s = mm(s)+
+
+\subsubsection{Comonad proof}
+
+Proof that $extract . duplicate == id$
+
+\begin{lstlisting}
+extract . duplicate = \s -> (extract . headMS) . duplicate $ s
+= \s -> (extract . headMS) (duplicate s)
+-- duplicate forms a monster matrix
+= \s -> (extract . headMS) mm(s)
+-- the first element of the monster matrix is the original stream, as per the definition above.
+-- taking the head returns the original stream guarded by the operator m, and extract then retrives 
+-- s due to m being a comonad
+= \s -> s
+= id
+\end{lstlisting}
+
+Proof that $fmap extract . duplicate == id$
+
+\begin{lstlisting}
+fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
+-- by functoriality of underlying operator m
+= \s -> (fmap extract) . (fmap headMS) $ mm(s)
+-- fmapping headMS replaces the monster at each step in the monster matrix with its
+-- head, inside the operator. extract then removes these comonadic operators, resulting 
+-- in the same monster that we started with
+= \s -> s
+= id
+\end{lstlisting}
+
+Proof that $duplicate . duplicate == fmap duplicate . duplicate$
+
 \section{Applications}
 
-Show a few application and motivate the usefulness of Monadic Streams.
+Show a few applications and motivate the usefulness of Monadic Streams.
 
 \section{Conclusions}
 

@@ -327,19 +327,19 @@ signal = MCons $ \n -> ((read n :: Int), signal)
 
 -- Proof of concept of integration using the rectangle rule - works very similarly to the same function in Yampa
 
-type DTime = Double
+type TimeDiff = Double
 
 type ContSignalFunc a b = MonStr ((->) (DTime, a)) b
 
 integral :: ContSignalFunc Double Double
 integral = MCons integralAuxF
                  
-integralAuxF :: (DTime, Double) -> (Double, ContSignalFunc Double Double)
+integralAuxF :: (TimeDiff, Double) -> (Double, ContSignalFunc Double Double)
 integralAuxF (_, a) = (0 , integralAux 0 a)
                        where integralAux igrl a_prev = MCons (\(dt, a') -> (igrl' dt, integralAux (igrl' dt) a'))
                                                        where igrl' dt' = igrl + (dt' * a_prev)
 
-evaluateCSF :: [(DTime,Double)] -> ContSignalFunc Double Double -> Double
+evaluateCSF :: [(TimeDiff,Double)] -> ContSignalFunc Double Double -> Double
 evaluateCSF []     _   = error "Attempting to evaluate empty list of values"
 evaluateCSF [x]    csf = (fst $ (unwrapMS csf) x)
 evaluateCSF (x:xs) csf = evaluateCSF xs (snd $ (unwrapMS csf) x)
