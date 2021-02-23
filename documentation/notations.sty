@@ -21,9 +21,8 @@
 % code (Haskell)
 %  must use \usepackage{listings}
 
-\lstnewenvironment{haskell}
-    {\lstset{
-      language=Haskell,
+\lstdefinelanguage{myHaskell}
+     {language=Haskell,
       basicstyle=\small\ttfamily,
       frame=single,
       flexiblecolumns=false,
@@ -36,17 +35,15 @@
                {\ .}{{$\circ$}}2 {\ .\ }{{$\circ$}}2
                {>>}{{>>}}2 {>>=}{{>>=}}2
                {|}{{$\mid$}}1,
-      escapeinside={(*}{*)}
-     }
+      escapeinside={(*}{*)}}
+
+\lstnewenvironment{haskell}
+    {\lstset{language=myHaskell}
      \csname lst@SetFirstLabel\endcsname}
     {\csname lst@SaveFirstLabel\endcsname}
-    
-    
+
 % In-line Haskel fragment
-\newcommand{\hcode}[1]{{\tt #1}}
-
-
-
+\newcommand{\hcode}{\lstinline[language=myHaskell]}
 
 
 
