@@ -18,6 +18,38 @@
   morecomment=[l]\%,
 }
 
+% code (Haskell)
+%  must use \usepackage{listings}
+
+\lstnewenvironment{haskell}
+    {\lstset{
+      language=Haskell,
+      basicstyle=\small\ttfamily,
+      frame=single,
+      flexiblecolumns=false,
+      basewidth={0.5em,0.45em},
+      literate={+}{{$+$}}1 {/}{{$/$}}1 {*}{{$*$}}1 {=}{{$=$}}1
+               {>}{{$>$}}1 {<}{{$<$}}1 {\\}{{$\lambda$}}1
+               {\\\\}{{\char`\\\char`\\}}1
+               {->}{{$\rightarrow$}}2 {>=}{{$\geq$}}2 {<-}{{$\leftarrow$}}2
+               {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2 
+               {\ .}{{$\circ$}}2 {\ .\ }{{$\circ$}}2
+               {>>}{{>>}}2 {>>=}{{>>=}}2
+               {|}{{$\mid$}}1,
+      escapeinside={(*}{*)}
+     }
+     \csname lst@SetFirstLabel\endcsname}
+    {\csname lst@SaveFirstLabel\endcsname}
+    
+    
+% In-line Haskel fragment
+\newcommand{\hcode}[1]{{\tt #1}}
+
+
+
+
+
+
 
 \newenvironment{mycomment}{\scriptsize\sffamily\slshape {\bf [Venanzio's comment: }}{{\bf ]}}
 \newcommand{\mycomm}[1]{{\scriptsize\sffamily\slshape {\bf [V: }#1{\bf ]}}}

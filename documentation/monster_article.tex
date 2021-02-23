@@ -95,44 +95,44 @@ Also examples when it is a monad even if the underlying monad is not commutative
 
 \subsection{Functor instance in Haskell}
 
-\begin{lstlisting}
-	unwrapMS :: MonStr m a *'$\to$'* m (a, MonStr m a)
-	unwrapMS (MCons m) = m
+\begin{haskell}
+unwrapMS :: MonStr m a -> m (a, MonStr m a)
+unwrapMS (MCons m) = m
 
-	transformMS :: Functor m *'$\Rightarrow$'* (a *'$\to$'* MonStr m a *'$\to$'* (b, MonStr m b)) *'$\to$'* 
-	                                MonStr m a *'$\to$'* MonStr m b
-	transformMS f s = MCons $ fmap (\(h,t) *'$\to$'* f h t) (unwrapMS s)
+transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) ->
+                                  MonStr m a -> MonStr m b
+transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
 
-	instance Functor m *'$\Rightarrow$'* Functor (MonStr m) where
-	   -- fmap :: (a *'$\to$'* b) *'$\to$'* MonStr m a *'$\to$'* MonStr m b
-	   fmap f = transformMS (\a s *'$\to$'* (f a, fmap f s))
-\end{lstlisting}
+instance Functor m => Functor (MonStr m) where
+   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
+   fmap f = transformMS (\a s -> (f a, fmap f s))
+\end{haskell}
 
 \subsubsection{Functor proof}
 
-Proof that \verb+fmap\ id == id+
+Proof that \hcode{fmap id == id}
 
-\begin{lstlisting}
-	fmap id = transformMS (\a s *'$\to$'* id a, fmap id s)
-	-- definition of `transformMS`
-	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (\a s *'$\to$'* (id a, fmap id s)) h t) (unwrapMS s)
-	-- application of `(\a s *'$\to$'* (id a, fmap id s))` to `h t`
-	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (id h, fmap id t)) (unwrapMS s)
-	-- take as assumption that `fmap id t == id t` - coinductive hypothesis?
-	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (id h, id t)) (unwrapMS s)
-	-- definition of `id`
-	= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (h,t)) (unwrapMS s)
-	-- definition of `id`
-	= \s *'$\to$'* MCons $ fmap id (unwrapMS s)
-	-- `unwrapMS` returns an element in a functor, so `fmap id == id` in this case
-	= \s *'$\to$'* MCons $ id (unwrapMS s)
-	-- application of `id`
-	= \s *'$\to$'* MCons $ (unwrapMS s)
-	-- MCons and unwrapMS are inverses
-	= \s *'$\to$'* id s 
-	= id
-	*'\hfill$\qed$'*
-\end{lstlisting}
+\begin{haskell}
+fmap id = transformMS (\a s -> id a, fmap id s)
+-- definition of `transformMS`
+= \s -> MCons $ fmap (\(h,t) -> (\a s -> (id a, fmap id s)) h t) (unwrapMS s)
+-- application of `(\a s -> (id a, fmap id s))` to `h t`
+= \s -> MCons $ fmap (\(h,t) -> (id h, fmap id t)) (unwrapMS s)
+-- take as assumption that `fmap id t == id t` - coinductive hypothesis?
+= \s -> MCons $ fmap (\(h,t) -> (id h, id t)) (unwrapMS s)
+-- definition of `id`
+= \s -> MCons $ fmap (\(h,t) -> (h,t)) (unwrapMS s)
+-- definition of `id`
+= \s -> MCons $ fmap id (unwrapMS s)
+-- `unwrapMS` returns an element in a functor, so `fmap id == id` in this case
+= \s -> MCons $ id (unwrapMS s)
+-- application of `id`
+= \s -> MCons $ (unwrapMS s)
+-- MCons and unwrapMS are inverses
+= \s -> id s 
+= id
+(*\hfill$\qed$*)
+\end{haskell}
 
 Proof that \verb+fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g)+
 
