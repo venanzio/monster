@@ -2,6 +2,7 @@
 
 \usepackage{amssymb,amsmath,amsthm}
 \usepackage{listings}
+\usepackage{pstricks,pst-node}
 
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -11,6 +12,13 @@
 
 
 \usepackage{notations}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{example}{Example}
+
+
 
 
 %format 
@@ -67,8 +75,36 @@ In fact we will obtain several interesting results when $M$ satisfies weaker con
 So we will take $M$ to be any type operator (but see second observation) and we will explicitely state what properties we assume about it.
 The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
 
-The second observation is that it is not guaranteed in general that the functor $F\,X = M\,(A\times X)$ has a final coalgebra.
-So the definition of $\stream{M,A}$ is not meaningful for all $M$s.
+The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
+Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F\,X = M\,(A\times X)$ has a final coalgebra.
+
+\begin{vcomment}
+This is the formal definition of (final) coalgebra. It needs some explanation and concrete examples.
+\end{vcomment}
+
+\begin{definition}\label{def:fincoal}
+Let $F$ be a functor, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ of an object $A$ and a morphism $\alpha:A\rightarrow FA$; $\langle A,\alpha\rangle$ is a {\em final $F$-coalgebra} if, for every coalgebra $\langle X,\xi:X\rightarrow FX\rangle$, there exists a unique coalgebra morphism $f$ from $\langle X,\xi\rangle$ to $\langle A,\alpha\rangle$.
+We express this by a {\em corecursive diagram:}
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{a}{A} & \Rnode{fa}{FA} \\[30pt]
+\Rnode{x}{X} & \Rnode{fx}{FX} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline{a}{fa} \taput{\alpha}
+\ncline{x}{fx} \tbput{\xi}
+\ncline[linestyle=dashed]{x}{a}  \tlput{f}
+\ncline{fx}{fa} \trput{Ff}
+\qquad \alpha \circ f = Ff \circ \xi.
+$$
+\end{definition}
+
+
+
+
+
+The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
 A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F$ is a container if $M$ is \cite{capretta/fowler:2017}.
 This is the case for all the instances that we consider (but there are well known counterexamples, like the powerset functor and the continuation functor).
 

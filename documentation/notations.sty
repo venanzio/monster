@@ -45,11 +45,11 @@
 % In-line Haskel fragment
 \newcommand{\hcode}{\lstinline[language=myHaskell]}
 
+\newenvironment{vcomment}{\scriptsize\sffamily\slshape {\bf [Venanzio's comment: }}{{\bf ]}}
+\newcommand{\vcomm}[1]{{\scriptsize\sffamily\slshape {\bf [V: }#1{\bf ]}}}
 
-
-
-\newenvironment{mycomment}{\scriptsize\sffamily\slshape {\bf [Venanzio's comment: }}{{\bf ]}}
-\newcommand{\mycomm}[1]{{\scriptsize\sffamily\slshape {\bf [V: }#1{\bf ]}}}
+\newenvironment{ccomment}{\scriptsize\sffamily\slshape {\bf [Chris's comment: }}{{\bf ]}}
+\newcommand{\ccomm}[1]{{\scriptsize\sffamily\slshape {\bf [C: }#1{\bf ]}}}
 
 \newcommand{\trunc}[2]{{#1}|_{#2}}
 \newcommand{\eqn}[1]{\mathrel{=_{#1}}}
