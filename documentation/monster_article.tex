@@ -78,10 +78,6 @@ The most important instances are monads and it is convenient to use the faciliti
 The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
 Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F\,X = M\,(A\times X)$ has a final coalgebra.
 
-\begin{vcomment}
-This is the formal definition of (final) coalgebra. It needs some explanation and concrete examples.
-\end{vcomment}
-
 \begin{definition}\label{def:fincoal}
 For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
 
@@ -124,7 +120,24 @@ $$
 \xi\,n = \langle n,n+1\rangle
 \end{array}
 $$
-(Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.
+(Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.)
+
+In practical programming, we often let the coalgebra $\xi$ be implicit by directly defining the function $f$ recursively.
+For example, the function above would be defined as:
+$$
+\begin{array}{l}
+f: \nat \rightarrow \stream{\nat}\\
+f\,n = n \scons f\,(n+1)
+\end{array}
+$$
+Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitely give the coalgebra $n \mapsto \langle n, n+1\rangle$.
+
+\begin{vcomment}
+Talk about definition by guarded recursion.
+Show specific examples of definition by guarded recursion for monsters.
+\end{vcomment}
+
+
 
 
 The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
