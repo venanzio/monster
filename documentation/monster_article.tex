@@ -66,7 +66,45 @@ $$
 \quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}.
 \end{array}
 $$
-Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$.
+Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
+
+
+Instantiating $M$ with some of the most well-known monads leads to version of known data types or to interesting new construct.
+
+If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
+Its usual definition is the following:
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{A}:\set\\
+\quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}.
+\end{array}
+$$
+(The type of the constructor has been curried, as is common.)
+An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
+
+If we instantiate $M$ with the $\maybe$ monad we obtain the type of lazy lists.
+The maybe monad is equivalent to adding an extra element to the argument type: $\maybe\,X \equiv X+1$, so the single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{\maybe,A}:\set\\
+\quad (\scons): A\times \stream{\maybe,A}\rightarrow\stream{\maybe,A}\\
+\quad \nil: \stream{\maybe,A}.
+\end{array}
+$$
+This means that an element of $\stream{\maybe,A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\stream{\maybe,A}$.
+Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
+Therefore $\stream{\maybe,A}$ is the type of finite and infinite sequences.
+
+
+
+
+
+
+
+
+
 
 It is important to make two observations about $M$.
 
@@ -103,14 +141,7 @@ $$
 
 This definition means that we can define function into a coinductive type by giving a coalgebra.
 For example, consider the data type of pure streams of natural numbers:
-$$
-\begin{array}[t]{l}
-\codata\;
-\stream{A}:\set\\
-\quad (\scons): \nat\times \stream{\nat} \rightarrow\stream{\nat}.
-\end{array}
-$$
-The type $\stream{\nat}$ is the final coalgebra of the functor $F(X) = \nat\times X$.
+The type $\stream{A}$ is the final coalgebra of the functor $F(X) = A\times X$.
 
 We can define a function into $\stream{A}$ by defining a coalgebra on the domain type.
 For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by the following coalgebra on $\nat$:
