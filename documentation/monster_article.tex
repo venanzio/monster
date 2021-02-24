@@ -83,8 +83,13 @@ This is the formal definition of (final) coalgebra. It needs some explanation an
 \end{vcomment}
 
 \begin{definition}\label{def:fincoal}
-Let $F$ be a functor, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ of an object $A$ and a morphism $\alpha:A\rightarrow FA$; $\langle A,\alpha\rangle$ is a {\em final $F$-coalgebra} if, for every coalgebra $\langle X,\xi:X\rightarrow FX\rangle$, there exists a unique coalgebra morphism $f$ from $\langle X,\xi\rangle$ to $\langle A,\alpha\rangle$.
-We express this by a {\em corecursive diagram:}
+For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
+
+We say that $\langle A,\alpha\rangle$ is a {\em final $F$-coalgebra} if, 
+for every coalgebra $\langle X,\xi:X\rightarrow FX\rangle$, 
+there is a unique coalgebra morphism between the the two coalgebras:
+$f:\langle X,\xi\rangle \to \langle A,\alpha\rangle$.
+Such a morphism is a function between the types that commutes with the coalgebra functions:
 $$
 \setlength\arraycolsep{30pt}
 \begin{array}{cc} \ \\
@@ -94,14 +99,32 @@ $$
 \psset{nodesep=5pt,arrows=->}
 \ncline{a}{fa} \taput{\alpha}
 \ncline{x}{fx} \tbput{\xi}
-\ncline[linestyle=dashed]{x}{a}  \tlput{f}
+\ncline[linestyle=dotted]{x}{a}  \tlput{f}
 \ncline{fx}{fa} \trput{Ff}
 \qquad \alpha \circ f = Ff \circ \xi.
 $$
 \end{definition}
 
+This definition means that we can define function into a coinductive type by giving a coalgebra.
+For example, consider the data type of pure streams of natural numbers:
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{A}:\set\\
+\quad (\scons): \nat\times \stream{\nat} \rightarrow\stream{\nat}.
+\end{array}
+$$
+The type $\stream{\nat}$ is the final coalgebra of the functor $F(X) = \nat\times X$.
 
-
+We can define a function into $\stream{A}$ by defining a coalgebra on the domain type.
+For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by the following coalgebra on $\nat$:
+$$
+\begin{array}{l}
+\xi : \nat \rightarrow \nat\times \nat\\
+\xi\,n = \langle n,n+1\rangle
+\end{array}
+$$
+(Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.
 
 
 The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
