@@ -83,22 +83,24 @@ $$
 (The type of the constructor has been curried, as is common.)
 An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
 
-If we instantiate $M$ with the $\maybe$ monad we obtain the type of lazy lists.
-The maybe monad is equivalent to adding an extra element to the argument type: $\maybe\,X \equiv X+1$, so the single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe,A}$, equivalent to the type of lazy lists $\lst{A}$.
+The $\maybe$ monad is a functor that adds an extra element to the argument type: $\maybe\,X \cong X+1$, so the single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
 $$
 \begin{array}[t]{l}
 \codata\;
-\stream{\maybe,A}:\set\\
-\quad (\scons): A\times \stream{\maybe,A}\rightarrow\stream{\maybe,A}\\
-\quad \nil: \stream{\maybe,A}.
+\lst{A}:\set\\
+\quad (\scons): A\times \lst{A}\rightarrow\lst{A}\\
+\quad \nil: \lst{A}.
 \end{array}
 $$
-This means that an element of $\stream{\maybe,A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\stream{\maybe,A}$.
+This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\lst{A}$.
 Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
-Therefore $\stream{\maybe,A}$ is the type of finite and infinite sequences.
+Therefore $\lst{A}$ is the type of finite and infinite sequences.
 
 
-
+\begin{vcomment}
+Add example with $M = \lstsym $ (maybe introduce different notations for lazy and strict lists) and give some simple example of functions on monsters.
+\end{vcomment}
 
 
 
