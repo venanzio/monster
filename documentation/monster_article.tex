@@ -112,7 +112,7 @@ It is important to make two observations about $M$.
 
 First, $M$ does not need to be a monad for the definition to make sense.
 In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being just a functor.
-So we will take $M$ to be any type operator (but see second observation) and we will explicitely state what properties we assume about it.
+So we will take $M$ to be any type operator (but see second observation) and we will explicitly state what properties we assume about it.
 The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
 
 The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
@@ -236,54 +236,53 @@ fmap id = transformMS (\a s -> id a, fmap id s)
 -- MCons and unwrapMS are inverses
 = \s -> id s 
 = id
-(*\hfill$\qed$*)
 \end{haskell}
 
-Proof that \verb+fmap\ (f \circ g) == (fmap\ f) \circ (fmap\ g)+
+Proof that \verb+fmap (f . g) == (fmap f) . (fmap g)+
 
 To simplify notation in the proof, we introduce the notation \verb+tr(f)+ for the expression \verb+\(h,t) -> (f h, fmap f t)+.
 
 We're going to use the fact that the underlying operator \verb+m+ is a functor and so satisfies the functor laws, and also that the pairing operator \verb+(,)+ is functorial in both arguments.
 
 By definition of \verb+fmap+ for monsters, we have that
-\begin{lstlisting}
+\begin{haskell}
 fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
          = MCons $ fmap (\ (h,t) -> (\a s -> (f a, fmap f s) h t)) (unwrapMS s)
          = MCons $ fmap (\ (h,t) -> (f h, fmap f t)) (unwrapMS s)
          = MCons $ fmap tr(f) (unwrapMS s)
-\end{lstlisting}
+\end{haskell}
 
 We also use the fact that the monster constructor \verb+MCons+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
 
-\begin{lstlisting}
-fmap (f . g) = transformMS (\a s *'$\to$'* (f . g) a, fmap (f . g) s)
+\begin{haskell}
+fmap (f . g) = transformMS (\a s -> (f . g) a, fmap (f . g) s)
 -- definition of `transformMS`
-= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* (\a s *'$\to$'* ((f . g) a, fmap (f . g) s)) h t) (unwrapMS s)
--- application of `(\a s *'$\to$'* ((f . g) a, fmap (f . g) s))` to `h t`
-= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* ((f . g) h, fmap (f . g) t)) (unwrapMS s)`
+= \s -> MCons $ fmap (\(h,t) -> (\a s -> ((f . g) a, fmap (f . g) s)) h t) (unwrapMS s)
+-- application of `(\a s -> ((f . g) a, fmap (f . g) s))` to `h t`
+= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, fmap (f . g) t)) (unwrapMS s)`
 -- take as assumption that `fmap (f . g) t == (fmap f . fmap g) t` - coinductive hypothesis?
-= \s *'$\to$'* MCons $ fmap (\(h,t) *'$\to$'* ((f . g) h, (fmap f . fmap g) t)) (unwrapMS s)
+= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, (fmap f . fmap g) t)) (unwrapMS s)
 -- By fuctoriality of pairing in both components
-= \s *'$\to$'* MCons $ fmap (tr(f) . tr(g)) (unwrapMS s)
+= \s -> MCons $ fmap (tr(f) . tr(g)) (unwrapMS s)
 -- By functoriality of the underlying operator m
-= \s *'$\to$'* MCons $ (fmap tr(f)) . (fmap tr(g)) (unwrapMS s)
+= \s -> MCons $ (fmap tr(f)) . (fmap tr(g)) (unwrapMS s)
 -- MCons and unwrapMS are inverses
-= \s *'$\to$'* MCons $ fmap tr(f)) $ unwrapMS $ MCons $ fmap tr(g) (unwrapMS s)
-= \s *'$\to$'* MCons $ fmap tr(f)) $ unwrapMS $ fmap g s
-= \s *'$\to$'* fmap f $ fmap g s
+= \s -> MCons $ fmap tr(f)) $ unwrapMS $ MCons $ fmap tr(g) (unwrapMS s)
+= \s -> MCons $ fmap tr(f)) $ unwrapMS $ fmap g s
+= \s -> fmap f $ fmap g s
 = fmap f . fmap g
-\end{lstlisting}
+\end{haskell}
 
 \subsection{Comonad instance in Haskell}
 
-\begin{lstlisting}
-instance Comonad w *'$\Rightarrow$'* Comonad (MonStr w) where
-  --extract :: MonStr w a *'$\to$'* a
+\begin{haskell}
+instance Comonad w => Comonad (MonStr w) where
+  --extract :: MonStr w a -> a
   extract = extract . headMS
   
-  --duplicate :: MonStr w a *'$\to$'* MonStr w (MonStr w a)
-  duplicate s = MCons $ fmap (\(h,t) *'$\to$'* (s, duplicate t)) (unwrapMS s)
-\end{lstlisting}
+  --duplicate :: MonStr w a -> MonStr w (MonStr w a)
+  duplicate s = MCons $ fmap (\(h,t) -> (s, duplicate t)) (unwrapMS s)
+\end{haskell}
 
 \verb+headMS+ returns the first element of the first pair in the monster, wrapped in the underlying functor. Since this functor is required to be a comonad, extract can be used to return the wrapped values inside.
 
@@ -295,30 +294,30 @@ The \verb+duplicate+ instance for monadic streams forms this "monster matrix": \
 
 Proof that \verb+extract . duplicate == id+
 
-\begin{lstlisting}
-extract . duplicate = \s *'$\to$'* (extract . headMS) . duplicate $ s
-= \s *'$\to$'* (extract . headMS) (duplicate s)
+\begin{haskell}
+extract . duplicate = \s -> (extract . headMS) . duplicate $ s
+= \s -> (extract . headMS) (duplicate s)
 -- duplicate forms a monster matrix
-= \s *'$\to$'* (extract . headMS) mm(s)
+= \s -> (extract . headMS) mm(s)
 -- the first element of the monster matrix is the original stream, as per the definition above.
--- taking the head returns the original stream guarded by the operator m, and extract then retrives 
--- s due to m being a comonad
-= \s *'$\to$'* s
+-- taking the head returns the original stream guarded by the operator m, and extract then retrieves 
+-- s due to m being comonadic
+= \s -> s
 = id
-\end{lstlisting}
+\end{haskell}
 
 Proof that \verb+fmap extract . duplicate == id+
 
-\begin{lstlisting}
-fmap extract . duplicate = \s *'$\to$'* fmap (extract . headMS) mm(s)
+\begin{haskell}
+fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
 -- by functoriality of underlying operator m
-= \s *'$\to$'* (fmap extract) . (fmap headMS) $ mm(s)
+= \s -> (fmap extract) . (fmap headMS) $ mm(s)
 -- fmapping headMS replaces the monster at each step in the monster matrix with its
 -- head, inside the operator. extract then removes these comonadic operators, resulting 
 -- in the same monster that we started with
-= \s *'$\to$'* s
+= \s -> s
 = id
-\end{lstlisting}
+\end{haskell}
 
 Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
 
