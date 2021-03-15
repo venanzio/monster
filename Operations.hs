@@ -108,6 +108,8 @@ s !!! n = headMS $ (iterate tailMMS s) !! n
 consMMS :: Functor m => a -> MonStr m [a] -> MonStr m [a]
 consMMS a s = fmap (a:) s
 
+------
+
 -- Accumulating the prefixes in each path of a monster:
 --  Every entry contains the list of its predecessors
 prefixesMMS :: Applicative m => MonStr m a -> MonStr m [a]
@@ -133,6 +135,9 @@ tailsMMS mas = mas:(tailsMMS (tailMMS mas))
 -- tails with Foldable type constraint
 tailsF :: (Monad m, Foldable m) => MonStr m a -> [MonStr m a]
 tailsF mas = if null (unwrapMS mas) then [mas] else mas:(tailsF (tailF mas))
+
+-------
+
 
 -- Version of "take": returns the list of the first n elements
 --  For trees, we expect to get:
@@ -186,6 +191,8 @@ spanF p mas = if null ma then return ([], mas)
                                                       else return ([], h <: t)
               where ma = unwrapMS mas
 
+-------
+
 -- breakMMS p is equivalent to spanMMS (not . p)
 --
 -- /Beware/: this function may diverge for the same reason as spanMMS
@@ -214,6 +221,9 @@ partitionMMS :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m (MonStr 
 partitionMMS p ma = unwrapMS ma >>= \(h,t) -> let ret = (if null t then pure (t, t) else partitionMMS p t) in 
                                                   if p h then (\p' -> fmap (\(t, f) -> (h <: t, f)) p') ret
                                                          else (\p' -> fmap (\(t, f) -> (t, h <: f)) p') ret
+
+------
+
 
 -- Groups consecutive equal elements of the monster into lists
 groupMMS :: (Monad m, Eq a) => MonStr m a -> MonStr m [a]
@@ -284,6 +294,9 @@ interleaveMS mas mbs = transformMS (\h t -> (h, interleaveMS mbs t)) mas
 unconsMMS :: (Monad m, Foldable m) => MonStr m a -> Maybe (m a, MonStr m a)
 unconsMMS ms = if (null . unwrapMS $ ms) then Nothing else (Just (headMS ms, tailMMS ms))
 
+----
+
+
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely
 lastMMS :: (Monad m, Foldable m) => MonStr m a -> m a
@@ -321,6 +334,8 @@ depthMMS =  maximumInt . fmap (\(h,t) -> depthMMS t + 1) . unwrapMS
           | null t = 0
           | otherwise = maximum t
 
+
+----
 
 -- injects an infinite repetition of a list into a monster
 cycleMS :: Applicative m => [a] -> MonStr m a

@@ -53,3 +53,5 @@ mf $:< mas = MCons . join $ (\f -> fmap (\(a, s) -> (f a, mf $:< s)) (unwrapMS m
 insertAct :: Monad m => Int -> m a -> MonStr m a -> MonStr m a
 insertAct 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h,t)) ma) <$> unwrapMS mas
 insertAct n ma mas = MCons $ (\(h,t) -> (h, insertAct (n-1) ma t)) <$> unwrapMS mas
+
+

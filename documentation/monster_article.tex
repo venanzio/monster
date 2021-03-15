@@ -325,6 +325,27 @@ Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
 
 Show a few applications and motivate the usefulness of Monadic Streams.
 
+One application from monadic streams is they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. For example, one can implement the integral signal function using the Reader functor. First you define the type of monadic stream - here we use the same names as in Yampa, to make clear the correspondence:
+
+\begin{haskell}
+type DTime = Double
+
+type SignalFunc a b = MonStr ((->) (DTime, a)) b
+\end{haskell}
+
+\begin{haskell}
+integral :: SignalFunc Double Double
+integral = MCons integralAuxF
+                 
+integralAuxF :: (DTime, Double) -> (Double, SignalFunc DTime Double)
+integralAuxF (_, a) = (0 , integralAux 0 a)
+   where integralAux igrl a_prev = MCons (\(dt, a') -> 
+   		(igrl' dt, integralAux (igrl' dt) a'))
+      where igrl' dt' = igrl + (dt' * a_prev)
+\end{haskell}
+
+
+
 \section{Conclusions}
 
 Discussion of related literature.
