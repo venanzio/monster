@@ -55,7 +55,7 @@ takeT n (Node a ts) = [a]:(concat . map (takeT n) $ ts)
 
      f >=> (g >=> h) = (f >=> g) >=> h
 
--}   
+-}
 
 -- Example functions
 
@@ -124,12 +124,63 @@ instance Alternative f => Monad (Cofree f) where
 
 -}
 
+
+data Tree' a = NodeL [(a , Tree' a)]
+{-
+headT :: Tree' a -> (a, Tree' a)
+headT (NodeL l) = head l
+
+instance Functor Tree' where
+  fmap f (NodeL []) = NodeL []
+  fmap f (NodeL ts) = NodeL $ map (\(x, ts') -> (f x, fmap f ts')) ts
+
+instance Applicative Tree' where
+  pure x = TCons [(x, TCons [])] 
+  
+  (NodeL [])           <*> (NodeL tas) = tas
+  (NodeL ((f,tfs):fs)) <*> (NodeL tas) = case tas of 
+                                            [] -> NodeL []
+                                            (a, tas'):as -> NodeL (f a, ...)
+
+instance Monad Tree' where
+  t >>= f = tjoin (fmap f t)
+            where tjoin (NodeL [])  = NodeL []
+                  tjoin (NodeL tts) = NodeL $ map (\(x, tts') -> (fst (headT x), tjoin tts')) tts
+-}
+
+{-
+isoTreePhi :: Tree a -> Tree' a
+isoTreePhi (Node a ts) = NodeL [(a, map isoTree ts)]
+-}
+
+{-
+data RoseTree a = Node a [RoseTree a]
+
+data MonStrTree a = MNode [(a , MonStrTree a)]
+
+-- Can't produce a RoseTree without an element, but you can with MonStrTrees
+--  therefore they are definitly not isomorphic
+isoTreePhi :: MonStrTree a -> RoseTree a
+isoTreePhi (MNode []) = undefined
+isoTreePhi (MNode [(a, ts)]) = ...
+-}
+
 -- Used to transform monadic stream into cofree below
 data Freedom f a b = F a (f b)
 
 -- This type is isomorphic to Cofree (seems fairly certain looking at the shape)
 --  MCons (F a f((), MCons (F a f((), ...   ~=    a :< f (a :< f (a :< f (....
 type CofreeMonStr f a = MonStr (Freedom f a) ()
+
+data Cofree f a = a :< f (Cofree f a)
+
+-- Isomorphism between specific case of monadic stream and cofree construction
+cofreeIsoPhi :: Functor f => CofreeMonStr f a -> Cofree f a
+cofreeIsoPhi (MCons (F a ft)) = a :< (fmap (\(_,t) -> cofreeIsoPhi t) ft)
+
+cofreeIsoPsi :: Functor f => Cofree f a -> CofreeMonStr f a
+cofreeIsoPsi (a :< ft) = MCons (F a (fmap (\x -> ((), cofreeIsoPsi x)) ft))
+
 
 -- NonEmptyTree a = MCons ((a, NonEmptyTree a) :| [(a, NonEmptyTree a)])
 type NonEmptyTree a = MonStr NE.NonEmpty a

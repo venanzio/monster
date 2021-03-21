@@ -18,9 +18,6 @@
 \newtheorem{proposition}{Proposition}
 \newtheorem{example}{Example}
 
-
-
-
 %format 
 
 \begin{document}
@@ -66,10 +63,10 @@ $$
 \quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}.
 \end{array}
 $$
-Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
+Categorically, we can see this type as the final coalgebra of the functor $F\,X-= = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
 
 
-Instantiating $M$ with some of the most well-known monads leads to version of known data types or to interesting new construct.
+Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
 
 If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
 Its usual definition is the following:
@@ -321,11 +318,61 @@ fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
 
 Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
 
+
+\section{Monad proof}
+
+\begin{definition}\label{def:monad}
+For any endofunctor $T$ on a category $C$, a {\em monad} is a triple $(T, \mu, \eta)$, of $T$ and two natural transformations $\mu : TT \Rightarrow T$ and $\eta : \text{Id}_C \Rightarrow T$ ($\text{Id}_C$ being the identity functor on $C$) such that these diagrams commute:
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{t1}{TA} & \Rnode{tt}{TTA} \\[30pt]
+ & \Rnode{t2}{TA} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline{t1}{tt} \taput{\eta_{TA}}
+\ncline{tt}{t2} \trput{\mu}
+\ncline{t1}{t2} \tbput{id_{TA}}
+\qquad 
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{t1}{TA} & \Rnode{tt}{TTA} \\[30pt]
+ & \Rnode{t2}{TA} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline{t1}{tt} \taput{T\eta_{A}}
+\ncline{tt}{t2} \trput{\mu}
+\ncline{t1}{t2} \tbput{id_{TA}}
+$$
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{ttt}{TTTA} & \Rnode{tt1}{TTA} \\[30pt]
+\Rnode{tt2}{TTA} & \Rnode{t}{TA} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline{ttt}{tt1} \taput{\mu T}
+\ncline{ttt}{tt2} \tlput{T\mu}
+\ncline{tt2}{t} \tbput{\mu}
+\ncline{tt1}{t} \trput{\mu}
+$$
+\end{definition}
+
+For the functor $\stream{M}$ to be a monad, the monad laws (these commuting diagrams) need to be satisfied. However, assuming a monad $(\stream{M}, \mu, \eta)$, the left identity law (top-left diagram) does not hold in general, given an arbitrary underlying monad $M$. This is due to a correct $\mu$ not being constructible.\\
+
+Breakdown:
+\begin{enumerate}
+\item To construct a $\mu$ you need a morphism $f : M(MA \times \stream{M,\stream{M,A}}) \to M(M(A \times \stream{M,\stream{M,A}}))$
+\item There is no extraction of a value from a monad in general (no function $g : MA \to A$)
+\item You need to collapse the inner streams in some way - not sure how to show this has to be the case
+\end{enumerate}
 \section{Applications}
 
-Show a few applications and motivate the usefulness of Monadic Streams.
+\begin{ccomment}
+	Show a few applications and motivate the usefulness of Monadic Streams.
+\end{ccomment}
 
-One application from monadic streams is they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. For example, one can implement the integral signal function using the Reader functor. First you define the type of monadic stream - here we use the same names as in Yampa, to make clear the correspondence:
+One application from monadic streams is they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. For example, one can implement the integral signal function using the Reader functor. First you define the type of monadic stream - we use the same names as for the similar constructs in Yampa, to make the correspondence clear:
 
 \begin{haskell}
 type DTime = Double
@@ -343,7 +390,6 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
    		(igrl' dt, integralAux (igrl' dt) a'))
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
-
 
 
 \section{Conclusions}
