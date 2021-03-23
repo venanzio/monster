@@ -22,7 +22,7 @@ mas >>> mbs = MCons $ do (a, as) <- unwrapMS mas
 ma &&& mb = liftA2 (,) ma mb
 
 -- Lifts a binary functions to act on monsters of pairs
-mfunc2 :: Monad m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
+mfunc2 :: Functor m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
 mfunc2 f = fmap (uncurry f)
 
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
