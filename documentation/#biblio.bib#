@@ -23,9 +23,6 @@ abstract = "For an associative ring R, let P be an R-module with S=EndR(P). C. M
   note =	 {Applied Semantics: Selected Topics},
 }
 
-@inproceedings{yampa_arcade, author = {Courtney, Antony and Nilsson, Henrik and Peterson, John}, title = {The Yampa Arcade}, year = {2003}, isbn = {1581137583}, publisher = {Association for Computing Machinery}, address = {New York, NY, USA}, url = {https://doi.org/10.1145/871895.871897}, doi = {10.1145/871895.871897}, abstract = {Simulated worlds are a common (and highly lucrative) application domain that stretches from detailed simulation of physical systems to elaborate video game fantasies. We believe that Functional Reactive Programming (FRP) provides just the right level of functionality to develop simulated worlds in a concise, clear and modular way. We demonstrate the use of FRP in this domain by presenting an implementation of the classic "Space Invaders" game in Yampa, our most recent Haskell-embedded incarnation of FRP.}, booktitle = {Proceedings of the 2003 ACM SIGPLAN Workshop on Haskell}, pages = {7–18}, numpages = {12}, keywords = {hybrid modeling, FRP, modeling languages, functional programming, Haskell, synchronous dataflow languages}, location = {Uppsala, Sweden}, series = {Haskell '03} }
-
-
 
 @inproceedings{capretta/fowler:2017,
   author    = {Venanzio Capretta and

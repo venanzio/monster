@@ -25,7 +25,7 @@ solveST terms funs = map funSTerm terms
 
 -- When we know exactly how many arguments a function has
 
-funSTN :: (Monad m) => [STerm] -> Int -> [MonStr m a]
+funSTN :: (Monad m) => [STerm] -> Int -> [MonStr m a] -> MonStr m a
 funSTN terms k alphas = ((funST terms) !! k) alphas
 
 funST1 :: (Monad m) => [STerm] -> Int -> MonStr m a -> MonStr m a
@@ -38,7 +38,7 @@ funST2 terms k alpha1 alpha2 = ((funST terms) !! k) [alpha1, alpha2]
 
 -- It is now possible to run the example functions on monadic streams (like this one below)
 natsLess10 :: MonStr Maybe Integer
-natsLess10 = llist [0..9]
+natsLess10 = toMonStr [0..9]
 
 -- Evens and Odds
 --   evens s = head s : odds (tail s)

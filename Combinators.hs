@@ -1,6 +1,9 @@
+{-# LANGUAGE RankNTypes #-}
+
 module Combinators where
 
 import Control.Monad
+import Control.Monad.Trans
 import Control.Applicative
 import MonStreams
 import Operations
@@ -55,3 +58,31 @@ insertAct 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h,t)) ma) <$> unwrap
 insertAct n ma mas = MCons $ (\(h,t) -> (h, insertAct (n-1) ma t)) <$> unwrapMS mas
 
 
+liftNat :: (Functor m, Functor n) => (forall a. (m a -> n a)) -> MonStr m a -> MonStr n a
+liftNat f (MCons ma) = MCons $ f (fmap (\(a, s) -> (a, liftNat f s)) ma)
+
+liftMT :: (MonadTrans t, Monad m, Functor (t m)) => MonStr m a -> MonStr (t m) a
+liftMT = liftNat lift
+
+-- Monadic stream functions using monadic streams
+
+-- functorial in a, contra-functorial in r
+-- This is just the ReaderT monad basically
+newtype MArr m r a = MArr (r -> m a)
+
+instance (Functor m) => Functor (MArr m a) where
+  fmap fab (MArr ra) = MArr (\r -> fmap fab (ra r))
+
+instance (Applicative m) => Applicative (MArr m a) where
+  pure a = MArr (\_ -> pure a)
+  (MArr rf) <*> (MArr ra) = MArr (\r -> (rf r) <*> (ra r))
+  
+instance (Monad m) => Monad (MArr m a) where 
+  (MArr ra) >>= arb = MArr (\r -> join (fmap (\(MArr f) -> f r) (fmap arb (ra r))) )
+
+type MSF m a b = MonStr (MArr m a) b
+
+preComp :: (Functor m) => forall a b c. (a -> b) -> (MArr m b c -> MArr m a c)
+preComp f (MArr bc) = MArr (\a -> bc (f a))
+
+liftNatPreComp f = liftNat (preComp f)

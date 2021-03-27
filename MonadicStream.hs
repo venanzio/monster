@@ -3,7 +3,7 @@ module MonadicStream
    -- The type of monadic streams
      MonStr(..),
      
-     unwrap,
+     uncons,
      head,
      tail,
      tailM,
@@ -143,24 +143,24 @@ data MonStr m a = MCons (m (a , MonStr m a))
  appending elements to monsters etc.
 -}
 
-unwrap :: MonStr m a -> m (a, MonStr m a)
-unwrap (MCons m) = m  
+uncons :: MonStr m a -> m (a, MonStr m a)
+uncons (MCons m) = m  
 
 head :: Functor m => MonStr m a -> m a
-head = fmap fst . unwrap
+head = fmap fst . uncons
 
 tail :: Functor m => MonStr m a -> m (MonStr m a)
-tail = fmap snd . unwrap
+tail = fmap snd . uncons
 
 -- | Tail for m Monad - joins the monadic action, returning a tail
 -- that isn't wrapped in the functor
 tailM :: Monad m => MonStr m a -> MonStr m a
-tailM = MCons . join . fmap unwrap . tail
+tailM = MCons . join . fmap uncons . tail
 
 -- | Tail for m Monad and Foldable - deals with empty tails
 tailMF :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
 tailMF ma = let t = tail ma in
-              if null t then error "Empty monadic stream" else (MCons . join . fmap unwrap) t
+              if null t then error "Empty monadic stream" else (MCons . join . fmap uncons) t
               
 -- | Appending an m-element in front of a stream
 infixr 5 <::
@@ -196,7 +196,7 @@ infix 5 <<*>>
 transform :: Functor m => 
                (a -> MonStr m a -> (b, MonStr m b)) ->
                MonStr m a -> MonStr m b
-transform f s = MCons $ fmap (\(h,t) -> f h t) (unwrap s)
+transform f s = MCons $ fmap (\(h,t) -> f h t) (uncons s)
 
 instance Functor m => Functor (MonStr m) where
   fmap f = transform (\a s -> (f a, fmap f s))
@@ -207,7 +207,7 @@ transformA :: Applicative m =>
                (a -> MonStr m a -> b -> MonStr m b -> (c, MonStr m c)) ->
                MonStr m a -> MonStr m b -> MonStr m c
 transformA f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
-                               <$> unwrap as <*> unwrap bs
+                               <$> uncons as <*> uncons bs
 
 instance Applicative m => Applicative (MonStr m) where
   pure a = a <: pure a
@@ -239,11 +239,11 @@ repeatA = pure
 
 -- | Lifts monadic actions from elements to the stream
 liftM :: Monad m => MonStr m (m a) -> m (MonStr m a)
-liftM ms = pure (\(ma,ms') -> ma <::: liftM ms') <*> unwrap ms
+liftM ms = pure (\(ma,ms') -> ma <::: liftM ms') <*> uncons ms
 
 -- | Monadic monsters can "absorb" a monadic action
 absorbM :: Monad m => m (MonStr m a) -> MonStr m a
-absorbM ms = MCons . join $ fmap unwrap ms
+absorbM ms = MCons . join $ fmap uncons ms
 
 -- | If m is Foldable, we could define alternative by grafting
 graftF :: (Functor m, Foldable m) => MonStr m a -> MonStr m a -> MonStr m a
@@ -273,17 +273,17 @@ decomp ms = (head ms, tail ms)
 -- and tail
 mapOutM :: Monad m => (a -> MonStr m a -> MonStr m b) ->
                        MonStr m a -> MonStr m b
-mapOutM f s = absorbM $ fmap (uncurry f) (unwrap s)
+mapOutM f s = absorbM $ fmap (uncurry f) (uncons s)
 
 --
 scanA :: Applicative m => (a -> b -> a) -> a -> MonStr m b -> MonStr m a
 scanA f z s = z <: scanH f z s
-              where scanH f z s = MCons $ (\(a, s') -> (f z a, scanH f (f z a) s')) <$> unwrap s
+              where scanH f z s = MCons $ (\(a, s') -> (f z a, scanH f (f z a) s')) <$> uncons s
 
 -- | A verison of scan without a starting value argument - works 
 -- very nicely on List-monsters (trees)
 scanM :: Monad m => (a -> a -> a) -> MonStr m a -> MonStr m a
-scanM f s = absorbM $ (\(a, s') -> scanA f a s') <$> unwrap s
+scanM f s = absorbM $ (\(a, s') -> scanA f a s') <$> uncons s
 
 -- | Appending two monsters: the second is grafted when there is an empty action,
 -- require
@@ -314,7 +314,7 @@ prefix xs s = foldr (<::) s xs
 initMF :: (Monad m, Foldable m) => MonStr m a -> [m a]
 initMF ms = if isEnd tl then [] else (head ms : initMF tl)
             where tl = tailM ms
-                  isEnd ms' = null . unwrap $ ms'
+                  isEnd ms' = null . uncons $ ms'
               
 -- | Version of init where the returned list is inside a single monadic action
 initMF' :: (Monad m, Foldable m) => MonStr m a -> m [a]
@@ -341,7 +341,7 @@ tailsM mas = mas : (tailsM (tailM mas))
 
 -- | tails with Foldable type constraint
 tailsMF :: (Monad m, Foldable m) => MonStr m a -> [MonStr m a]
-tailsMF mas = if null (unwrap mas) then [mas] else mas : (tailsMF (tailMF mas))
+tailsMF mas = if null (uncons mas) then [mas] else mas : (tailsMF (tailMF mas))
 
 -- Version of "take": returns the list of the first n elements
 --  For trees, we expect to get:
@@ -354,7 +354,7 @@ tailsMF mas = if null (unwrap mas) then [mas] else mas : (tailsMF (tailMF mas))
 takeM :: Monad m => Int -> MonStr m a -> m [a]
 takeM n s
   | n == 0 = return []
-  | n > 0  = unwrap s >>= \(h,t) -> fmap (h:) (takeM (n-1) t)
+  | n > 0  = uncons s >>= \(h,t) -> fmap (h:) (takeM (n-1) t)
   | otherwise = error "MonadicStream.takeM: negative argument."
 
 -- | Simpler alternative to takeM: nth elements of the inits
@@ -373,7 +373,7 @@ takeM'' n ms
 takeMF :: (Monad m, Foldable m) => Int -> MonStr m a -> [m a]
 takeMF n ms
   | n == 0    = []
-  | null (unwrap ms) = []
+  | null (uncons ms) = []
   | n > 0     = head ms : (takeMF (n - 1) (tailMF ms))
   | otherwise = error "MonadicStream.takeMF: negative argument."
 
@@ -384,7 +384,7 @@ takeMF n ms
 -- /Beware/: this function may diverge if every element
 --  of the given monadic stream satisfies the predicate
 spanM :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
-spanM p ma = unwrap ma >>= \(h,t) -> if p h then let ret = spanM p t in 
+spanM p ma = uncons ma >>= \(h,t) -> if p h then let ret = spanM p t in 
                                                      fmap (\(l, s) -> (h:l, s)) ret
                                             else return ([], h <: t)
 
@@ -394,7 +394,7 @@ spanMF p mas = if null ma then return ([], mas)
                           else ma >>= \(h,t) -> if p h then let ret = spanMF p t in 
                                                                 fmap (\(l, s) -> (h:l, s)) ret
                                                        else return ([], h <: t)
-               where ma = unwrap mas
+               where ma = uncons mas
 
 -- | breakM p is equivalent to spanM (not . p)
 --
@@ -426,24 +426,24 @@ dropWhileMF p ma = absorbM . (fmap snd) $ spanMF p ma
 -- | Partitions the given monadic stream into a pair of monadic streams - one where every 
 -- element satisfies the predicate p, and one with the remaining elements which do not
 partitionMF :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m (MonStr m a, MonStr m a)
-partitionMF p ma = unwrap ma >>= \(h,t) -> let ret = (if null t then pure (t, t) else partitionMF p t) in 
+partitionMF p ma = uncons ma >>= \(h,t) -> let ret = (if null t then pure (t, t) else partitionMF p t) in 
                                                if p h then (\p' -> fmap (\(t, f) -> (h <: t, f)) p') ret
                                                       else (\p' -> fmap (\(t, f) -> (t, h <: f)) p') ret
 
 -- | Groups consecutive equal elements of a monadic monster into lists
 groupM :: (Monad m, Eq a) => MonStr m a -> MonStr m [a]
-groupM mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupM t')) (spanM (==h) t)) <$> unwrap mas
+groupM mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupM t')) (spanM (==h) t)) <$> uncons mas
 
 -- | Group with m Foldable
 groupMF :: (Monad m, Eq a, Foldable m) => MonStr m a -> MonStr m [a]
-groupMF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMF t')) (spanMF (==h) t)) <$> unwrap mas
+groupMF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMF t')) (spanMF (==h) t)) <$> uncons mas
 
 -- | isPrefixOfMMS returns True if the first argument is a prefix of the second, and False otherwise
 -- will diverge if the monsters being compared are the same and are infinite
 isPrefixOfMF :: (Monad m, Foldable m, Eq a) => MonStr m a -> MonStr m a -> m Bool
 isPrefixOfMF ma mb = if null ma 
                         then return True 
-                        else join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMF t t')) <$> unwrap ma <*> unwrap mb
+                        else join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMF t t')) <$> uncons ma <*> uncons mb
 
 -- | "Internal" version of take: pruning the stream at depth n
 pruneL :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
@@ -493,7 +493,7 @@ interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
 -- /Beware/: passing a monadic stream not containing a 'null' element 
 -- will cause the function to run indefinitely
 unconsMF :: (Monad m, Foldable m) => MonStr m a -> Maybe (m a, MonStr m a)
-unconsMF ms = if (null . unwrap $ ms) then Nothing else (Just (head ms, tailM ms))
+unconsMF ms = if (null . uncons $ ms) then Nothing else (Just (head ms, tailM ms))
 
 -- |
 --
@@ -502,7 +502,7 @@ unconsMF ms = if (null . unwrap $ ms) then Nothing else (Just (head ms, tailM ms
 lastMF :: (Monad m, Foldable m) => MonStr m a -> m a
 lastMF ms = if isEnd tl then head ms else lastMF tl
             where tl = tailM ms
-                  isEnd ms' = null . unwrap $ ms'
+                  isEnd ms' = null . uncons $ ms'
                   
 -- | Gives the total numbers of elements in a monster
 --
@@ -513,7 +513,7 @@ lengthF = length
 
 -- | Length of longest path - diverges if there is an infinite path
 depthF :: (Functor m, Foldable m) => MonStr m a -> Int
-depthF = maximumInt . fmap (\(h,t) -> depthF t + 1) . unwrap
+depthF = maximumInt . fmap (\(h,t) -> depthF t + 1) . uncons
          where maximumInt t | null t = 0
                             | otherwise = maximum t
 
@@ -579,7 +579,7 @@ wordsMFL mcs = if null mcs then empty
 -- |
 unwordsMFL :: (Monad m, Foldable m, Alternative m) => MonStr m String -> MonStr m Char
 unwordsMFL mss = if null mss then empty 
-                   else mapOutM f (MCons $ (\(s,c) -> if null s then (' ', unwordsMFL c) else (P.head s, unwordsMFL (P.tail s <: c))) <$> unwrap mss)
+                   else mapOutM f (MCons $ (\(s,c) -> if null s then (' ', unwordsMFL c) else (P.head s, unwordsMFL (P.tail s <: c))) <$> uncons mss)
                    where f = (\a s -> if a == ' ' && null s then s else a <: s)
 
 -- |
@@ -590,7 +590,7 @@ linesMFL mcs = if null mcs then empty
 -- |              
 unlinesMFL :: (Monad m, Foldable m, Alternative m) => MonStr m String -> MonStr m Char
 unlinesMFL mss = if null mss then empty 
-                    else MCons $ (\(s,c) -> if null s then ('\n', unlinesMFL c) else (P.head s, unlinesMFL (P.tail s <: c))) <$> unwrap mss   
+                    else MCons $ (\(s,c) -> if null s then ('\n', unlinesMFL c) else (P.head s, unlinesMFL (P.tail s <: c))) <$> uncons mss   
 
 {-
   Functions for finding indices of elements which satify given predicates
@@ -602,7 +602,7 @@ unlinesMFL mss = if null mss then empty
 -- |
 findIndexM :: Monad m => (a -> Bool) -> MonStr m a -> m Int
 findIndexM p = indexFrom 0
-               where indexFrom ix mas = join $ (\(h,t) -> if p h then return ix else (indexFrom $! (ix+1)) t) <$> unwrap mas
+               where indexFrom ix mas = join $ (\(h,t) -> if p h then return ix else (indexFrom $! (ix+1)) t) <$> uncons mas
 
 -- |
 elemIndexM :: (Monad m, Eq a) => a -> MonStr m a -> m Int
@@ -611,7 +611,7 @@ elemIndexM x = findIndexM (==x)
 -- |
 findIndicesM :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m Int
 findIndicesM p = indicesFrom 0
-                 where indicesFrom ix mas = MCons . join $ (\(h,t) -> let ixs = (indicesFrom $! (ix+1)) t in if p h then return (ix, ixs) else (unwrap ixs)) <$> unwrap mas
+                 where indicesFrom ix mas = MCons . join $ (\(h,t) -> let ixs = (indicesFrom $! (ix+1)) t in if p h then return (ix, ixs) else (uncons ixs)) <$> uncons mas
      
 -- |             
 elemIndicesM :: (Monad m, Eq a) => a -> MonStr m a -> MonStr m Int

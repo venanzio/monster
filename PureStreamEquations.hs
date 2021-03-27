@@ -6,7 +6,7 @@
 import MonStreams
 import PureStreams
 
-{- The following is from "The Construction of Infinity"-}
+{- The following is from "The Construction of Infinity" -}
 -- A language for pure streams and element terms in many stream arguments
 
 data STerm = STArg Int | STTail STerm | STCons ETerm STerm | STRec Int [STerm]

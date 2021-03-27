@@ -181,7 +181,6 @@ cofreeIsoPhi (MCons (F a ft)) = a :< (fmap (\(_,t) -> cofreeIsoPhi t) ft)
 cofreeIsoPsi :: Functor f => Cofree f a -> CofreeMonStr f a
 cofreeIsoPsi (a :< ft) = MCons (F a (fmap (\x -> ((), cofreeIsoPsi x)) ft))
 
-
 -- NonEmptyTree a = MCons ((a, NonEmptyTree a) :| [(a, NonEmptyTree a)])
 type NonEmptyTree a = MonStr NE.NonEmpty a
 

@@ -243,6 +243,7 @@ stopAtZero' s = do
      ns <- unsafeRunProcess s
      return $! Prelude.takeWhile (/= 0) ns
 
+
 -- State Monad
 --------------
 
@@ -302,7 +303,6 @@ coordMM (x,y) = MCons $ do
 -- Using the two definitions of join gives different state behaviour
 jC  = takeMMS 20 $ runMS (joinMS (coordMM (0,0))) 0
 jC' = takeMMS 20 $ runMS (joinMS' (coordMM (0,0))) 0
-
 
 
 

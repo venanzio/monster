@@ -22,7 +22,7 @@ import Data.List
 import Data.Maybe
 
 -- This instance creates very basic monadic streams, where each action is the return "do-nothing" action in that monad
---   For example a generated List-monster would look like: [x_0,[x_1,[x_2,[x_3,...,
+--   For example a generated List-monster would look like: [(x_0,[(x_1,[(x_2,[(x_3,...,
 --   and a generated Maybe-monster would look like: Just (x_0, Just (x_1, Just (x_2, Just (x_3, ...
 --   where x_n is a random
 instance (Monad m, Arbitrary a) => Arbitrary (MonStr m a) where
@@ -71,20 +71,7 @@ genPairListMonStr = do l <- (listOf1 (arbitrary :: Gen (Int,Int)))
                        return (l, llist l)
 
 -- Tests to compare functions in Operations to those in Data.List
---  !NOTE! Might want to take a second look at function/related tests where 
---         the list is wrapped in Just - could be better to map empty list
---         to Nothing instead of Just []
---         The correct interpretation is probably: 
---           - Return Nothing if the Data.List function throws an "empty list" exception
---           - Return Just [] if the Data.List function returns []
- 
--- Also need to bear in mind useful distributions of testing data:
--- https://www.schoolofhaskell.com/user/pbv/an-introduction-to-quickcheck-testing
---  - split / span / *other things returning lists based on predicates* are likely to return 
---    very unbalanced lists a lot of the time, since the random predicates and delimeters are
---    unlikely to be specific to the lists in question.
-
--- All of the tests suffixed with F indicate that the underlying monad in the monster has 
+--  All of the tests suffixed with F indicate that the underlying monad in the monster has 
 --  to be Foldable for the test to pass
 
 -- PASSES

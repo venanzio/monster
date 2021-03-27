@@ -433,15 +433,19 @@ Using similar logic to before, you can show that $a_0$ is guarded by at least $m
 
 \end{proof}
 
-
-
 \section{Applications}
+
+\subsection{Examples}
+
+Included with the library is a suite of tests showing the correspondence between functions on $Maybe$-monsters and functions on lazy lists defined in the Haskell standard library.
 
 \begin{ccomment}
 	Show a few applications and motivate the usefulness of Monadic Streams.
 \end{ccomment}
 
-One application from monadic streams is they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. For example, one can implement the integral signal function using the Reader functor. First you define the type of monadic stream - we use the same names as for the same constructs in Yampa, to make the correspondence clear:
+\subsection{FRP applications}
+
+One application of monadic streams is they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, one can implement the integral signal function using the Reader monad. First you define the type of monadic stream - we use the same names as for the same constructs in Yampa, to make the correspondence clear:
 
 \begin{haskell}
 type DTime = Double
@@ -460,6 +464,17 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
 
+This can be generalised to any VectorSpace type.
+
+\subsection{Relation to Dunai}
+
+Dunai \cite{frp_refactored} is an FRP library implemented using monadic stream functions (MSFs). \\
+
+This library we've developed allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (instantiated with the Reader monad), most functions in our library could be incorporated into Dunai, giving a set of useful generalised transformations for MSF networks. \\
+
+For example...\\
+
+Additionally, comonadic streams could be a useful extension to MSF based FRP...
 
 \section{Conclusions}
 
