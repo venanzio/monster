@@ -1,8 +1,11 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Combinators where
 
 import Control.Monad
+import Control.Comonad
+import Control.Comonad.Store
 import Control.Monad.Trans
 import Control.Applicative
 import MonStreams
@@ -26,7 +29,7 @@ ma &&& mb = liftA2 (,) ma mb
 
 -- Lifts a binary functions to act on monsters of pairs
 mfunc2 :: Functor m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
-mfunc2 f = fmap (uncurry f)
+mfunc2 = fmap . uncurry 
 
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
 --  throws away the return value of the given monadic action
@@ -64,10 +67,12 @@ liftNat f (MCons ma) = MCons $ f (fmap (\(a, s) -> (a, liftNat f s)) ma)
 liftMT :: (MonadTrans t, Monad m, Functor (t m)) => MonStr m a -> MonStr (t m) a
 liftMT = liftNat lift
 
+{-
+
 -- Monadic stream functions using monadic streams
 
 -- functorial in a, contra-functorial in r
--- This is just the ReaderT monad basically
+-- This is just the ReaderT monad
 newtype MArr m r a = MArr (r -> m a)
 
 instance (Functor m) => Functor (MArr m a) where
@@ -86,3 +91,45 @@ preComp :: (Functor m) => forall a b c. (a -> b) -> (MArr m b c -> MArr m a c)
 preComp f (MArr bc) = MArr (\a -> bc (f a))
 
 liftNatPreComp f = liftNat (preComp f)
+
+-}
+
+-- Monad specific operations on monadic streams
+
+stepM :: Monad m => (a -> m a) -> MonStr m a -> MonStr m a
+stepM f (MCons ms) = MCons $ join $ fmap (\(a, ms') -> fmap (\a' -> (a', ms')) (f a)) ms
+
+
+
+data MSF m a b = MSF (MonStr m a -> MonStr m b)
+
+data MSF' m a b = MSF' ((Store (m a) Int) -> m b)
+
+
+
+-- Isomorphism between monadic streams and functions (Int -> m a) - DOESN'T COMMUTE
+
+phi :: Monad m => MonStr m a -> Int -> m a
+phi ms 0 = headMS ms
+phi ms n = phi ((MCons . join . fmap unwrapMS . tailMS) ms) (n - 1)
+
+-- Just a special case of unfold (co-iterator)
+psi :: Functor m => (Int -> m a) -> MonStr m a
+psi f = psi' f 0
+        where psi' f n = MCons $ fmap (\a -> (a, psi' f (n + 1))) (f n)
+
+
+
+
+phi' :: Comonad w => MonStr w a -> Int -> w a
+phi' ms 0 = headMS ms
+phi' ms n = phi' ((MCons . join . fmap unwrapMS . tailMS) ms) (n - 1)
+
+-- Just a special case of unfold (co-iterator)
+psi' :: Comonad w => (Int -> w a) -> MonStr w a
+psi' f = psi'' f 0
+         where psi'' f n = MCons $ fmap (\a -> (a, psi'' f (n + 1))) (f n)
+
+
+
+

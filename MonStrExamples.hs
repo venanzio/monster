@@ -279,7 +279,6 @@ c  = takeMMS 20 $ runMS (return 5 >>= modCounter) 0
 c' = takeMMS 20 $ runMS (modCounter 5) 0
 
 
-
 -- Experimenting with State Monster Matrices
 
 runMS :: StatefulStream s a -> s -> Stream (s,a)
@@ -329,7 +328,7 @@ signal = MCons $ \n -> ((read n :: Int), signal)
 
 type TimeDiff = Double
 
-type ContSignalFunc a b = MonStr ((->) (DTime, a)) b
+type ContSignalFunc a b = MonStr ((->) (TimeDiff, a)) b
 
 integral :: ContSignalFunc Double Double
 integral = MCons integralAuxF
@@ -345,6 +344,7 @@ evaluateCSF [x]    csf = (fst $ (unwrapMS csf) x)
 evaluateCSF (x:xs) csf = evaluateCSF xs (snd $ (unwrapMS csf) x)
 
 -- Basically an infinitely nested tuple (a, (b, (a, (b, (a, (b, ...
+--  Can be seen as an infinite list of variable values?
 type ProductStream a b = MonStr ((,) a) b
 
 {-

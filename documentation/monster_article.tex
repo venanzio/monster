@@ -287,36 +287,66 @@ We introduce \verb+mm(s)+ for the "monster matrix" formed by a monadic stream \v
 
 The \verb+duplicate+ instance for monadic streams forms this "monster matrix": \verb+duplicate s = mm(s)+
 
-\subsubsection{Comonad proof}
+\subsubsection{Comonad law proofs}
 
 Proof that \verb+extract . duplicate == id+
 
 \begin{haskell}
-extract . duplicate = \s -> (extract . headMS) . duplicate $ s
-= \s -> (extract . headMS) (duplicate s)
--- duplicate forms a monster matrix
-= \s -> (extract . headMS) mm(s)
--- the first element of the monster matrix is the original stream, as per the definition above.
--- taking the head returns the original stream guarded by the operator m, and extract then retrieves 
--- s due to m being comonadic
-= \s -> s
+extract . duplicate 
+= \ms -> extract (MCons $ fmap (\(h,t) -> (ms, duplicate t)) 
+	(unwrapMS ms))
+= \ms -> extract (headMS (MCons $ fmap (\(h,t) -> (ms, duplicate t)) 
+	(unwrapMS ms)))
+= \ms -> ms 
 = id
 \end{haskell}
 
 Proof that \verb+fmap extract . duplicate == id+
 
 \begin{haskell}
-fmap extract . duplicate = \s -> fmap (extract . headMS) mm(s)
--- by functoriality of underlying operator m
-= \s -> (fmap extract) . (fmap headMS) $ mm(s)
--- fmapping headMS replaces the monster at each step in the monster matrix with its
--- head, inside the operator. extract then removes these comonadic operators, resulting 
--- in the same monster that we started with
-= \s -> s
+fmap extract . duplicate = \ms -> fmap extract (MCons $ fmap (\(h,t) -> 
+	(ms, duplicate t)) (unwrapMS ms))
+= \ms -> transformMS (\a s -> (extract a, fmap extract s)) (MCons $ 
+	fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+  [transformMS definition]
+= \ms -> MCons $ fmap (\(h,t) -> (extract h, fmap extract t)) 
+	(fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)) 
+= \ms -> MCons $ fmap (\(h,t) -> (extract ms, fmap extract (duplicate t))) 
+	(unwrapMS ms)
+  [coinductive hypothesis]
+= \ms -> MCons $ fmap (\(h,t) -> ((extract . headMS) ms, id t)) (unwrapMS ms)
+  [(extract . headMS) ms = a, first element of ms]
+= \ms -> MCons $ fmap (\(h,t) -> (a, id t)) (unwrapMS ms)
+  [a is defined as the first element of ms, so h = a under the fmap]
+= \ms -> ms
 = id
 \end{haskell}
 
 Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
+
+\begin{haskell}
+duplicate . duplicate = \ms -> duplicate (duplicate ms)
+= \ms -> MCons $ fmap (\(h,t) -> (duplicate ms, duplicate t)) $
+	(fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+= \ms -> MCons $ fmap ((\(h,t) -> (duplicate ms, duplicate (duplicate t))) 
+	(unwrapMS ms)
+                      
+fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) -> 
+	(ms, duplicate t)) (unwrapMS ms))
+= \ms -> transformMS (\a s -> (duplicate a, fmap duplicate s)) $
+	(MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+= \ms -> MCons $ fmap (\(h,t) -> (\a s -> 
+	(duplicate a, fmap duplicate s)) h t) (unwrapMS (MCons $ fmap (\(h,t) -> 
+	(ms, duplicate t)) (unwrapMS ms)))
+= \ms -> MCons $ fmap (\(h,t) -> (duplicate h, fmap duplicate t)) $ 
+	(fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+= \ms -> MCons $ fmap (\(h,t) -> 
+	(duplicate ms, fmap duplicate (duplicate t))) (unwrapMS ms)
+  [coinductive hypothesis]
+= \ms -> MCons $ fmap ((\(h,t) -> 
+	(duplicate ms, duplicate (duplicate t))) (unwrapMS ms)
+= duplicate . duplicate
+\end{haskell}
 
 
 \section{Monad proof}
@@ -470,9 +500,9 @@ This can be generalised to any VectorSpace type.
 
 Dunai \cite{frp_refactored} is an FRP library implemented using monadic stream functions (MSFs). \\
 
-This library we've developed allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (instantiated with the Reader monad), most functions in our library could be incorporated into Dunai, giving a set of useful generalised transformations for MSF networks. \\
+This library we've developed allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (instantiated with the Reader monad), most functions in our library could be incorporated into Dunai, giving a set of potentially useful generalised transformations for MSF networks. \\
 
-For example...\\
+For example, the \verb+insertAct+ combinator could be used to insert an arbitrary extra function into a monadic stream function.
 
 Additionally, comonadic streams could be a useful extension to MSF based FRP...
 

@@ -162,6 +162,12 @@ tailMF :: (Monad m, Foldable m) => MonStr m a -> MonStr m a
 tailMF ma = let t = tail ma in
               if null t then error "Empty monadic stream" else (MCons . join . fmap uncons) t
               
+-- | Appending a pure element in front of a stream
+-- This dupicates the functor, so beware
+infixr 5 <|:
+(<|:) :: Functor m => a -> MonStr m a -> MonStr m a
+a <|: s = MCons $ fmap (\(_,s') -> (a, s)) $ uncons s
+          
 -- | Appending an m-element in front of a stream
 infixr 5 <::
 (<::) :: Functor m => m a -> MonStr m a -> MonStr m a
@@ -216,7 +222,7 @@ instance Applicative m => Applicative (MonStr m) where
 
 instance Comonad w => Comonad (MonStr w) where
   extract = extract . head
-  duplicate (MCons s) = MCons $ fmap (\(h,t) -> (MCons s, duplicate t)) s
+  duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrap s)
 
 
 instance (Functor m, Foldable m) => Foldable (MonStr m) where
@@ -616,3 +622,14 @@ findIndicesM p = indicesFrom 0
 -- |             
 elemIndicesM :: (Monad m, Eq a) => a -> MonStr m a -> MonStr m Int
 elemIndicesM x = findIndicesM (==x)
+
+
+
+-- New functions, not sure whether to include or not
+
+-- Like an fmap, but the function produces new elements depending on the monadic value, so you
+--  could transform the stream by providing a function to run each monadic action
+-- The original monadic actions are kept
+rebase :: Functor m => (m a -> b) -> MonStr m a -> MonStr m b
+rebase f ms = MCons $ fmap (\(_, ms') -> (f (head ms), rebase f ms')) $ uncons ms
+

@@ -19,6 +19,9 @@ headS = runIdentity . headMS
 tailS :: Stream a -> Stream a
 tailS = runIdentity . tailMS  -- equivalent to tailMMS but simpler
 
+outS :: Stream a -> (a, Stream a)
+outS s = (headS s, tailS s) 
+
 nats :: Applicative m => MonStr m Integer
 nats = fromNat 0
   where fromNat n = n <: fromNat (n+1)
@@ -35,3 +38,7 @@ dropS n s
 
 mapS :: (a -> b) -> Stream a -> Stream b
 mapS f s = fmap f s
+
+(!|) :: Stream a -> Integer -> a
+s !| 0 = headS s
+s !| n = (tailS s) !| (n - 1)
