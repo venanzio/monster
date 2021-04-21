@@ -162,13 +162,11 @@ f\,n = n \scons f\,(n+1)
 $$
 Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitely give the coalgebra $n \mapsto \langle n, n+1\rangle$.
 
-\begin{vcomment}
-Talk about definition by guarded recursion.
-Show specific examples of definition by guarded recursion for monsters.
-\end{vcomment}
+A class of functors for which the existence of a final coalgebra is guaranteed is that of {\em containers} \cite{AAG:2005}: they are a generalization of tree constructors in which any type can be used for branching; this leads to generalized types of non-well-founded trees.
 
+A common good criterion for the acceptability of recursive definition with a final coalgebra as codomain is {\em guardedness by constructors}: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as dierect arguments of that constructor.
 
-
+See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
 
 The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
 A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F$ is a container if $M$ is \cite{capretta/fowler:2017}.
@@ -194,6 +192,35 @@ What about Applicative?
 Give conterexamples where it isn't a monad (using State).
 
 Also examples when it is a monad even if the underlying monad is not commutative and idempotent: with List as underlying monad we obtain Trees, which are a monad. Can this be generalized.
+
+\subsection{Functor Instance}
+
+To show that $\stream{M}$ is a functor whenever $M$ is, we have to define its behaviour on morphisms: if $f:A\rightarrow B$, then we must define how $f$ maps on monadic streams:
+$$
+\begin{array}{l}
+\stream{M}\,f : \stream{M,A} \rightarrow \stream{M,B}\\
+\stream{M}\,f\,(\mcons\,m) = \mcons\,(M\,(f\times \stream{M}\,f)\,m)
+\end{array}
+$$
+
+This definition doesn't strictly comply with the {\em guarded-by-constructors} discipline: the recursive call to $(\stream{M}\,f)$ doesn't occur directly as an argument to the constructor $\mcons$, but it is below the $\times$ operator and an application of $M$.
+However, this is just the application of the functor $M\,(- \times -)$ which defines the final coalgebras. In other words, this is actually how we determine the positions in the container tree.
+\vcomment{This is very badly explained: needs more extensive clarification.}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \subsection{Functor instance in Haskell}
 
@@ -514,6 +541,6 @@ Open problems.
 
 Future Work.
 
-\bibliography{biblio.bib}
+\bibliography{monster_biblio.bib}
 
 \end{document}
