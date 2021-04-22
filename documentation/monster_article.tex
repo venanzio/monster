@@ -8,7 +8,7 @@
 \usepackage[english]{babel}
 
 \title{Programming with Monsters}
-\author{Venanzio Capretta and Christopher Purdy}
+\author{Christopher Purdy and Venanzio Capretta}
 
 
 \usepackage{notations}
@@ -174,6 +174,62 @@ This is the case for all the instances that we consider (but there are well know
 
 Therefore we will silently assume that $M$ is a container and that the final coalgebra exists.
 Cofinality means that we can define functions into the coalgebra by {\em corecursion} and we can prove properties of its elements by {\em coinduction}.
+
+\section{The Coinduction Principle}
+
+As inductive types come together with an {\em induction principle}, stating that we can prove properties of them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
+
+Let us illustrate the idea with the example of pure streams:
+Suppose that we want to prove that two stream $\sigma_0$ and $\sigma_1$ are equal.
+Since streams are infinite sequences of elements, that will require proving equality of their entries in corresponding positions: if $\sigma_0 = a_0\scons a_1\scons a_2\scons \cdots$ and  $\sigma_1 = b_0\scons b_1\scons b_2\scons \cdots$, we must prove $a_0 = b_0$, $a_1 = b_1$, $a_2=b_2$, and so on (we assume equality on streams is extensional).
+This is an infinite sequence of equalities to prove.
+Clearly we cannot produce all the proofs explicitely.
+However, the proof of equality can be sean itself as a stream of proofs of equalities of their elements.
+We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitely the equality of the heads.
+
+More specifically, we often need to prove that two functions produce equal streams.
+Suppose $f,g:X \rightarrow \stream{A}$ are the two functions, and they are both defined by guarded recursion (that is, defined by coalgebras):
+$$
+f\,x = h_f(x) \scons f\,(t_f(x)) \qquad g\,x = h_g(x) \scons f\,(t_g(x)).
+$$
+We want to prove that the two functions are extensionally equal; let us give a name to the proof of that statement:
+$$
+H: \forall x:X, f\,x = g\,x.
+$$
+We can do this by proving directly that the heads must be equal, $p_h:h_f(x) = h_g(x)$, and invoking the {\em coinduction hypothesis} $H$ for the tails: $\cdots$ \vcomment{Not quite: to be made more precise}.
+
+
+
+
+ assume we have a class $\cal S$ of streams: $\cal S$ is a subset of $\stream{A}$, maybe defined by a predicate.
+Suppose $\cal S$ is closed under tail, that is, whenever $\sigma \in \cal S$, then also $\tail\,\sigma \in \cal S$. 
+We can prove that all elements of $\cal S$ satisfy a certain property $P$ by coinduction: Give a name to the theorem we want to prove:
+$$
+H : \forall \sigma \in \cal S, P\,\sigma.
+$$
+The proof takes an element $\sigma\in \cal S$, which can be resolved into head and tail: $\sigma = a_0\scons \sigma'$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \section{Examples}
 
