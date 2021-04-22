@@ -197,6 +197,7 @@ instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
   as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
 
+  
 
 {- 
   It seems that a monadic stream with an underlying comonad forms a comonad itself 
@@ -208,51 +209,6 @@ instance Comonad w => Comonad (MonStr w) where
   
   --duplicate :: MonStr w a -> MonStr w (MonStr w a)
   duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)
-  
-  
-testdup2 :: (Comonad w) => MonStr w a -> MonStr w (MonStr w (MonStr w a))
-testdup2 = \ms -> MCons $ fmap (\(h,t) -> (duplicate ms, duplicate t)) (fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-
--- Proof of comonad instance
-
-{-
-
---- duplicate . duplicate = fmap duplicate . duplicate (pretty sure this works)
-
-duplicate . duplicate = \ms -> duplicate (duplicate ms)
-                      = \ms -> MCons $ fmap (\(h,t) -> (duplicate ms, duplicate t)) (fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                      = \ms -> MCons $ fmap ((\(h,t) -> (duplicate ms, duplicate (duplicate t))) (unwrapMS ms)
-                      
-fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                           = \ms -> transformMS (\a s -> (duplicate a, fmap duplicate s)) (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                           = \ms -> MCons $ fmap (\(h,t) -> (\a s -> (duplicate a, fmap duplicate s)) h t) (unwrapMS (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)))
-                           = \ms -> MCons $ fmap (\(h,t) -> (duplicate h, fmap duplicate t)) (fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                           = \ms -> MCons $ fmap (\(h,t) -> (duplicate ms, fmap duplicate (duplicate t))) (unwrapMS ms)
-                            [coinductive hypothesis]
-                           = \ms -> MCons $ fmap ((\(h,t) -> (duplicate ms, duplicate (duplicate t))) (unwrapMS ms)
-                           = duplicate . duplicate  [as shown above]
-
----
-
-fmap extract . duplicate = \ms -> fmap extract (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                         = \ms -> transformMS (\a s -> (extract a, fmap extract s)) (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                          [transformMS definition]
-                         = \ms -> MCons $ fmap (\(h,t) -> (extract h, fmap extract t)) (fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)) 
-                         = \ms -> MCons $ fmap (\(h,t) -> (extract ms, fmap extract (duplicate t))) (unwrapMS ms)
-                          [coinductive hypothesis]
-                         = \ms -> MCons $ fmap (\(h,t) -> ((extract . headMS) ms, id t)) (unwrapMS ms)
-                          [(extract . headMS) ms = a, first element of ms]
-                         = \ms -> MCons $ fmap (\(h,t) -> (a, id t)) (unwrapMS ms)
-                          [a is defined as the first element of ms, so h = a under the fmap]
-                         = \ms -> ms
-                         = id
-
-extract . duplicate = \ms -> extract (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
-                    = \ms -> extract (headMS (MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)))
-                    = \ms -> ms 
-                    = id
-
--}
 
 
 

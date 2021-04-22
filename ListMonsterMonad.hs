@@ -166,7 +166,7 @@ isoTreePhi (MNode [(a, ts)]) = ...
 -}
 
 -- Used to transform monadic stream into cofree below
-data Freedom f a b = F a (f b)
+data Freedom f a = F a (f b)
 
 -- This type is isomorphic to Cofree (seems fairly certain looking at the shape)
 --  MCons (F a f((), MCons (F a f((), ...   ~=    a :< f (a :< f (a :< f (....
@@ -221,3 +221,4 @@ tf2 = happyTreeFunc >=> return
 
 tf3a = happyTreeFunc >=> (sadTreeFunc >=> steadyTreeFunc)
 tf3b = (happyTreeFunc >=> sadTreeFunc) >=> steadyTreeFunc
+

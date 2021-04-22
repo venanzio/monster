@@ -352,7 +352,7 @@ fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) ->
 \section{Monad proof}
 
 \begin{definition}\label{def:monad}
-For any endofunctor $T$ on a category $C$, a {\em monad} is a triple $(T, \mu, \eta)$, of $T$ and two natural transformations $\mu : TT \Rightarrow T$ and $\eta : 1_C \Rightarrow T$ ($1_C$ being the identity functor on $C$) such that these diagrams commute:
+For an endofunctor $T$ on a category $C$, a {\em monad} is a triple $(T, \mu, \eta)$, of $T$ and two natural transformations $\mu : TT \Rightarrow T$ and $\eta : 1_C \Rightarrow T$ ($1_C$ being the identity functor on $C$) such that these diagrams commute:
 $$
 \setlength\arraycolsep{30pt}
 \begin{array}{cc} \ \\
@@ -424,10 +424,12 @@ To take the diagonal, you have to take the first element of the first stream, th
 
 We reason that $\mu_{\stream{M}}$ cannot be constructed by noting that there is no function out of a monad in general (no function $f : MA \to A$ for an arbitrary functor M over which a monad is defined), and then traversing the $M$-matrix to see which monadic actions \emph{necessarily} have to guard each element in the $M$-monster resulting from an application of $\mu_{\stream{M}}$ to $\eta_{\stream{M}}(s)$.\\
 
-Observe that the first element of the first stream $a_0$ in $\eta_{\stream{M,A}}(s)$ is guarded by two monadic actions, one of them $\eta$, the other an arbitrary action, which we'll call $m_0 : A \to MA$. By the left identity on the monad $M$, $\eta(m_0(a_0)) = m_0(a_0)$, which indicates that in the absolute best case, the first element of the $M$-monster is guarded by $m_0$.
+Observe that the first element of the first stream $a_0$ in $\eta_{\stream{M,A}}(s)$ is guarded by two monadic actions, one of them $\eta$, the other an arbitrary action, which we'll call $m_0 : MA$. By the left identity on the monad $M$, $\mu(\eta(m_0)) = m_0$, which indicates that in the absolute best case, the first element of the $M$-monster is guarded by $m_0$.
 $$
 \eta_{\stream{M}}(s) : \stream{M,\stream{M,A}} = \mathop{|}_M^\eta (\mathop{|}_M^0 \stackrel{\downarrow}{a_0}, \mathop{|}_M^1 a_1, \dots), \mathop{|}_M^\eta s, \dots
 $$
+Here, "best case" refers to the minimum sequence of monadic actions you have to evaluate to get to a certain element in the stream, removing \eta actions where possible as they act as a unit for Kleisli composition.
+
 Now that we know the first element of the resulting stream $a_0$ will be, in the best case, guarded by $m_0$, we look at what actions guard the second element $a_1$. WLOG, there are two ways to extract $a_1$, either by taking the second element of the second $M$-monster, or by taking the second element of the first $M$-monster. This gives two cases to consider.\\
 
 \paragraph{Case 1:}
@@ -467,7 +469,9 @@ Using similar logic to before, you can show that $a_0$ is guarded by at least $m
 
 \subsection{Examples}
 
-Included with the library is a suite of tests showing the correspondence between functions on $Maybe$-monsters and functions on lazy lists defined in the Haskell standard library.
+Included with the library is a suite of tests showing the correspondence between functions on $Maybe$-monsters and functions on lazy lists defined in the Haskell standard library. 
+
+This, alongside the reimplementation of Swiestra and Dijk's streams library, show that monadic streams can at least be used to generalise infinite and finite lists, using the identity and maybe monads respectively.
 
 \begin{ccomment}
 	Show a few applications and motivate the usefulness of Monadic Streams.
@@ -505,6 +509,10 @@ This library we've developed allows for a wide variety of operations on monadic 
 For example, the \verb+insertAct+ combinator could be used to insert an arbitrary extra function into a monadic stream function.
 
 Additionally, comonadic streams could be a useful extension to MSF based FRP...
+
+Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment as it is operated on in some way. The comonad provides the notion of environment, and the stream embues it with a way of modelling its progression in time. These streams only model the notion of current and future values of the environment.
+
+This could be useful to model systems which have some kind of self referential data store, or some kind of environment that can be used to modify itself.
 
 \section{Conclusions}
 

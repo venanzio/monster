@@ -1,3 +1,6 @@
+{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE Rank2Types #-}
+
 {-
 
  As a thought, comonadic streams might have more of an application to functional reactive programming,
@@ -27,6 +30,8 @@ import Control.Comonad
 import Control.Comonad.Store
 import MonStreams
 import PureStreams
+import Combinators
+import Operations
 
 headCMS :: Comonad w => MonStr w a -> a
 headCMS (MCons s) = fst (extract s)
@@ -38,8 +43,10 @@ takeCMS :: Comonad w => Int -> MonStr w a -> [a]
 takeCMS 0 s = []
 takeCMS n s = headCMS s : takeCMS (n-1) (tailCMS s)
 
-iterateCMS :: Comonad w => w a -> MonStr w a
-iterateCMS wa = MCons $ fmap (\wa' -> (extract wa', iterateCMS wa')) (duplicate wa)
+-- Makes a sort of trivial comonadic stream using a coKleisli arrow and a starting
+-- environment as a seed
+iterateCMS :: Comonad w => (w a -> a) -> w a -> MonStr w a
+iterateCMS f wa = MCons $ fmap (\a -> (a, iterateCMS f (f <<= wa))) wa
 
 {-
   You can kind of think of a comonster as a history of states of the environment in the underlying comonad
@@ -86,7 +93,6 @@ runStoreStream (MCons ss) = let (f, s) = runStore ss
                                 (h, t) = f s 
                                 in h <: runStoreStream t
                                 
-
 intStoreStream :: Int -> StoreStream Int Int
 intStoreStream n = MCons $ store (\x -> (n, intStoreStream (n+1))) n
 
@@ -109,13 +115,6 @@ x2 = fmap extract . duplicate $ x
 
 x3a x = fmap duplicate . duplicate $ x
 x3b x = duplicate . duplicate $ x
-
-getabc   a b c x = ((x3a x !@! a) !@! b) !@! c
-getabc'  a b c x = ((x3b x !@! a) !@! b) !@! c
-getabc'' a b c x = ((testdup2 x !@! a) !@! b) !@! c
-
-
-
 
 
 -- 
@@ -147,6 +146,28 @@ instance Comonad U2 where
                      where iterate1 f = tail . iterate f
                            roll a = U (iterate1 (fmap left) a) a (iterate1 (fmap right) a)
 
+up :: U2 a -> U2 a
+up (U2 a) = U2 (fmap left a)
+
+down :: U2 a -> U2 a
+down (U2 a) = U2 (fmap right a)
+
+left2 :: U2 a -> U2 a
+left2 (U2 a) = U2 (left a)
+
+right2 :: U2 a -> U2 a
+right2 (U2 a) = U2 (right a)
+
+set :: a -> U2 a -> U2 a
+set a (U2 (U ls (U ls' x rs') rs)) = U2 (U ls (U ls' a rs') rs)
+
+moveX :: Int -> U2 a -> U2 a
+moveX x u2 = if x >= 0 then (iterate left2 u2) !! x  else (iterate right2 u2) !! (abs x)
+
+moveY :: Int -> U2 a -> U2 a
+moveY y u2 = if y >= 0 then (iterate down u2) !! y else (iterate up u2) !! (abs y)
+
+
 rule :: U2 Bool -> Bool
 rule (U2 (U
          (U (u0:_) u1 (u2:_):_)
@@ -175,16 +196,64 @@ toBoard i j (U2 u) = toList' i j (fmap (map (\x -> if x then '#' else ' ') . toL
 
 rule' (U (a:_) b (c:_)) = not (a && b && not c || (a==b))
 
-
 main = let u = pattern1
        in (sequence $ fmap (\x -> putStrLn x >> getChar) . fmap unlines $
           map (toBoard (-10) 10) $
           iterate (=>> rule) u) >> return ()
+          
+          
+          
+
+mstrength :: Monad m => m a -> b -> m (a, b)
+mstrength ma b = ma >>= (\a -> return (a, b))
+
+type LifeStream a = MonStr U2 a
+
+ls :: LifeStream Bool
+ls = iterateCMS rule pattern1
+
+iLs :: MonStr IO (MonStr U2 Bool)
+iLs = fmap (iterateCMS rule) (iterateM newCell pattern1)
+
+setCell :: Int -> Int -> Bool -> U2 Bool -> U2 Bool
+setCell x y b = moveY (-y) . moveX (-x) . set b . moveX x . moveY y
+
+lifeToScreen :: Int -> Int -> U2 Bool -> IO ()
+lifeToScreen n m u2 = do putStrLn (unlines $ toBoard n m u2)
+                               
+newCell :: U2 Bool -> IO (U2 Bool)
+newCell u2 = do putStrLn "Input x, y coord to turn on"
+                x <- getLine >>= (readIO :: String -> IO Int)
+                y <- getLine >>= (readIO :: String -> IO Int) 
+                return $ setCell x y True u2
+
+lsShow :: MonStr IO ()
+lsShow = rebaseW (lifeToScreen (-20) 20) ls
+
+ilsShow :: MonStr IO (MonStr IO ())
+ilsShow = fmap (rebaseW (lifeToScreen (-20) 20)) iLs
+
+
+takeInner :: Monad m => Int -> MonStr m (MonStr m a) -> MonStr m a
+takeInner n = absorbMS . (\x -> x !!! n)
 
 
 
-{-type LifeStream a = MonStr U2 a
+rebaseW :: (Comonad w, Functor n) => (w a -> n b) -> MonStr w a -> MonStr n b
+rebaseW f (MCons ma) = MCons $ fmap (\(h, t) -> (h, rebaseW f t)) (rebaseWaux f ma)
 
-lS :: LifeStream Bool
-lS = MCons 
--}
+rebaseWaux :: (Comonad w, Functor n) => (w a -> n b) -> forall c. w (a, c) -> n (b, c)
+rebaseWaux f wac = fmap (\a -> (a, snd (extract wac))) $ f (fmap fst wac)
+
+iterateM :: Monad m => (a -> m a) -> a -> MonStr m a
+iterateM f a = MCons $ fmap (\a -> (a, iterateM f a)) (f a)
+
+
+-- runVoidProcess lsShow
+
+type Process a = MonStr IO a
+
+runVoidProcess :: Process () -> IO ()
+runVoidProcess (MCons s) = do (a,s') <- s
+                              runVoidProcess s'
+                              
