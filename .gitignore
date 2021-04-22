@@ -1,5 +1,6 @@
 # emacs back-ups
 *~
+\#*\#
 
 # compiled files
 *.hi
@@ -10,3 +11,5 @@
 *.bbl
 *.blg
 *.log
+*.dvi
+*.pdf

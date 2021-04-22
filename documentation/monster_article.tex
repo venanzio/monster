@@ -8,7 +8,7 @@
 \usepackage[english]{babel}
 
 \title{Programming with Monsters}
-\author{Venanzio Capretta and Christopher Purdy}
+\author{Christopher Purdy and Venanzio Capretta}
 
 
 \usepackage{notations}
@@ -162,13 +162,11 @@ f\,n = n \scons f\,(n+1)
 $$
 Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitely give the coalgebra $n \mapsto \langle n, n+1\rangle$.
 
-\begin{vcomment}
-Talk about definition by guarded recursion.
-Show specific examples of definition by guarded recursion for monsters.
-\end{vcomment}
+A class of functors for which the existence of a final coalgebra is guaranteed is that of {\em containers} \cite{AAG:2005}: they are a generalization of tree constructors in which any type can be used for branching; this leads to generalized types of non-well-founded trees.
 
+A common good criterion for the acceptability of recursive definition with a final coalgebra as codomain is {\em guardedness by constructors}: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as dierect arguments of that constructor.
 
-
+See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
 
 The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
 A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F$ is a container if $M$ is \cite{capretta/fowler:2017}.
@@ -176,6 +174,146 @@ This is the case for all the instances that we consider (but there are well know
 
 Therefore we will silently assume that $M$ is a container and that the final coalgebra exists.
 Cofinality means that we can define functions into the coalgebra by {\em corecursion} and we can prove properties of its elements by {\em coinduction}.
+
+\section{The Coinduction Principle}
+
+As inductive types come together with an {\em induction principle}, stating that we can prove properties of them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
+
+Let us illustrate the idea with the example of pure streams:
+Suppose that we want to prove that two stream $\sigma_0$ and $\sigma_1$ are equal.
+Since streams are infinite sequences of elements, that will require proving equality of their entries in corresponding positions: if $\sigma_0 = a_0\scons a_1\scons a_2\scons \cdots$ and  $\sigma_1 = b_0\scons b_1\scons b_2\scons \cdots$, we must prove $a_0 = b_0$, $a_1 = b_1$, $a_2=b_2$, and so on (we assume equality on streams is extensional).
+This is an infinite sequence of equalities to prove.
+Clearly we cannot produce all the proofs explicitely.
+However, the proof of equality can be sean itself as a stream of proofs of equalities of their elements.
+We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitely the equality of the heads.
+
+More specifically, we often need to prove that two functions produce equal streams.
+Suppose $f,g:X \rightarrow \stream{A}$ are the two functions, and they are both defined by guarded recursion (that is, defined by coalgebras):
+$$
+f\,x = h_f(x) \scons f\,(t_f(x)) \qquad g\,x = h_g(x) \scons f\,(t_g(x)).
+$$
+We want to prove that the two functions are extensionally equal; let us give a name to the proof of that statement:
+$$
+H: \forall x:X, f\,x = g\,x.
+$$
+We can do this by proving directly that the heads must be equal, $p_h:h_f(x) = h_g(x)$, and we would like to invoke the {\em coinduction hypothesis} $H$ for the tails.
+However, since the recursive calls are applied to potentially different elements of $X$ ($t_f(x)$ and $t_g(x)$), we can't apply $H$ directly.
+
+We can get around this problem by generalizing our goal: instead of proving that the functions give the same result when applied to the same input, we aim for the stronger statement that they give the same result when applied to inputs related by a certain binary relation $\sim$:
+$$
+H: \forall x y:X, x\sim y \rightarrow f\,x = g\,x.
+$$
+If $\sim$ is reflexive, this will imply our original goal.
+
+Two other properties are necessary to make things work.
+First, we need the equlity of the heads of the output: if $x\sim y$, then $h_f(x) = h_g(x)$.
+Second, we need that $~$ is preseved under taking the tail functions for $f$ and $g$: if $x\sim y$, then $t_f(x) \sim t_g(x)$; so that we can now apply $H$ to obtain that $f(t_f(x)) = g(t_g(x))$.
+
+A relation $\sim$ satisfying these two properties is called a {\em bisimulation}.
+The principle of coinduction states that bisimilar elements generate equal streams.
+
+
+
+
+
+
+
+\begin{vcomment}
+The following is copied from {\em Coalgebras in Functional Programming and Type Theory} \cite{capretta:2011}.
+It needs to be revised.
+\end{vcomment}
+
+\begin{definition}\label{def:bisimulation}
+Let $\langle A,\alpha \rangle$ be a coalgebra.
+A span $\langle R,r_1,r_2\rangle$ is a {\em bisimulation} if there exists a morphism $\rho:R\rightarrow FR$ such that both $r_1$ and $r_2$ are coalgebra morphisms from $\langle R,\rho\rangle$ to $\langle A,\alpha\rangle$:
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{r}{R} & \Rnode{a}{A} \\[30pt]
+\Rnode{fr}{FR} & \Rnode{fa}{FA} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline[offset=3pt]{r}{a} \taput{r_1}
+\ncline[offset=-3pt]{r}{a} \tbput{r_2}
+\ncline[offset=3pt]{fr}{fa} \taput{Fr_1}
+\ncline[offset=-3pt]{fr}{fa} \tbput{Fr_2}
+\ncline{r}{fr} \tlput{\rho}
+\ncline{a}{fa} \trput{\alpha}
+\quad
+\begin{array}{l}
+\alpha \circ r_1 = Fr_1 \circ \rho\\
+\alpha \circ r_2 = Fr_2 \circ \rho.
+\end{array}
+$$
+(The diagram here is used only to declare the type of the morphisms: we don't assume that it commutes.
+The only equalities are the ones stated on the right.)
+\end{definition}
+
+The idea is that a relation is a bisimulation if, whenever two elements of $A$ are related by it, then their images through $\alpha$ are related by the lifting.
+If you think of $\alpha$ as giving the structure of an element this says: if two elements are related, then they must have the same shape, with components in corresponding positions also related.
+This notion of bisimulation was first introduced by Park \cite{park:1981} and Milner \cite{milner:1980} as a way of reasoning about processes.
+Similar concepts were developed earlier in other fields and substantial previous work prepared the background for its appearance.
+The survey article by Sangiorgi \cite{sangiorgi:2009} tells the history of the idea.  
+Aczel \cite{aczel:1988} adopted it as the appropriate notion of equality for non-well-founded sets.
+There are subtle differences between several notions of bisimulation that are not equivalent in full generality: recent work by Staton \cite{staton:2009} investigates their correlations.
+
+On $\stream{A}$ a bisimulation is a binary relation $\sim$ such that
+$$
+\forall s_1, s_2:\stream{A}. s_1 \sim s_2 \Rightarrow
+\hd{s_1} =\hd{s_2} \land
+\tl{s_1}\sim \tl{s_2}.
+$$
+Notice that $s_1\sim s_2$ guarantees that corresponding elements in the infinite sequences defined by $s_1$ and $s_2$ are equal, that is, $s_1$ and $s_2$ are extensionally equal.
+In fact, by repeatedly applying the above property, we have that $\heads{s_1}{n} = \heads{s_2}{n}$ for every $n$.
+
+\begin{definition}\label{def:coinduction}
+A coalgebra $\langle A,\alpha\rangle$ is said to satisfy the {\em coinduction principle} if every bisimulation $\langle R,r_1,r_2\rangle$ on it has $r_1=r_2$.
+\end{definition}
+
+Intuitively, the coinduction principle states that the elements of $A$ are completely characterised by their structure, which can be infinite.
+There is a well-known connection between finality of a coalgebra and the coinduction principle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \section{Examples}
 
@@ -194,6 +332,35 @@ What about Applicative?
 Give conterexamples where it isn't a monad (using State).
 
 Also examples when it is a monad even if the underlying monad is not commutative and idempotent: with List as underlying monad we obtain Trees, which are a monad. Can this be generalized.
+
+\subsection{Functor Instance}
+
+To show that $\stream{M}$ is a functor whenever $M$ is, we have to define its behaviour on morphisms: if $f:A\rightarrow B$, then we must define how $f$ maps on monadic streams:
+$$
+\begin{array}{l}
+\stream{M}\,f : \stream{M,A} \rightarrow \stream{M,B}\\
+\stream{M}\,f\,(\mcons\,m) = \mcons\,(M\,(f\times \stream{M}\,f)\,m)
+\end{array}
+$$
+
+This definition doesn't strictly comply with the {\em guarded-by-constructors} discipline: the recursive call to $(\stream{M}\,f)$ doesn't occur directly as an argument to the constructor $\mcons$, but it is below the $\times$ operator and an application of $M$.
+However, this is just the application of the functor $M\,(- \times -)$ which defines the final coalgebras. In other words, this is actually how we determine the positions in the container tree.
+\vcomment{This is very badly explained: needs more extensive clarification.}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \subsection{Functor instance in Haskell}
 
@@ -522,6 +689,6 @@ Open problems.
 
 Future Work.
 
-\bibliography{biblio.bib}
+\bibliography{monster_biblio.bib}
 
 \end{document}
