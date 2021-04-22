@@ -196,22 +196,21 @@ We want to prove that the two functions are extensionally equal; let us give a n
 $$
 H: \forall x:X, f\,x = g\,x.
 $$
-We can do this by proving directly that the heads must be equal, $p_h:h_f(x) = h_g(x)$, and invoking the {\em coinduction hypothesis} $H$ for the tails: $\cdots$ \vcomment{Not quite: to be made more precise}.
+We can do this by proving directly that the heads must be equal, $p_h:h_f(x) = h_g(x)$, and we would like to invoke the {\em coinduction hypothesis} $H$ for the tails.
+However, since the recursive calls are applied to potentially different elements of $X$ ($t_f(x)$ and $t_g(x)$), we can't apply $H$ directly.
 
-
-
-
- assume we have a class $\cal S$ of streams: $\cal S$ is a subset of $\stream{A}$, maybe defined by a predicate.
-Suppose $\cal S$ is closed under tail, that is, whenever $\sigma \in \cal S$, then also $\tail\,\sigma \in \cal S$. 
-We can prove that all elements of $\cal S$ satisfy a certain property $P$ by coinduction: Give a name to the theorem we want to prove:
+We can get around this problem by generalizing our goal: instead of proving that the functions give the same result when applied to the same input, we aim for the stronger statement that they give the same result when applied to inputs related by a certain binary relation $\sim$:
 $$
-H : \forall \sigma \in \cal S, P\,\sigma.
+H: \forall x y:X, x\sim y \rightarrow f\,x = g\,x.
 $$
-The proof takes an element $\sigma\in \cal S$, which can be resolved into head and tail: $\sigma = a_0\scons \sigma'$.
+If $\sim$ is reflexive, this will imply our original goal.
 
+Two other properties are necessary to make things work.
+First, we need the equlity of the heads of the output: if $x\sim y$, then $h_f(x) = h_g(x)$.
+Second, we need that $~$ is preseved under taking the tail functions for $f$ and $g$: if $x\sim y$, then $t_f(x) \sim t_g(x)$; so that we can now apply $H$ to obtain that $f(t_f(x)) = g(t_g(x))$.
 
-
-
+A relation $\sim$ satisfying these two properties is called a {\em bisimulation}.
+The principle of coinduction states that bisimilar elements generate equal streams.
 
 
 
