@@ -30,7 +30,7 @@ ma &&& mb = liftA2 (,) ma mb
 
 -- Lifts a binary functions to act on monsters of pairs
 mfunc2 :: Functor m => (a -> b -> c) -> MonStr m (a, b) -> MonStr m c
-mfunc2 = fmap . uncurry 
+mfunc2 = fmap . uncurry
 
 -- Takes a monadic action and joins it with each action in the given monster, executing the new monadic action second
 --  throws away the return value of the given monadic action
@@ -60,7 +60,6 @@ mf $:< mas = MCons . join $ (\f -> fmap (\(a, s) -> (f a, mf $:< s)) (unwrapMS m
 insertAct :: Monad m => Int -> m a -> MonStr m a -> MonStr m a
 insertAct 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h,t)) ma) <$> unwrapMS mas
 insertAct n ma mas = MCons $ (\(h,t) -> (h, insertAct (n-1) ma t)) <$> unwrapMS mas
-
 
 liftNat :: (Functor m, Functor n) => (forall a. (m a -> n a)) -> MonStr m a -> MonStr n a
 liftNat f (MCons ma) = MCons $ f (fmap (\(a, s) -> (a, liftNat f s)) ma)

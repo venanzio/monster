@@ -9,16 +9,29 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+module Tests.HomomorphismListMaybeMonster where
+
 import Test.QuickCheck
 import Test.QuickCheck.Gen.Unsafe
 import Test.QuickCheck.All
-import MonStreams
-import Operations
-import Control.Monad
-import MonStrExamples
+
+import MonadicStream
+import Examples.LazyLists
+
+import Control.Monad hiding (filterM)
 import Data.Foldable
-import Combinators
-import Data.List
+
+import Prelude hiding (head, tail, map, scanl, scanl1,
+  iterate, take, drop, takeWhile, (++),
+  dropWhile, repeat, cycle, filter, (!!), 
+  zip, unzip, zipWith, zip3, unzip3, zipWith3,
+  words,unwords,lines,unlines, break, span, splitAt)
+import qualified Prelude as P ((!!), iterate, head, tail, cycle)
+
+import Data.List hiding (head, tail, iterate, (++),
+  repeat, cycle, (!!))
+import qualified Data.List as DL ((!!), (++), head, tail, intersperse, iterate)
+
 import Data.Maybe
 
 {- 
@@ -32,7 +45,7 @@ instance (Monad m, Arbitrary a) => Arbitrary (MonStr m a) where
   
 genMaybeMonStr :: Gen (MonStr Maybe Int)
 genMaybeMonStr = do x <- chooseInt (1, 1000)
-                    fmap (insertAct x Nothing) arbitrary
+                    fmap (insertM x Nothing) arbitrary
 
 instance Eq a => Eq (MonStr Maybe a) where
    (MCons (Just (h,t))) == (MCons (Just (h',t'))) = h == h' && t == t'
@@ -43,15 +56,15 @@ instance Eq a => Eq (MonStr Maybe a) where
 instance Show a => Show (MonStr Maybe a) where
    show (MCons m) = show m
 
--- Tests for isomorphism between list and maybe monster, with llist and toList as the two morphisms between the types
+-- | Tests for isomorphism between list and maybe monster, with llist and toList as the two morphisms between the types
 
 prop_monStr :: Property
 prop_monStr = forAll genMaybeMonStr $ (\mas -> mas === llist (toList mas))
 
 prop_list :: Property
-prop_list = forAll (listOf1 (chooseInt (-1000,1000))) $ (\ls -> ls === toList (llist ls))
+prop_list = forAll genList $ (\ls -> ls === toList (llist ls))
 
--- Helper functions to generate lists and monsters for the tests below 
+-- | Helper functions to generate lists and monsters for the tests below 
 
 (>*<) :: Gen a -> Gen b -> Gen (a,b)
 a >*< b = liftM2 (,) a b
@@ -62,7 +75,7 @@ gen2Lists = listOf1 (chooseInt (-1000,1000)) >*< listOf1 (chooseInt (-1000,1000)
 genList :: Gen ([Int])
 genList = listOf1 (chooseInt (-1000,1000))
 
--- Generates a random list and Maybe-monster with the same values
+-- | Generates a random list and Maybe-monster with the same values
                    
 genListMonStr :: Gen ([Int], MonStr Maybe Int)
 genListMonStr = do l <- (listOf1 (arbitrary :: Gen Int))
@@ -82,92 +95,92 @@ genPairListMonStr = do l <- (listOf1 (arbitrary :: Gen (Int,Int)))
 -- PASSES
 prop_inits :: Property
 prop_inits = forAll genListMonStr $
-                \(l, ms) -> toList (initsMMS ms) === inits l
+                \(l, ms) -> toList (initsA ms) === inits l
 
 {-
--- !!! FAILS !!! - tailMMS (MCons Nothing) = Nothing, so tailsMMS recurses forever     
+-- !!! FAILS !!! - tailM (MCons Nothing) = Nothing, so tailsM recurses forever     
 prop_tails :: Property
 prop_tails = forAll genListMonStr $
-                \(l, ms) -> fmap toList (tailsMMS ms) === tails l
+                \(l, ms) -> fmap toList (tailsM ms) === tails l
 -}
                
 -- PASSES
 prop_tailsF :: Property
 prop_tailsF = forAll genListMonStr $
-                 \(l, ms) -> fmap toList (tailsF ms) === tails l
+                 \(l, ms) -> fmap toList (tailsMF ms) === tails l
 
 {-
--- !!! FAILS !!! - takeMMS n (MCons Just (1, MCons Nothing)) where n > 0 gives Nothing, but take n [1] gives [1]
+-- !!! FAILS !!! - takeM n (MCons Just (1, MCons Nothing)) where n > 0 gives Nothing, but take n [1] gives [1]
 prop_take :: Property
 prop_take = forAll (genListMonStr >*< chooseInt (0,1000)) $
-               \((l, ms), n) -> takeMMS n ms === Just (take n l)
+               \((l, ms), n) -> takeM n ms === Just (take n l)
                
 -- !!! FAILS !!! - same reason as prop_take
 prop_take' :: Property
 prop_take' = forAll (genListMonStr >*< chooseInt (0,1000)) $
-                \((l, ms), n) -> takeMMS' n ms === Just (take n l)
+                \((l, ms), n) -> takeM' n ms === Just (take n l)
 
--- !!! FAILS !!! - takeMMS'' n ms - always generates a list of n values, with the last ones being empty (Nothing/null) values if n is larger than the length of ms
+-- !!! FAILS !!! - takeM'' n ms - always generates a list of n values, with the last ones being empty (Nothing/null) values if n is larger than the length of ms
 prop_take'' :: Property
 prop_take'' = forAll (genListMonStr >*< chooseInt (0,1000)) $
-                 \((l, ms), n) -> takeMMS'' n ms === fmap Just (take n l)
+                 \((l, ms), n) -> takeM'' n ms === fmap Just (take n l)
 -}
                
 -- PASSES
-prop_takeF :: Property
-prop_takeF = forAll (genListMonStr >*< chooseInt (0,1000)) $
-                 \((l, ms), n) -> takeF n ms === fmap Just (take n l)
+prop_take :: Property
+prop_take = forAll (genListMonStr >*< chooseInt (0,1000)) $
+               \((l, ms), n) -> takeMF' n ms === Just (take n l)
 
 -- PASSES
 prop_drop :: Property
 prop_drop = forAll (genListMonStr >*< chooseInt (0,1000)) $
-               \((l, ms), n) -> drop n l == toList (dropMMS n ms)
+               \((l, ms), n) -> drop n l == toList (dropM n ms)
 -- PASSES
 prop_scan :: Property
 prop_scan = forAll ((genListMonStr >*< chooseInt (-1000,1000)) >*< (arbitrary :: Gen(Fun (Int,Int) Int)) ) $ 
-               \(((l,ms),n),(Fn2 f)) -> toList (scanMMS f n ms) === scanl f n l
+               \(((l,ms),n),(Fn2 f)) -> toList (scanA f n ms) === scanl f n l
 
 -- PASSES
-prop_scan1 :: Property
-prop_scan1 = forAll (genListMonStr >*< (arbitrary :: Gen(Fun (Int,Int) Int)) ) $ 
-                \((l,ms),(Fn2 f)) -> toList (scanMMS1 f ms) === scanl1 f l
+prop_scan' :: Property
+prop_scan' = forAll (genListMonStr >*< (arbitrary :: Gen(Fun (Int,Int) Int)) ) $ 
+                \((l,ms),(Fn2 f)) -> toList (scanM f ms) === scanl1 f l
  
 -- PASSES              
 prop_append :: Property
 prop_append = forAll (genListMonStr >*< genListMonStr) $
-                 \((l,ms),(l',ms')) -> toList (ms +++ ms') === l ++ l'
+                 \((l,ms),(l',ms')) -> toList (ms ++ ms') === l DL.++ l'
 
 {-
--- !!! FAILS !!! - fails when taking 1 item from a monster with 1 element which satisifes the predicate, spanMMS tries to put that elment inside the Nothing tail when returning it
+-- !!! FAILS !!! - fails when taking 1 item from a monster with 1 element which satisifes the predicate, spanM tries to put that elment inside the Nothing tail when returning it
 prop_span :: Property
 prop_span = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-               \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (spanMMS p ms) === Just (span p l)
+               \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (spanM p ms) === Just (span p l)
 -}
 
 -- PASSES
-prop_spanF :: Property
-prop_spanF = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (spanF p ms) === Just (span p l)
+prop_span :: Property
+prop_span = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
+               \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (spanMF p ms) === Just (span p l)
         
 -- PASSES
 prop_break :: Property
 prop_break = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (breakF p ms) === Just (break p l)
+                \((l,ms),(Fn p)) -> fmap (\(a,b) -> (a,toList b)) (breakMF p ms) === Just (break p l)
 
 -- PASSES
 prop_init :: Property
 prop_init = forAll genListMonStr $ 
-               \(l,ms) -> initMMS ms === fmap Just (init l)
+               \(l,ms) -> initMF ms === fmap Just (init l)
 
 -- PASSES
 prop_init' :: Property
 prop_init' = forAll genListMonStr $ 
-                \(l,ms) -> initMMS' ms === Just (init l)
+                \(l,ms) -> initMF' ms === Just (init l)
 
 -- PASSES
-prop_initF :: Property
-prop_initF = forAll genListMonStr $ 
-                 \(l,ms) -> toList (initF ms) === init l
+prop_init'' :: Property
+prop_init'' = forAll genListMonStr $ 
+                 \(l,ms) -> toList (initMF'' ms) === init l
 
 -- PASSES
 prop_length :: Property
@@ -177,27 +190,27 @@ prop_length = forAll genListMonStr $
 -- PASSES
 prop_last :: Property
 prop_last = forAll genListMonStr $ 
-               \(l,ms) -> lastMMS ms === Just (last l)
+               \(l,ms) -> lastMF ms === Just (last l)
 
 -- PASSES
 prop_zip :: Property
 prop_zip = forAll (genListMonStr >*< genListMonStr) $ 
-              \((l,ms),(l',ms')) -> toList (zipMMS ms ms') === zip l l'
+              \((l,ms),(l',ms')) -> toList (zipA ms ms') === zip l l'
         
 -- PASSES
 prop_unzip :: Property
 prop_unzip = forAll genPairListMonStr $ 
-                \(l,ms) -> (\(a,b) -> (toList a, toList b)) (unzipMMS ms) === unzip l
+                \(l,ms) -> (\(a,b) -> (toList a, toList b)) (unzipA ms) === unzip l
 
 -- PASSES
 prop_zipWith :: Property
 prop_zipWith = forAll ((genListMonStr >*< genListMonStr) >*< (arbitrary :: Gen(Fun (Int,Int) Int))) $ 
-                  \(((l,ms),(l',ms')),(Fn2 f)) -> toList (zipWithMMS f ms ms') === zipWith f l l'
+                  \(((l,ms),(l',ms')),(Fn2 f)) -> toList (zipWithA f ms ms') === zipWith f l l'
             
 -- PASSES
 prop_filter :: Property
 prop_filter = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                 \((l,ms),(Fn p)) -> toList (filterMMS p ms) === filter p l
+                 \((l,ms),(Fn p)) -> toList (filterM p ms) === filter p l
 
 -- PASSES
 prop_map :: Property
@@ -207,74 +220,74 @@ prop_map = forAll (genListMonStr >*< (arbitrary :: Gen(Fun Int Int)) ) $
 -- PASSES
 prop_head :: Property
 prop_head = forAll genListMonStr $
-               \(l, ms) -> Just (head l) === headMS ms
+               \(l, ms) -> Just (DL.head l) === head ms
 
 -- PASSES
 prop_tail :: Property
 prop_tail = forAll genListMonStr $
-               \(l, ms) -> Just (tail l) === fmap toList (tailMS ms)
+               \(l, ms) -> Just (DL.tail l) === fmap toList (tail ms)
 
 -- PASSES
 prop_tail' :: Property
 prop_tail' = forAll genListMonStr $
-                \(l, ms) -> tail l === toList (tailMMS ms)
+                \(l, ms) -> DL.tail l === toList (tailMF ms)
 
 -- PASSES
 prop_index :: Property
 prop_index = forAll (genListMonStr >*< chooseInt (0,1000)) $
                 \((l, ms), n) -> let i = min n (length l - 1) in 
-                                    Just (l !! i) === ms !!! i
+                                    Just (l DL.!! i) === ms !! i
 
 {-
--- !!! FAILS !!! - makes use of spanMMS so groupMMS is broken for the same reason
+-- !!! FAILS !!! - makes use of spanM so groupM is broken for the same reason
 prop_group :: Property
 prop_group = forAll genListMonStr $
-                \(l, ms) -> group l === toList (groupMMS ms)
+                \(l, ms) -> group l === toList (groupM ms)
 -}
                                    
 -- PASSES
-prop_groupF :: Property
-prop_groupF = forAll genListMonStr $
-                 \(l, ms) -> group l === toList (groupF ms)
+prop_group :: Property
+prop_group = forAll genListMonStr $
+                \(l, ms) -> group l === toList (groupMF ms)
                  
 -- PASSES
 prop_partition :: Property
 prop_partition = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                    \((l, ms),(Fn p)) -> Just (partition p l) === fmap (\(a,b) -> (toList a, toList b)) (partitionMMS p ms)
+                    \((l, ms),(Fn p)) -> Just (partition p l) === fmap (\(a,b) -> (toList a, toList b)) (partitionMF p ms)
 
 {-
--- !!! FAILS !!! - when the index is larger than the list, splitAtMMS returns lots of 'Nothing's padding the end of the first list in the pair
+-- !!! FAILS !!! - when the index is larger than the list, splitAtM returns lots of 'Nothing's padding the end of the first list in the pair
 prop_splitAt :: Property
 prop_splitAt = forAll (genListMonStr >*< chooseInt (0,1000)) $
-                  \((l, ms), n) -> ((\(a,b) -> (fmap Just a, llist b)) (splitAt n l)) === splitAtMMS n ms
+                  \((l, ms), n) -> ((\(a,b) -> (fmap Just a, llist b)) (splitAt n l)) === splitAtM n ms
 -}
                                
 -- PASSES
-prop_splitAtF :: Property
-prop_splitAtF = forAll (genListMonStr >*< chooseInt (0,1000)) $
-                   \((l, ms), n) -> ((\(a,b) -> (fmap Just a, llist b)) (splitAt n l)) === splitAtF n ms
+prop_splitAt :: Property
+prop_splitAt = forAll (genListMonStr >*< chooseInt (0,1000)) $
+                  \((l, ms), n) -> ((\(a,b) -> (fmap Just a, llist b)) (splitAt n l)) === splitAtMF n ms
 
 {-
--- !!! FAILS !!! - makes use of spanMMS which is broken for non-foldable monsters
+-- !!! FAILS !!! - makes use of spanM which is broken for non-foldable monsters
 prop_takeWhile :: Property
 prop_takeWhile = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                    \((l, ms),(Fn p)) -> Just (takeWhile p l) === takeWhileMMS p ms
+                    \((l, ms),(Fn p)) -> Just (takeWhile p l) === takeWhileM p ms
 -}
 
 -- PASSES
-prop_takeWhileF :: Property
-prop_takeWhileF = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                     \((l, ms),(Fn p)) -> Just (takeWhile p l) === takeWhileF p ms
+prop_takeWhile :: Property
+prop_takeWhile = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
+                    \((l, ms),(Fn p)) -> Just (takeWhile p l) === takeWhileMF p ms
 
 -- PASSES
 prop_dropWhile :: Property
 prop_dropWhile = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $ 
-                    \((l, ms),(Fn p)) -> dropWhile p l === toList (dropWhileMMS p ms)
+                    \((l, ms),(Fn p)) -> dropWhile p l === toList (dropWhileMF p ms)
 
 -- PASSES
 prop_intersperse :: Property
 prop_intersperse = forAll ( genListMonStr >*< (arbitrary :: Gen(Int)) ) $
-                       \((l, ms),n) -> intersperse n l === toList (intersperseF (Just n) ms)
+                       \((l, ms),n) -> DL.intersperse n l === toList (intersperseMF (Just n) ms)
  
 genPrefixListMonStr :: Gen (([Int], [Int]), (MonStr Maybe Int, MonStr Maybe Int))
 genPrefixListMonStr = do b <- (arbitrary :: Gen Bool)
@@ -288,7 +301,7 @@ genPrefixListMonStr = do b <- (arbitrary :: Gen Bool)
 -- PASSES
 prop_isPrefixOf :: Property
 prop_isPrefixOf = forAll genPrefixListMonStr $
-                     \((p,l), (ps, ms)) -> Just (isPrefixOf p l) === isPrefixOfMMS ps ms
+                     \((p,l), (ps, ms)) -> Just (isPrefixOf p l) === isPrefixOfMF ps ms
 
 
 genElemListMonStr :: Gen ([Int], MonStr Maybe Int, Int)
@@ -296,27 +309,27 @@ genElemListMonStr = do (l,ms) <- genListMonStr
                        b <- (arbitrary :: Gen Bool)
                        i <- arbitrary
                        n <- choose (0, (length l) - 1)
-                       return $ if b then (l, ms, i) else (l, ms, l !! n)
+                       return $ if b then (l, ms, i) else (l, ms, l DL.!! n)
 
 -- PASSES
 prop_elemIndex :: Property
 prop_elemIndex = forAll genElemListMonStr $
-                    \(l,ms,n) -> elemIndex n l === elemIndexMMS n ms
+                    \(l,ms,n) -> elemIndex n l === elemIndexM n ms
 
 -- PASSES
 prop_elemIndicies :: Property
 prop_elemIndicies = forAll genElemListMonStr $
-                       \(l,ms,n) -> elemIndices n l === toList (elemIndicesMMS n ms)
+                       \(l,ms,n) -> elemIndices n l === toList (elemIndicesM n ms)
 
 -- PASSES - not entirely sure if the generated functions give any non-trivial results
 prop_findIndex :: Property
 prop_findIndex = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $
-                    \((l, ms), (Fn p)) -> findIndex p l === findIndexMMS p ms
+                    \((l, ms), (Fn p)) -> findIndex p l === findIndexM p ms
 
 -- PASSES - not entirely sure if the generated functions give any non-trivial results
 prop_findIndicies :: Property
 prop_findIndicies = forAll ( genListMonStr >*< (arbitrary :: Gen(Fun Int Bool)) ) $
-                       \((l, ms), (Fn p)) -> findIndices p l === toList (findIndicesMMS p ms)
+                       \((l, ms), (Fn p)) -> findIndices p l === toList (findIndicesM p ms)
 
 genCharListMonStr :: Gen ([Char], MonStr Maybe Char)
 genCharListMonStr = do l <- (listOf1 arbChar)
@@ -326,24 +339,25 @@ genCharListMonStr = do l <- (listOf1 arbChar)
 -- PASSES
 prop_words :: Property
 prop_words = forAll genCharListMonStr $
-                \(l, ms) -> words l === toList (wordsFA ms)
+                \(l, ms) -> words l === toList (wordsMFL ms)
 
 -- PASSES
 prop_lines :: Property
 prop_lines = forAll genCharListMonStr $
-                \(l, ms) -> lines l === toList (linesFA ms)
+                \(l, ms) -> lines l === toList (linesMFL ms)
 
 -- PASSES
 prop_unwords :: Property
 prop_unwords = forAll genCharListMonStr $
-                  \(l, ms) -> unwords (words l) === toList (unwordsFA (wordsFA ms))
+                  \(l, ms) -> unwords (words l) === toList (unwordsMFL (wordsMFL ms))
 
 -- PASSES
 prop_unlines :: Property
 prop_unlines = forAll genCharListMonStr $
-                  \(l, ms) -> unlines (lines l) === toList (unlinesFA (linesFA ms))
+                  \(l, ms) -> unlines (lines l) === toList (unlinesMFL (linesMFL ms))
 
 ---- Runs all tests ----
 return []
-runTests :: IO Bool
-runTests = $quickCheckAll
+runTests :: IO ()
+runTests = do b <- $quickCheckAll
+              putStrLn (if b then "All tests passed!" else "Some tests failed!")

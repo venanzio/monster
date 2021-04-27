@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 {-
 
  Investigation into whether list monsters are monads, and if not, 
@@ -11,7 +12,6 @@ import Control.Comonad
 import MonStreams
 import Control.Monad
 import Operations
-import Data.Functor.Adjunction
 import qualified Data.List.NonEmpty as NE
 
 -- Definition of tree monad from https://dkalemis.wordpress.com/2014/03/22/trees-as-monads/
@@ -236,6 +236,7 @@ tf3b = (happyTreeFunc >=> sadTreeFunc) >=> steadyTreeFunc
 data Mealy st inA outA = Mealy { initState :: st
                                , transf :: (st , inA) -> (st , outA)
                                }
+                               
 instance Show s => Show (Mealy s b c) where
   show (Mealy s _) = "Mealy machine in state: " ++ show s
                              
@@ -263,14 +264,24 @@ runMealyStr (MCons f) e = f e
 data Bin = B0 | B1 deriving Show
 data Ter = T0 | T1 | T2 deriving Show
 
-someMachine :: Mealy Ter Bin Bin
-someMachine = Mealy T0 f
+endsInZero :: Mealy Ter Bin Bin
+endsInZero = Mealy T0 f
               where f (T0, B0) = (T1, B1)
                     f (T0, B1) = (T0, B0) 
                     f (T1, B0) = (T2, B1)
                     f (T1, B1) = (T0, B0)
                     f (T2, B0) = (T0, B1)
                     f (T2, B1) = (T0, B0)
+
+testaux :: Mealy s i o -> MonStr ((->) i) o -> [i] -> (o, o)
+testaux mm ms []     = error "Empty input list"
+testaux mm ms [i]    = (fst $ runMealy mm i, fst $ runMealyStr ms i)
+testaux mm ms (i:is) = testaux (snd $ runMealy mm i) (snd $ runMealyStr ms i) is
+
+test :: Mealy s i o -> [i] -> (o, o)
+test mm is = testaux mm (mealyToMonStr mm) is
+
+test1 = test (monStrToMealy $ mealyToMonStr endsInZero) [B0, B1, B0, B1]
 
 {-
  Set of states S corresponds to the continuation function type in reader-monster
@@ -286,3 +297,19 @@ someMachine = Mealy T0 f
                               
  transition function is application
 -}
+
+
+-- Other representation of Mealy machines
+data Mealy' st inA outA = Mealy' { initState' :: st
+                                 , transF' :: (st , inA) -> st
+                                 , outF' :: (st , inA) -> outA
+                                 }
+
+mealyToMonStr' :: Mealy' s i o -> MonStr ((->) i) o
+mealyToMonStr' (Mealy' s tf outf) = mealyToMonStr $ Mealy s (\p -> (tf p, outf p))
+
+monStrToMealy' :: MonStr ((->) e) a -> Mealy' (Fix (MFunc e a)) e a
+monStrToMealy' ms = let (Mealy s tf) = monStrToMealy ms in Mealy' s (\p -> fst $ tf p) (\p -> snd $ tf p)
+
+                               
+                               

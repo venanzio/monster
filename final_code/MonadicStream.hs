@@ -27,8 +27,9 @@ module MonadicStream
      mapOutM,
      scanA,
      scanM,
+     (++),
      (!!),
-     cons,
+     innerCons,
      prefixA,
      prefix,
      
@@ -44,6 +45,7 @@ module MonadicStream
      takeM',
      takeM'',
      takeMF,
+     takeMF',
      
      spanM,
      spanMF,
@@ -70,6 +72,7 @@ module MonadicStream
      intersperse,
      intersperseMF,
      interleave,
+     insertM,
      
      unconsMF,
      lastMF,
@@ -222,7 +225,7 @@ instance Applicative m => Applicative (MonStr m) where
 
 instance Comonad w => Comonad (MonStr w) where
   extract = extract . head
-  duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrap s)
+  duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (uncons ms)
 
 
 instance (Functor m, Foldable m) => Foldable (MonStr m) where
@@ -303,8 +306,8 @@ infixl 9 !!
 s !! n = head $ (P.iterate tailM s) P.!! n
 
 -- | Appending an element in front of each element in a monster containing lists
-cons :: Functor m => a -> MonStr m [a] -> MonStr m [a]
-cons a s = fmap (a:) s
+innerCons :: Functor m => a -> MonStr m [a] -> MonStr m [a]
+innerCons a s = fmap (a:) s
 
 -- | Prefixes a given monadic stream with a given list of values
 prefixA :: Applicative m => [a] -> MonStr m a -> MonStr m a
@@ -338,7 +341,7 @@ initMF'' = mapOutM $ \hd tl -> if null tl
 -- in Data.List
 initsA :: Applicative m => MonStr m a -> MonStr m [a]
 initsA s = [] <: initsA' s
-           where initsA' = transform (\h t -> ([h], cons h (initsA' t)))
+           where initsA' = transform (\h t -> ([h], innerCons h (initsA' t)))
 
 -- | Constructs a list containing all of the suffix monsters of
 -- the argument - equivalent to tails in Stream.hs
@@ -375,13 +378,17 @@ takeM'' n ms
   | n > 0     = head ms : (takeM'' (n - 1) (tailM ms))
   | otherwise = error "MonadicStream.takeM'': negative argument."
 
--- | take with  m Foldable - handles finite streams
+-- | take with  m Foldable - handles finite streams correctly
 takeMF :: (Monad m, Foldable m) => Int -> MonStr m a -> [m a]
 takeMF n ms
   | n == 0    = []
   | null (uncons ms) = []
   | n > 0     = head ms : (takeMF (n - 1) (tailMF ms))
   | otherwise = error "MonadicStream.takeMF: negative argument."
+  
+-- | take with  m Foldable - returns the list inside a single monadic action
+takeMF' :: (Monad m, Foldable m) => Int -> MonStr m a -> m [a]
+takeMF' n ms = sequence (takeMF n ms)
 
 -- | Returns the longest prefix of ma that satisfies p
 -- together with the remainder of the monadic stream, 
@@ -449,7 +456,9 @@ groupMF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMF t')) (s
 isPrefixOfMF :: (Monad m, Foldable m, Eq a) => MonStr m a -> MonStr m a -> m Bool
 isPrefixOfMF ma mb = if null ma 
                         then return True 
-                        else join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMF t t')) <$> uncons ma <*> uncons mb
+                        else if null mb 
+                                then return False
+                                else join $ (\(h,t) (h',t') -> if h /= h' then return False else (if null t then return True else isPrefixOfMF t t')) <$> uncons ma <*> uncons mb
 
 -- | "Internal" version of take: pruning the stream at depth n
 pruneL :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
@@ -493,6 +502,12 @@ intersperseMF ma = initMF'' . (intersperse ma)
 -- | Interleaves the elements (and actions) of two monadic streams
 interleave :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
 interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
+
+-- | Inserts a given monadic action at the specified index in the stream
+insertM :: Monad m => Int -> m a -> MonStr m a -> MonStr m a
+insertM 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h,t)) ma) <$> uncons mas
+insertM n ma mas = MCons $ (\(h,t) -> (h, insertM (n-1) ma t)) <$> uncons mas
+
 
 -- |
 --
@@ -619,7 +634,7 @@ findIndicesM :: Monad m => (a -> Bool) -> MonStr m a -> MonStr m Int
 findIndicesM p = indicesFrom 0
                  where indicesFrom ix mas = MCons . join $ (\(h,t) -> let ixs = (indicesFrom $! (ix+1)) t in if p h then return (ix, ixs) else (uncons ixs)) <$> uncons mas
      
--- |             
+-- |
 elemIndicesM :: (Monad m, Eq a) => a -> MonStr m a -> MonStr m Int
 elemIndicesM x = findIndicesM (==x)
 
