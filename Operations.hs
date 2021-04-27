@@ -193,7 +193,7 @@ spanF p mas = if null ma then return ([], mas)
 
 -------
 
--- breakMMS p is equivalent to spanMMS (not . p)
+-- breakMMS p is equivalent to (and defined as) spanMMS (not . p)
 --
 -- /Beware/: this function may diverge for the same reason as spanMMS
 breakMMS :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)

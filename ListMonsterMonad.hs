@@ -5,11 +5,13 @@
 
 -}
 import Test.QuickCheck
+import Data.Fix
 import Control.Monad
 import Control.Comonad
 import MonStreams
 import Control.Monad
 import Operations
+import Data.Functor.Adjunction
 import qualified Data.List.NonEmpty as NE
 
 -- Definition of tree monad from https://dkalemis.wordpress.com/2014/03/22/trees-as-monads/
@@ -165,8 +167,16 @@ isoTreePhi (MNode []) = undefined
 isoTreePhi (MNode [(a, ts)]) = ...
 -}
 
+data RoseTree a = RNode a [RoseTree a]
+
+phi :: (a, MonStr [] a) -> RoseTree a
+phi (a , MCons ts) = RNode a (fmap phi ts)
+
+psi :: RoseTree a -> (a, MonStr [] a)
+psi (RNode a ts) = (a , MCons (fmap psi ts))
+
 -- Used to transform monadic stream into cofree below
-data Freedom f a = F a (f b)
+data Freedom f a b = F a (f b)
 
 -- This type is isomorphic to Cofree (seems fairly certain looking at the shape)
 --  MCons (F a f((), MCons (F a f((), ...   ~=    a :< f (a :< f (a :< f (....
@@ -222,3 +232,57 @@ tf2 = happyTreeFunc >=> return
 tf3a = happyTreeFunc >=> (sadTreeFunc >=> steadyTreeFunc)
 tf3b = (happyTreeFunc >=> sadTreeFunc) >=> steadyTreeFunc
 
+
+data Mealy st inA outA = Mealy { initState :: st
+                               , transf :: (st , inA) -> (st , outA)
+                               }
+instance Show s => Show (Mealy s b c) where
+  show (Mealy s _) = "Mealy machine in state: " ++ show s
+                             
+data MFunc e a b = MFunc {unFunc :: e -> (b , a)}
+
+instance Show (MFunc e a b) where
+  show _ = "Mealy function"
+
+
+mealyToMonStr :: Mealy s i o -> MonStr ((->) i) o
+mealyToMonStr (Mealy s tf) = MCons (\e -> let (s', a) = tf (s, e) in (a, mealyToMonStr (Mealy s' tf)))
+
+monStrToMealy :: MonStr ((->) e) a -> Mealy (Fix (MFunc e a)) e a
+monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (unFunc (unFix g)) e)
+                          where 
+                             aux :: (e -> (a, MonStr ((->) e) a)) -> Fix (MFunc e a)
+                             aux f = Fix (MFunc (\e -> let (a, g) = f e in (aux (unwrapMS g), a)))
+
+runMealy :: Mealy s i o -> i -> (o, Mealy s i o)
+runMealy (Mealy s f) i = let (s', o) = f (s, i) in (o, Mealy s' f)
+
+runMealyStr :: MonStr ((->) e) a -> e -> (a, MonStr ((->) e) a)
+runMealyStr (MCons f) e = f e
+
+data Bin = B0 | B1 deriving Show
+data Ter = T0 | T1 | T2 deriving Show
+
+someMachine :: Mealy Ter Bin Bin
+someMachine = Mealy T0 f
+              where f (T0, B0) = (T1, B1)
+                    f (T0, B1) = (T0, B0) 
+                    f (T1, B0) = (T2, B1)
+                    f (T1, B1) = (T0, B0)
+                    f (T2, B0) = (T0, B1)
+                    f (T2, B1) = (T0, B0)
+
+{-
+ Set of states S corresponds to the continuation function type in reader-monster
+
+ MonStr (Reader e) a
+                              
+ S = e -> (e -> e -> ...) the set of functions from e (input alphabet) possible 
+                              
+ The current state is a function
+                              
+ Input alphabet corresponds to type e of inputs to state functions
+ Output alphabet corresponds to type a of return values
+                              
+ transition function is application
+-}

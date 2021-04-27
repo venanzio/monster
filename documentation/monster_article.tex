@@ -317,9 +317,79 @@ There is a well-known connection between finality of a coalgebra and the coinduc
 
 \section{Examples}
 
+By instantiating with various monads, you can form well-known data types, or variations of these. This has provided good insight into what kinds of operations are possible to perform on monadic streams in general.
+
 Instantiations with Identity (Pure Streams), Maybe (Lazy Lists), List (Trees), IO (Processes), State (Stateful Streams).
 
-Definition of the {\em standard} function on those data types in a general way.
+Definition of the {\em standard} functions on those data types in a general way.
+
+To recap from section 2, when instantiating $\stream{M,A}$ with the identity monad, we obtain the type of pure streams.
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{A}:\set\\
+\quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}.
+\end{array}
+$$
+
+Lazy lists - maybe monad \\
+
+When instantiating with the list monad, we get the type of branch-labelled trees. These are a variation on the usual type of Rose trees, where (semantically) the \emph{edges} of the trees contain values, not the nodes or leaves.
+
+$$
+\begin{array}[t]{l}
+\codata\;
+\mathsf{BLTree}(A):\set\\
+\quad \mathsf{collect} : \lst{A \times \mathsf{BLTree}(A)} \rightarrow \mathsf{BLTree}(A)\\
+\quad \nil : \mathsf{BLTree}(A).
+\end{array}
+$$
+
+Branch-labelled trees with one extra 'root' element are isomorphic to Rose trees, as shown below - this corresponds to the idea that every node in a tree has a unique branch from its parent, with the exception of the root node, which has no parent.
+
+\begin{haskell}
+data RoseTree a = RNode a [RoseTree a]
+
+phi :: (a, MonStr [] a) -> RoseTree a
+phi (a , MCons ts) = RNode a (fmap phi ts)
+
+psi :: RoseTree a -> (a, MonStr [] a)
+psi (RNode a ts) = (a , MCons (fmap psi ts))
+\end{haskell}
+
+Standard trees operations such as sorting and traversals are different for branch-labelled trees. Branch-labelled trees in general are more useful for applications where you care only about paths down a tree, or transitions between states rather than the states themselves. 
+
+As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a List-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree. \\
+
+
+Signal functions/mealy machines - reader monad \\
+  - providing an input produces an output and another function, which is \\
+  
+Yet another interesting type is that of Reader-monsters, which weakly correspond to the type of Mealy machines. There is a close correspondence (maybe an adjunction?) between these two types, shown with the two natural transformations:
+\begin{haskell}
+data MFunc e a b = MFunc {unFunc :: e -> (b , a)}
+                               
+mealyToMonStr :: Mealy s i o -> MonStr ((->) i) o
+mealyToMonStr (Mealy s tf) = MCons (\e -> let (s', a) = tf (s, e) 
+		in (a, mealyToMonStr (Mealy s' tf)))
+
+monStrToMealy :: MonStr ((->) e) a -> Mealy (Fix (MFunc e a)) e a
+monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (unFunc (unFix g)) e)
+		where 
+			aux :: (e -> (a, MonStr ((->) e) a)) -> Fix (MFunc e a)
+			aux f = Fix (MFunc (\e -> let (a, g) = f e in (aux (unwrapMS g), a)))
+\end{haskell}
+The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (the part of thee transition function corresponding to that state of the implied Mealy machine).
+                             
+                             
+Mealy machines - state monad \\
+ - talk about interaction with store comonadic stream, i.e. a stream of inputs? \\
+ 
+
+
+Processes - IO \\
+ - talk about lazy IO (unsafeInterleaveIO) and how it is needed to run the processes in a particular way \\
+ - leave till last probably \\
 
 \section{Instances of Functor, Applicative, Monad}
 
@@ -595,7 +665,7 @@ Observe that the first element of the first stream $a_0$ in $\eta_{\stream{M,A}}
 $$
 \eta_{\stream{M}}(s) : \stream{M,\stream{M,A}} = \mathop{|}_M^\eta (\mathop{|}_M^0 \stackrel{\downarrow}{a_0}, \mathop{|}_M^1 a_1, \dots), \mathop{|}_M^\eta s, \dots
 $$
-Here, "best case" refers to the minimum sequence of monadic actions you have to evaluate to get to a certain element in the stream, removing \eta actions where possible as they act as a unit for Kleisli composition.
+Here, "best case" refers to the minimum sequence of monadic actions you have to evaluate to get to a certain element in the stream, removing $\eta$ actions where possible as they act as a unit for Kleisli composition.
 
 Now that we know the first element of the resulting stream $a_0$ will be, in the best case, guarded by $m_0$, we look at what actions guard the second element $a_1$. WLOG, there are two ways to extract $a_1$, either by taking the second element of the second $M$-monster, or by taking the second element of the first $M$-monster. This gives two cases to consider.\\
 

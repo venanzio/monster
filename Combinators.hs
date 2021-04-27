@@ -197,7 +197,7 @@ contComp ab bc a = Cont $ \out -> runCont (ab a) $ (flip (runCont . bc) $ out)
 
 toWordInt :: Integer -> String
 toWordInt 0 = "zero"
-toWordInt 1 = "canonical succ"
+toWordInt 1 = "one"
 toWordInt 2 = "two"
 toWordInt 3 = "three"
 toWordInt n = if n < 0 then "not particularly positive" else "bigger than three"
@@ -206,6 +206,14 @@ seed :: Integer -> Cont String String
 seed n = Cont $ \out -> (show n) ++ "|" ++ out (toWordInt n) ++ "|" ++ (show n) ++ "|" ++ out (toWordInt n) ++ "|" ++ (show n)
 
 contStr = liftK seed nats
+
+{- 
+
+You can't define a runner for this monadic stream, but you could define a "partial runner"
+
+  runCont (takeMMS 2 contStr) concat - this runs the stream cut off at the 2nd element
+
+-}
 
 
 {-
