@@ -370,7 +370,7 @@ toList (MCons Just (x, xs)) = x : (toList xs)
 
 It is clear that these are the exact inverse of one another. 
 
-This isomorphism has provided a useful benchmark to test different functions on generic monadic streams against. For each function in \verb+Data.List+ that has been generalised for monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the original function in \verb+Data.List+. For example, 
+This isomorphism has provided a useful benchmark to test different functions on generic monadic streams against. For each function in \verb+Data.List+ that has been generalised for monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the original function in \verb+Data.List+. For this, we use the Quickcheck library:
 
 \begin{haskell}
 	
@@ -409,7 +409,7 @@ Another example is probability trees - the branches represent choices, and the l
 
 Traversals operations return the branch labels in the expected order, using the convention of traversing left-to-right.
 
-Another common operation on trees however, tree-sort, cannot be implemented in the same way, as there is no 'root' label - each sub-tree can be sorted with respect to it's first branch, but the branches at the same level are incomparable.
+Another common operation on trees however, tree-sort, cannot be implemented in the same way, as there is no 'root' label - each sub-tree can be sorted with respect to it's first branch, but the branches at the same level are incomparable. This is assuming we have a binary tree, as an arbitrarily branching tree cannot be sorted like this in any case.
 
 \subsection{Reader monad}
 
@@ -427,7 +427,7 @@ monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (unFunc (unFix g)) e)
 			aux :: (e -> (a, MonStr ((->) e) a)) -> Fix (MFunc e a)
 			aux f = Fix (MFunc (\e -> let (a, g) = f e in (aux (unwrapMS g), a)))
 \end{haskell}
-The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (the part of the transition function that corresponding to the state of the implied Mealy machine).
+The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (the part of the transition function corresponding to the state of the implied Mealy machine).
 
 Another type that Reader-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
                              
