@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+
 module Examples.StateMachines where
   
 import MonadicStream
@@ -5,53 +8,106 @@ import Examples.PureStreams
 import Control.Monad.State
 import Data.Fix
 
--- | Type of state machines, with the Reader monad
-type FSMStr i o = MonStr ((->) i) o
+-- | Type of state machines, using the Reader monad
+type SMStr i o = MonStr ((->) i) o
+
+instance Show (SMStr i o) where
+  show _ = "[ A Mealy machine ]"
 
 
-{- 
- | Correspondance of Reader-monsters with Mealy machines
- 
- MonStr -> Mealy -> MonStr gives back exactly the same monadic stream
-
- Mealy -> MonStr -> Mealy gives back a different, but extensionally
- (operationally) equivalent Mealy machine
--}
+-- | Correspondance between Reader-monsters and Mealy machines
 
 -- | The type of Mealy machines
 data Mealy st inA outA = Mealy { initState :: st
                                , transf :: (st , inA) -> (st , outA)
                                }
 
-data MFunc e a b = MFunc {unFunc :: e -> (b , a)}
+data StateFunc i o = SF { getSF :: i -> (StateFunc i o, o) }
+
+type PreStateFunc i o = i -> (StateFunc i o, o)
 
 -- | Every Mealy machine is a Reader-monster
-mealyToMonStr :: Mealy s i o -> FSMStr i o
+mealyToMonStr :: Mealy s i o -> SMStr i o
 mealyToMonStr (Mealy s tf) = MCons (\e -> let (s', a) = tf (s, e) in (a, mealyToMonStr (Mealy s' tf)))
 
--- | Every Reader-monster is a Mealy machine (with a state type of nested transition functions)
-monStrToMealy :: FSMStr i o -> Mealy (Fix (MFunc i o)) i o
-monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (unFunc (unFix g)) e)
+-- | Every Reader-monster is a Mealy machine (with a state type of nested 
+-- transition functions)
+monStrToMealy :: SMStr i o -> Mealy (StateFunc i o) i o
+monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (getSF g) e)
                           where 
-                             aux :: (e -> (a, MonStr ((->) e) a)) -> Fix (MFunc e a)
-                             aux f = Fix (MFunc (\e -> let (a, g) = f e in (aux (uncons g), a)))
+                             aux :: (e -> (a, MonStr ((->) e) a)) -> StateFunc e a
+                             aux f = SF (\e -> let (a, g) = f e in (aux (uncons g), a))
 
-{-
- | Mealy (Fix (MFunc i o)) i o ~= Mealy (MonStr ((->) i) o) i o
 
- However it seems more informative to see the type of states of the Mealy machine
- as the type \nu x. e -> (x, a), as it can be conceptually separated from the 
- generality of monadic streams.
--}
-                            
+
+-- | Operations on and with state machines
+
+-- | Building a Reader-monster out of function states
+buildSMStr :: StateFunc i o -> SMStr i o
+buildSMStr (SF s) = MCons $ \i -> let (s', o) = s i in (o, buildSMStr s')
+
 -- | Notion of combining Mealy machines, using Reader-monsters
 -- Basically just nested function composition
-composeFSM :: FSMStr a b -> FSMStr b c -> FSMStr a c
-composeFSM (MCons f) (MCons g) = MCons $ \a -> let (b, f') = f a 
-                                                   (c, g') = g b
-                                                   in (c, composeFSM f' g')
-                                           
+composeSM :: SMStr a b -> SMStr b c -> SMStr a c
+composeSM (MCons f) (MCons g) = MCons $ \a -> let (b, f') = f a 
+                                                  (c, g') = g b
+                                                  in (c, composeSM f' g')
 
+-- | Passes an input to the state machine, returning the output
+-- and the next state
+runSMStr :: SMStr i o -> i -> (o, SMStr i o)
+runSMStr = uncons 
+
+-- | Passes a list of inputs, one at a time, to the state machine,
+-- collecting the outputs and returning the final state
+runSMStrList :: SMStr i o -> [i] -> ([o], SMStr i o)
+runSMStrList sm         []     = ([], sm)
+runSMStrList (MCons sm) (i:is) = let (o, sm') = sm i in (\(os, smf) -> (o:os, smf)) $ runSMStrList sm' is
+                          
+                          
+                                                   
+-- | Example Mealy machines
+
+{-
+ | Traffic light example
+ 
+ See https://tahull.github.io/projects/pic/traffic-light-fsm for
+ the encoding of traffic states, as this example was adapted from
+ there
+
+ The traffic lights favour north-bound traffic over east-bound
+-}
+
+data TrafficInput = None | NS | EW | Both deriving Show
+
+data NS_Lights = NS_Green | NS_Yellow | NS_Red deriving Show
+data EW_Lights = EW_Green | EW_Yellow | EW_Red deriving Show
+
+type TrafficOutput = (NS_Lights, EW_Lights)
+
+s0 :: PreStateFunc TrafficInput TrafficOutput
+s0 None = (SF s0, (NS_Green , EW_Red))
+s0 NS   = (SF s0, (NS_Green , EW_Red))
+s0 EW   = (SF s1, (NS_Yellow, EW_Red))
+s0 Both = (SF s1, (NS_Yellow, EW_Red))
+
+s1 :: PreStateFunc TrafficInput TrafficOutput
+s1 _ = (SF s2, (NS_Red, EW_Green))
+       
+s2 :: PreStateFunc TrafficInput TrafficOutput
+s2 None = (SF s3, (NS_Red, EW_Yellow))
+s2 NS   = (SF s3, (NS_Red, EW_Yellow))
+s2 EW   = (SF s2, (NS_Red, EW_Green ))
+s2 Both = (SF s3, (NS_Red, EW_Yellow))
+
+s3 :: PreStateFunc TrafficInput TrafficOutput
+s3 _ = (SF s0, (NS_Green, EW_Red))
+
+trafficLights :: SMStr TrafficInput TrafficOutput
+trafficLights = buildSMStr (SF s0)
+
+
+------------------------------------------------------------------------------
 
 -- | Type of state machines with 'feedback loops'
 type FBMachine i o = MonStr (State i) o
