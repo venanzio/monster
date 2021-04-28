@@ -431,16 +431,22 @@ The functions produce extensionally equivalent Mealy machines, which when given 
 
 Another type that Reader-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
                              
+\subsection{State monad}
+                             
 Mealy machines - state monad \\
  - talk about interaction with store comonadic stream, i.e. a stream of inputs? \\
  
 Instantiation of monsters with the state monad gives a type similar again to a Mealy machine, but one that supplies it's own input to each computation - you can either 'restart' the machine by supplying a fresh state, or let it run with the states that it produces itself. This could be seen as a Mealy machine with feedback, one who's transition function returns a new input. 
 
+\subsection{IO monad}
 
+A monadic stream of IO actions corresponds to a non-terminating process. 
 
 Processes - IO \\
  - talk about lazy IO (unsafeInterleaveIO) and how it is needed to run the processes in a particular way \\
  - leave till last probably \\
+ 
+ 
 
 \section{Instances of Functor, Applicative, Monad}
 
