@@ -177,14 +177,14 @@ Cofinality means that we can define functions into the coalgebra by {\em corecur
 
 \section{The Coinduction Principle}
 
-As inductive types come together with an {\em induction principle}, stating that we can prove properties of them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
+As inductive types come together with an {\em induction principle}, stating that we can prove statements about them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
 
 Let us illustrate the idea with the example of pure streams:
 Suppose that we want to prove that two stream $\sigma_0$ and $\sigma_1$ are equal.
 Since streams are infinite sequences of elements, that will require proving equality of their entries in corresponding positions: if $\sigma_0 = a_0\scons a_1\scons a_2\scons \cdots$ and  $\sigma_1 = b_0\scons b_1\scons b_2\scons \cdots$, we must prove $a_0 = b_0$, $a_1 = b_1$, $a_2=b_2$, and so on (we assume equality on streams is extensional).
 This is an infinite sequence of equalities to prove.
 Clearly we cannot produce all the proofs explicitely.
-However, the proof of equality can be sean itself as a stream of proofs of equalities of their elements.
+However, the proof of equality can be seen itself as a stream of proofs of equalities of their elements.
 We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitely the equality of the heads.
 
 More specifically, we often need to prove that two functions produce equal streams.
@@ -192,6 +192,7 @@ Suppose $f,g:X \rightarrow \stream{A}$ are the two functions, and they are both 
 $$
 f\,x = h_f(x) \scons f\,(t_f(x)) \qquad g\,x = h_g(x) \scons f\,(t_g(x)).
 $$
+So $f$ is defined by the coalgebra $\langle h_f, t_f\rangle : X \rightarrow A\times X$ and $g$ is defined by the coalgebra $\langle h_g, t_g\rangle : X \rightarrow A\times X$.
 We want to prove that the two functions are extensionally equal; let us give a name to the proof of that statement:
 $$
 H: \forall x:X, f\,x = g\,x.
@@ -199,29 +200,30 @@ $$
 We can do this by proving directly that the heads must be equal, $p_h:h_f(x) = h_g(x)$, and we would like to invoke the {\em coinduction hypothesis} $H$ for the tails.
 However, since the recursive calls are applied to potentially different elements of $X$ ($t_f(x)$ and $t_g(x)$), we can't apply $H$ directly.
 
-We can get around this problem by generalizing our goal: instead of proving that the functions give the same result when applied to the same input, we aim for the stronger statement that they give the same result when applied to inputs related by a certain binary relation $\sim$:
+We can get around this problem by generalizing our goal: instead of proving that the functions give the same result when applied to the same input, we aim for the stronger statement that they give the same result when applied to inputs related by a certain binary relation $\bisim$:
 $$
-H: \forall x y:X, x\sim y \rightarrow f\,x = g\,x.
+H: \forall x y:X, x\bisim y \rightarrow f\,x = g\,x.
 $$
-If $\sim$ is reflexive, this will imply our original goal.
+If $\bisim$ is reflexive, this will imply our original goal.
 
 Two other properties are necessary to make things work.
-First, we need the equlity of the heads of the output: if $x\sim y$, then $h_f(x) = h_g(x)$.
-Second, we need that $~$ is preseved under taking the tail functions for $f$ and $g$: if $x\sim y$, then $t_f(x) \sim t_g(x)$; so that we can now apply $H$ to obtain that $f(t_f(x)) = g(t_g(x))$.
+First, we need the equality of the heads of the output: if $x\bisim y$, then $h_f(x) = h_g(x)$.
+Second, we need that $\bisim$ is preseved under taking the tail functions for $f$ and $g$: if $x\bisim y$, then $t_f(x) \bisim t_g(x)$; so that we can now apply $H$ to obtain that $f(t_f(x)) = g(t_g(x))$.
 
-A relation $\sim$ satisfying these two properties is called a {\em bisimulation}.
+A relation $\bisim$ satisfying these two properties is called a {\em bisimulation} between the coalgebras $\langle h_f, t_f\rangle$ and $\langle h_g, t_g\rangle$.
 The principle of coinduction states that bisimilar elements generate equal streams.
 
+This notion can be generalized to coalgebras of any functor $F$.
+To formulated it we need a notion of {\em lifting} of a relation by the functor $F$: if $\bisim$ is a relation on a type $X$, we want to lift it to a relation $\bslift{F}$ on $F\,X$.
+A simple way to do it is to apply $F$ to the set-theoretic characterization of the relation: the set of all pairs that satisfy it: $R = \{ \langle x, y \rangle \mid x \bisim y\}$.
+We can then use the functorial lift of the projections $\pi_0, \pi_1:R \rightarrow X$ to say that two elements $u,w:F\,X$ are related if there exists an element $s:F\,R$ such that $F\,\pi_0\,s = u$ and $F\,\pi_1\,s = w$.
+This can be further generalized by allowing $R$ to be any type: a collection of {\em receipts} that certify that pairs of elements are related. 
+In category theory, this notion is called a {\em span}.
 
-
-
-
-
-
-\begin{vcomment}
-The following is copied from {\em Coalgebras in Functional Programming and Type Theory} \cite{capretta:2011}.
-It needs to be revised.
-\end{vcomment}
+\begin{definition}\label{def:span}
+Let $A$ be a type; a {\em span} on $A$ is a triple $\langle R,r_1,r_2\rangle$ where $R$ is a type and $r_1, r_2$ are functions $R\rightarrow A$.
+If $F$ is a functor, the {\em lifting of the span $R$ by $F$} is the span $\langle F\,R,F\,r_1,F\,r_2\rangle$ on $F\,A$.
+\end{definition}
 
 \begin{definition}\label{def:bisimulation}
 Let $\langle A,\alpha \rangle$ be a coalgebra.
@@ -257,13 +259,13 @@ The survey article by Sangiorgi \cite{sangiorgi:2009} tells the history of the i
 Aczel \cite{aczel:1988} adopted it as the appropriate notion of equality for non-well-founded sets.
 There are subtle differences between several notions of bisimulation that are not equivalent in full generality: recent work by Staton \cite{staton:2009} investigates their correlations.
 
-On $\stream{A}$ a bisimulation is a binary relation $\sim$ such that
+On $\stream{A}$ a bisimulation is a binary relation $\bisim$ such that
 $$
-\forall s_1, s_2:\stream{A}. s_1 \sim s_2 \Rightarrow
+\forall s_1, s_2:\stream{A}. s_1 \bisim s_2 \Rightarrow
 \hd{s_1} =\hd{s_2} \land
-\tl{s_1}\sim \tl{s_2}.
+\tl{s_1}\bisim \tl{s_2}.
 $$
-Notice that $s_1\sim s_2$ guarantees that corresponding elements in the infinite sequences defined by $s_1$ and $s_2$ are equal, that is, $s_1$ and $s_2$ are extensionally equal.
+Notice that $s_1\bisim s_2$ guarantees that corresponding elements in the infinite sequences defined by $s_1$ and $s_2$ are equal, that is, $s_1$ and $s_2$ are extensionally equal.
 In fact, by repeatedly applying the above property, we have that $\heads{s_1}{n} = \heads{s_2}{n}$ for every $n$.
 
 \begin{definition}\label{def:coinduction}

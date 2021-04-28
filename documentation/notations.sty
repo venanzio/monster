@@ -177,3 +177,9 @@
 \newcommand{\sconcat}{%
   \mathbin{{+}\mspace{-8mu}{+}}%
 }
+
+% Bisimulation and coinduction
+
+\newcommand{\bisim}{\sim}  % bisimulation relation
+\newcommand{\rlift}[2]{\mathrel{\stackrel{#2}{#1}}} % lifting of a relation by a functor
+\newcommand{\bslift}[1]{\rlift{\bisim}{#1}}  % lifting of bisimulation
