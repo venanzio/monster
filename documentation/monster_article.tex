@@ -366,7 +366,7 @@ toList (MCons Nothing) = []
 toList (MCons Just (x, xs)) = x : (toList xs)
 \end{haskell} 
 
-It is clear that these are exact inverses of each other. 
+It is clear that these are the exact inverse of one another. 
 
 This isomorphism has provided a useful benchmark to test different functions on generic monadic streams against. For each function in \verb+Data.List+ that has been generalised for monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the original function in \verb+Data.List+. For example, 
 

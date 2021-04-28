@@ -1,21 +1,22 @@
 module Examples.StateMachines where
- 
-import Prelude hiding (head, tail, map, scanl, scanl1,
-  iterate, take, drop, takeWhile, (++),
-  dropWhile, repeat, cycle, filter, (!!), 
-  zip, unzip, zipWith, zip3, unzip3, zipWith3,
-  words,unwords,lines,unlines, break, span, splitAt)
   
 import MonadicStream
 import Examples.PureStreams
 import Control.Monad.State
 import Data.Fix
 
--- | Type of finite state machines
+-- | Type of state machines, with the Reader monad
 type FSMStr i o = MonStr ((->) i) o
 
 
--- | Correspondance of Reader-monsters with Mealy machines
+{- 
+ | Correspondance of Reader-monsters with Mealy machines
+ 
+ MonStr -> Mealy -> MonStr gives back exactly the same monadic stream
+
+ Mealy -> MonStr -> Mealy gives back a different, but extensionally
+ (operationally) equivalent Mealy machine
+-}
 
 -- | The type of Mealy machines
 data Mealy st inA outA = Mealy { initState :: st
@@ -28,7 +29,7 @@ data MFunc e a b = MFunc {unFunc :: e -> (b , a)}
 mealyToMonStr :: Mealy s i o -> FSMStr i o
 mealyToMonStr (Mealy s tf) = MCons (\e -> let (s', a) = tf (s, e) in (a, mealyToMonStr (Mealy s' tf)))
 
--- | Every Reader-monster is a Mealy machine
+-- | Every Reader-monster is a Mealy machine (with a state type of nested transition functions)
 monStrToMealy :: FSMStr i o -> Mealy (Fix (MFunc i o)) i o
 monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (unFunc (unFix g)) e)
                           where 
@@ -36,11 +37,11 @@ monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (unFunc (unFix g)) e)
                              aux f = Fix (MFunc (\e -> let (a, g) = f e in (aux (uncons g), a)))
 
 {-
-Mealy (Fix (MFunc i o)) i o ~= Mealy (MonStr ((->) i) o) i o
+ | Mealy (Fix (MFunc i o)) i o ~= Mealy (MonStr ((->) i) o) i o
 
-but it seems more informative to see the type of states of the Mealy machine
-as the type \nu x. e -> (x, a), as it can be conceptually separated from the 
-generality of monadic streams.
+ However it seems more informative to see the type of states of the Mealy machine
+ as the type \nu x. e -> (x, a), as it can be conceptually separated from the 
+ generality of monadic streams.
 -}
                             
 -- | Notion of combining Mealy machines, using Reader-monsters
@@ -52,7 +53,7 @@ composeFSM (MCons f) (MCons g) = MCons $ \a -> let (b, f') = f a
                                            
 
 
--- | Type of finite state machines with 'feedback loops'
+-- | Type of state machines with 'feedback loops'
 type FBMachine i o = MonStr (State i) o
 
 compileST :: Monad m => MonStr (StateT s m) a -> s -> MonStr m a

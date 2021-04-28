@@ -195,7 +195,7 @@ cofreeIsoPsi (a :< ft) = MCons (F a (fmap (\x -> ((), cofreeIsoPsi x)) ft))
 type NonEmptyTree a = MonStr NE.NonEmpty a
 
 
-joinCMS :: (Applicative f, Comonad f) => MonStr f (MonStr f a) -> MonStr f a
+joinCMS :: Comonad f => MonStr f (MonStr f a) -> MonStr f a
 joinCMS mm = MCons $ fmap (\(as,ss) -> (extract as, joinCMS (fmap (\(MCons s) -> snd (extract s)) ss))) (unwrapMS mm)
 
 {-

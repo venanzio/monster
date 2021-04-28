@@ -3,13 +3,7 @@
 
 module Examples.BLTrees where
  
-import Prelude hiding (head, tail, scanl, scanl1,
-  iterate, take, drop, takeWhile,
-  dropWhile, repeat, cycle, filter, (!!), 
-  zip, unzip, zipWith, zip3, unzip3, zipWith3,
-  words,unwords,lines,unlines, break, span, splitAt)
-  
-import MonadicStream
+import MonadicStream hiding ((++))
 import Data.List (intercalate)
 import Control.Applicative
 import Data.Foldable
@@ -65,7 +59,7 @@ printTree = putStrLn . showTree
 
 
 {-
- | Some vommon operations on trees, translated into 
+ | Some common operations on trees, translated into 
  'branch-labelled tree' versions
 -}
 

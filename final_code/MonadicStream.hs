@@ -352,11 +352,6 @@ tailsM mas = mas : (tailsM (tailM mas))
 tailsMF :: (Monad m, Foldable m) => MonStr m a -> [MonStr m a]
 tailsMF mas = if null (uncons mas) then [mas] else mas : (tailsMF (tailMF mas))
 
--- Version of "take": returns the list of the first n elements
---  For trees, we expect to get:
---    takeMMS returns the list paths of depth n
---    takeMMS'' returns the list of slices at depths less than n
-
 -- | Returns the list of first n elements. In the case of 
 -- List-monsters (trees): paths of length n (ignores 
 -- shorter paths)
@@ -467,7 +462,8 @@ pruneL n s
   | n > 0  = transform (\h t -> (h, pruneL (n-1) t)) s
   | otherwise = error "MonadicStream.pruneFL: negative argument."
 
---
+-- | Drops the first n elements of a monster, joining the first n
+-- monadic actions in the process
 dropM :: Monad m => Int -> MonStr m a -> MonStr m a
 dropM n ms
   | n == 0    = ms

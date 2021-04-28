@@ -1,10 +1,4 @@
 module Examples.LazyLists where
-
-import Prelude hiding (head, tail, map, scanl, scanl1,
-  iterate, take, drop, takeWhile, (++),
-  dropWhile, repeat, cycle, filter, (!!), 
-  zip, unzip, zipWith, zip3, unzip3, zipWith3,
-  words,lines,unlines, break, span, splitAt)
   
 import MonadicStream
 import Data.Foldable
