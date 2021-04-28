@@ -6,7 +6,7 @@ import Prelude hiding (head, tail, map, scanl, scanl1,
   zip, unzip, zipWith, zip3, unzip3, zipWith3,
   words,unwords,lines,unlines, break, span, splitAt)
   
-import MonadicStream
+import MonadicStreams
 import Control.Monad.Identity
 
 type Stream = MonStr Identity

@@ -321,7 +321,7 @@ There is a well-known connection between finality of a coalgebra and the coinduc
 
 By instantiating monadic streams with different monads, you can form well-known data types, or variations of these. This has provided good insight into what kinds of operations are possible to perform on monadic streams in general.
 
-For each one of these instances, we look at how the underlying monad determines the types of operations you can do on the resulting monadic stream, and how this relates to the data type it corresponds to (or just simulates in some cases).
+For each one of these instances, we look at how they correspond to other related data structures. Near the end of this section, we investigate how a few generic functions on monadic streams act on each of these instances, with respect to the data structures they represent.
 
 Many of these instances of monadic streams, and their related operations, are implemented in the attached library.
 
@@ -356,7 +356,7 @@ $$
 \end{array}
 $$
 
-This type is isomorphic to lazy lists, with every operation possible on lists also possible on Maybe-monsters. This isomorphism is witnessed by the two functions
+This type is isomorphic to lazy lists, with every operation possible on lists also possible on Maybe-monsters. This isomorphism is witnessed by the two functions:
 
 \begin{haskell}
 fromL :: [a] -> MonStr Maybe a
@@ -368,17 +368,23 @@ toList (MCons Nothing) = []
 toList (MCons Just (x, xs)) = x : (toList xs)
 \end{haskell} 
 
-It is clear that these are the exact inverse of one another. 
+It is clear from the definitions that these are the exact inverse of one another. 
 
-This isomorphism has provided a useful benchmark to test different functions on generic monadic streams against. For each function in \verb+Data.List+ that has been generalised for monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the original function in \verb+Data.List+. For this, we use the Quickcheck library:
+This isomorphism has provided a useful benchmark to test different functions on generic monadic streams against. For each function in \verb+Data.List+ that has been generalised for monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the original function in \verb+Data.List+. For this, we use the QuickCheck library:
 
 \begin{haskell}
-	
+prop_drop :: Property
+prop_drop = forAll (genListMonStr >*< chooseInt (0,1000)) $
+               \((l, ms), n) -> drop n l === toList (dropM n ms)
 \end{haskell}
+
+This function builds a QuickCheck property, which checks whether the drop function (removal of the first $n$ elements) on lists and Maybe-monsters work identically. This makes use of the isomorphism, allowing the types to be freely converted between in order to check equality. 
+
+All standard (and many non-standard) operations on lists are implemented for generic monads, sometimes with the requirement that the functor is an instance of \verb+Foldable+ or \verb+Alternative+.
 
 \subsection{List monad}
 
-When instantiating with the list monad, we get the type of branch-labelled trees. These are a variation on the usual type of Rose trees, where (semantically) the \emph{edges} of the trees contain values, not the nodes or leaves.
+When instantiating with the list monad, we get the type of branch-labelled trees. These are a variation on the usual type of Rose trees, where the \emph{edges} of the trees contain values, not the nodes or leaves.
 
 $$
 \begin{array}[t]{l}
@@ -401,13 +407,13 @@ psi :: RoseTree a -> (a, MonStr [] a)
 psi (RNode a ts) = (a , MCons (fmap psi ts))
 \end{haskell}
 
-Branch-labelled trees in general are more useful for applications where you care only about paths down a tree, or transitions between states rather than the states themselves. 
+Branch-labelled trees in general are more useful for applications where you care only about \emph{paths} down a tree, or \emph{transitions} between states rather than the states themselves. 
 
 As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a List-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree.
 
-Another example is probability trees - the branches represent choices, and the labels the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad.\\
+Another example is probability trees - the branches represent choices, and the labels the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. \\
 
-Traversals operations return the branch labels in the expected order, using the convention of traversing left-to-right.
+Some standard operations on trees don't work for this variation, but traversal operations return the branch labels in the expected order, with the convention of traversing left-to-right.
 
 \subsection{Reader monad}
 
@@ -438,26 +444,39 @@ monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (getSF g) e)
 		aux :: (e -> (a, MonStr ((->) e) a)) -> StateFunc e a
 		aux f = SF (\e -> let (a, g) = f e in (aux (uncons g), a))
 \end{haskell}
+
 The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (or rather the part of the transition function corresponding to the state of the implied Mealy machine).
 
 Another type that Reader-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
                              
 \subsection{State monad}
-                             
-Mealy machines - state monad \\
- - talk about interaction with store comonadic stream, i.e. a stream of inputs? \\
- 
-Instantiation of monsters with the state monad gives a type similar again to a Mealy machine, but one that supplies it's own input to each computation - you can either 'restart' the machine by supplying a fresh state, or let it run with the states that it produces itself. This could be seen as a Mealy machine with feedback, one who's transition function returns a new input. 
+
+Instantiation of monsters with the state monad gives a type that is similar again to that of Mealy machines, but supplies it's own input to each computation (after the first) - you can either 'restart' the machine by supplying a fresh state, or let it run with the states that it produces itself. This could be seen as a Mealy machine with feedback, one who's transition function returns a new input. We refer to this as a feedback machine:
+
+$$
+\begin{array}[t]{l}
+\codata\;
+\mathsf{FBMachine}(S,\Sigma,\Delta):\set\\
+\quad \delta : S \times \Sigma \to S \times \Sigma \times \Delta \\
+\quad s_0 : S
+\end{array}
+$$
 
 \subsection{IO monad}
 
 A monadic stream of IO actions corresponds to a non-terminating process. 
+
+
 
 Processes - IO \\
  - talk about lazy IO (unsafeInterleaveIO) and how it is needed to run the processes in a particular way \\
  - leave till last probably \\
  
  
+\subsection{Semantics of general operations}
+
+In light of these interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented.
+
 
 \section{Instances of Functor, Applicative, Monad}
 

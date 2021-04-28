@@ -3,10 +3,11 @@
 
 module Examples.BLTrees where
  
-import MonadicStream hiding ((++))
-import Data.List (intercalate)
+import MonadicStreams hiding ((++))
+import Data.List (intercalate, splitAt)
 import Control.Applicative
 import Data.Foldable
+import Data.Bifunctor
 
 type BLTree a = MonStr [] a
 
@@ -75,6 +76,12 @@ bfLabels t = bfLabs [t]
                 bfLabs [] = []
                 bfLabs ((MCons l):ts) = map fst l ++ bfLabs (ts ++ map snd l)
 
+-- | Lets you make a choice of a subtree to traverse
+subtree :: Int -> BLTree a -> BLTree a
+subtree n (MCons []) = error "Examples.BLTrees.subtree: subtree index out of bounds"
+subtree 0 (MCons ((_, t):ts)) = t
+subtree n (MCons ((_, t):ts)) = subtree (n - 1) (MCons ts)
+
 -- | Bottom-leftmost element in a tree
 leftmost :: BLTree a -> a
 leftmost (MCons []) = error "Empty tree"
@@ -90,6 +97,47 @@ rightmost (MCons ((b, ts):bs)) = rightmost (MCons bs)
 
 
 -- | BLT examples
+
+-- | Type to encode fractional numbers
+type Fraction = (Integer, Integer)
+
+instance Num Fraction where
+  (a, b) + (c, d) = (a + c, d)
+  (a, b) * (c, d) = (a * c, b * d)
+  abs (a, b) = (abs a, abs b)
+  signum (a, b) = ((signum a) * (signum b), 1)
+  fromInteger n = (n, 1)
+  negate (a, b) = (-a, b)
+  
+data LabelledNum a = LN (String, a)
+
+instance Num a => Num (LabelledNum a) where
+  (LN (s, n)) + (LN (s', m)) = LN (s ++ " | " ++ s', n + m)
+  (LN (s, n)) * (LN (s', m)) = LN (s ++ " & " ++ s', n * m)
+  abs (LN (s, n)) = LN (s, abs n)
+  signum (LN (s, n)) = LN (s, signum n)
+  fromInteger n = LN ("", fromInteger n)
+  negate (LN (s, n)) = LN (s, -n)
+  
+instance Show a => Show (LabelledNum a) where
+  show (LN (s,a)) = s ++ ": " ++ show a
+
+instance Functor LabelledNum where
+   fmap f (LN (s, a)) = LN (s, f a)
+   
+-- | Tree representing probability tree of taking one of n
+-- balls from a bag, where there are m different colours,
+-- with an amount a_0, a_1, ... , a_m of each colour. 
+-- 
+-- Each level in the tree is a new ball taken, with 
+-- probabilites modified based on the previous one
+-- taken.
+genCondProbTree :: [LabelledNum Fraction] -> BLTree (LabelledNum Fraction)
+genCondProbTree ps = MCons $ map (\(p, t) -> (p, genCondProbTree t)) (zip ps [pickOne n ps | n <- [0..(length ps - 1)]])
+
+pickOne :: Int -> [LabelledNum Fraction] -> [LabelledNum Fraction]
+pickOne n ps = let (ls, (LN (s, (nu, de))):rs) = splitAt n (map (fmap (bimap id (\x -> x - 1))) ps) 
+                  in (if nu == 1 then (ls ++ rs) else (ls ++ ((LN (s, (nu - 1, de))):rs)))
 
 blt1 = node [(5, leaf),
              (9, node [(1, leaf)]),

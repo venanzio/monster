@@ -1,6 +1,6 @@
 module Examples.LazyLists where
   
-import MonadicStream
+import MonadicStreams
 import Data.Foldable
 
 type LList a = MonStr Maybe a

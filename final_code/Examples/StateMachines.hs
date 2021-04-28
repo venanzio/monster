@@ -3,7 +3,7 @@
 
 module Examples.StateMachines where
   
-import MonadicStream
+import MonadicStreams
 import Examples.PureStreams
 import Control.Monad.State
 import Data.Fix
@@ -68,6 +68,25 @@ runSMStrList (MCons sm) (i:is) = let (o, sm') = sm i in (\(os, smf) -> (o:os, sm
                                                    
 -- | Example Mealy machines
 
+-- | Edge detector example
+
+data Bin = O | I deriving Show
+
+es0 :: PreStateFunc Bin String
+es0 O = (SF es1, "No edge")
+es0 I = (SF es2, "No edge")
+
+es1 :: PreStateFunc Bin String
+es1 O = (SF es1, "No edge")
+es1 I = (SF es2, "Edge detected")
+
+es2 :: PreStateFunc Bin String
+es2 O = (SF es1, "Edge detected")
+es2 I = (SF es2, "No edge")
+
+edgeDetector :: SMStr Bin String
+edgeDetector = buildSMStr (SF es0)
+
 {-
  | Traffic light example
  
@@ -85,29 +104,29 @@ data EW_Lights = EW_Green | EW_Yellow | EW_Red deriving Show
 
 type TrafficOutput = (NS_Lights, EW_Lights)
 
-s0 :: PreStateFunc TrafficInput TrafficOutput
-s0 None = (SF s0, (NS_Green , EW_Red))
-s0 NS   = (SF s0, (NS_Green , EW_Red))
-s0 EW   = (SF s1, (NS_Yellow, EW_Red))
-s0 Both = (SF s1, (NS_Yellow, EW_Red))
+ts0 :: PreStateFunc TrafficInput TrafficOutput
+ts0 None = (SF ts0, (NS_Green , EW_Red))
+ts0 NS   = (SF ts0, (NS_Green , EW_Red))
+ts0 EW   = (SF ts1, (NS_Yellow, EW_Red))
+ts0 Both = (SF ts1, (NS_Yellow, EW_Red))
 
-s1 :: PreStateFunc TrafficInput TrafficOutput
-s1 _ = (SF s2, (NS_Red, EW_Green))
+ts1 :: PreStateFunc TrafficInput TrafficOutput
+ts1 _ = (SF ts2, (NS_Red, EW_Green))
        
-s2 :: PreStateFunc TrafficInput TrafficOutput
-s2 None = (SF s3, (NS_Red, EW_Yellow))
-s2 NS   = (SF s3, (NS_Red, EW_Yellow))
-s2 EW   = (SF s2, (NS_Red, EW_Green ))
-s2 Both = (SF s3, (NS_Red, EW_Yellow))
+ts2 :: PreStateFunc TrafficInput TrafficOutput
+ts2 None = (SF ts3, (NS_Red, EW_Yellow))
+ts2 NS   = (SF ts3, (NS_Red, EW_Yellow))
+ts2 EW   = (SF ts2, (NS_Red, EW_Green ))
+ts2 Both = (SF ts3, (NS_Red, EW_Yellow))
 
-s3 :: PreStateFunc TrafficInput TrafficOutput
-s3 _ = (SF s0, (NS_Green, EW_Red))
+ts3 :: PreStateFunc TrafficInput TrafficOutput
+ts3 _ = (SF ts0, (NS_Green, EW_Red))
 
 trafficLights :: SMStr TrafficInput TrafficOutput
-trafficLights = buildSMStr (SF s0)
+trafficLights = buildSMStr (SF ts0)
 
 
-------------------------------------------------------------------------------
+------------------------------------------------------------------------
 
 -- | Type of state machines with 'feedback loops'
 type FBMachine i o = MonStr (State i) o
@@ -128,7 +147,7 @@ flipper = MCons (state (\n -> ((n, flipper), (n+1) `mod` 2)))
 modCounter :: Int -> FBMachine Int Int
 modCounter n = MCons (state (\x -> ((x, modCounter n), (x+1) `mod` n)))
 
--- a stream that generates the fibonnacci numbers
+-- | Generates the fibonnacci numbers
 fibGen :: FBMachine (Int, Int) Int
 fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 

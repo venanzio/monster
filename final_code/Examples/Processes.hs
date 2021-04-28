@@ -1,6 +1,6 @@
 module Examples.Processes where
   
-import MonadicStream hiding ((++))
+import MonadicStreams hiding ((++))
 import System.IO.Unsafe
 
 -- | Type of processes
