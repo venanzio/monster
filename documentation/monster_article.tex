@@ -411,9 +411,9 @@ Branch-labelled trees in general are more useful for applications where you care
 
 As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a List-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree.
 
-Another example is probability trees - the branches represent choices, and the labels the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. \\
+Another example is probability trees - the branches represent choices, and the labels the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. Included in the demonstration code are some operations on and examples of List-monsters, with this concept in mind. \\
 
-Some standard operations on trees don't work for this variation, but traversal operations return the branch labels in the expected order, with the convention of traversing left-to-right.
+Some standard operations on trees don't work for this variation, but traversal operations return the branch labels in the expected order, with the convention of traversing left-to-right. 
 
 \subsection{Reader monad}
 
@@ -445,13 +445,13 @@ monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (getSF g) e)
 		aux f = SF (\e -> let (a, g) = f e in (aux (uncons g), a))
 \end{haskell}
 
-The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (or rather the part of the transition function corresponding to the state of the implied Mealy machine).
+The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (or rather the part of the transition function corresponding to the state of the implied Mealy machine). \\
 
 Another type that Reader-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
                              
 \subsection{State monad}
 
-Instantiation of monsters with the state monad gives a type that is similar again to that of Mealy machines, but supplies it's own input to each computation (after the first) - you can either 'restart' the machine by supplying a fresh state, or let it run with the states that it produces itself. This could be seen as a Mealy machine with feedback, one who's transition function returns a new input. We refer to this as a feedback machine:
+Instantiation of monsters with the state monad gives a type that is similar again to that of Mealy machines, but supplies it's own input to each computation (after the first) - you can either 'restart' the machine by supplying a fresh state, or let it run with the states that it produces itself. This could be seen as a Mealy machine with feedback, one who's transition function returns a new input. We refer to this as a feedback machine ($\mathsf{FBMachine}$ for short):
 
 $$
 \begin{array}[t]{l}
@@ -461,6 +461,12 @@ $$
 \quad s_0 : S
 \end{array}
 $$
+
+Another way to think about a State-monster is a delayed unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes a state and returns a value, a new state, and a continuation function (another State-monster). This is essentially a specification for an operation that, when given an initial state, will calculate an infinite stream of values - very similar to the unfold function, also called the stream \emph{co-iterator}.
+
+The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives much more control over the output values, allowing each function to define what the next function should be, given an input state, making them analogous to state machines.
+
+Most of what can be said about State-monsters is said in the Reader-monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$.
 
 \subsection{IO monad}
 
@@ -473,7 +479,7 @@ Processes - IO \\
  - leave till last probably \\
  
  
-\subsection{Semantics of general operations}
+\subsection{General operations}
 
 In light of these interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented.
 
@@ -502,7 +508,9 @@ $$
 
 This definition doesn't strictly comply with the {\em guarded-by-constructors} discipline: the recursive call to $(\stream{M}\,f)$ doesn't occur directly as an argument to the constructor $\mcons$, but it is below the $\times$ operator and an application of $M$.
 However, this is just the application of the functor $M\,(- \times -)$ which defines the final coalgebras. In other words, this is actually how we determine the positions in the container tree.
-\vcomment{This is very badly explained: needs more extensive clarification.}
+\begin{vcomment}
+	This is very badly explained: needs more extensive clarification.
+\end{vcomment}
 
 
 
@@ -830,9 +838,9 @@ Dunai \cite{frp_refactored} is an FRP library implemented using monadic stream f
 
 This library we've developed allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (instantiated with the Reader monad), most functions in our library could be incorporated into Dunai, giving a set of potentially useful generalised transformations for MSF networks. \\
 
-For example, the \verb+insertAct+ combinator could be used to insert an arbitrary extra function into a monadic stream function.
+For example, the \verb+insert+ combinator could be used to insert an arbitrary extra function into a monadic stream function.
 
-Additionally, comonadic streams could be a useful extension to MSF based FRP...
+Additionally, comonadic streams could be a useful extension to MSF based FRP - as seen in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams however, you can model arbitrarily nested input streams. That is, inputs streams whose inputs are input streams. (this needs much more seeing to)
 
 Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment as it is operated on in some way. The comonad provides the notion of environment, and the stream embues it with a way of modelling its progression in time. These streams only model the notion of current and future values of the environment.
 

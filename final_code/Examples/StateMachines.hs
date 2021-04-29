@@ -56,7 +56,7 @@ composeSM (MCons f) (MCons g) = MCons $ \a -> let (b, f') = f a
 -- | Passes an input to the state machine, returning the output
 -- and the next state
 runSMStr :: SMStr i o -> i -> (o, SMStr i o)
-runSMStr = uncons 
+runSMStr = uncons
 
 -- | Passes a list of inputs, one at a time, to the state machine,
 -- collecting the outputs and returning the final state

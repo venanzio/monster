@@ -76,7 +76,7 @@ bfLabels t = bfLabs [t]
                 bfLabs [] = []
                 bfLabs ((MCons l):ts) = map fst l ++ bfLabs (ts ++ map snd l)
 
--- | Lets you make a choice of a subtree to traverse
+-- | Lets you make a choice of which subtree to traverse
 subtree :: Int -> BLTree a -> BLTree a
 subtree n (MCons []) = error "Examples.BLTrees.subtree: subtree index out of bounds"
 subtree 0 (MCons ((_, t):ts)) = t
@@ -138,6 +138,13 @@ genCondProbTree ps = MCons $ map (\(p, t) -> (p, genCondProbTree t)) (zip ps [pi
 pickOne :: Int -> [LabelledNum Fraction] -> [LabelledNum Fraction]
 pickOne n ps = let (ls, (LN (s, (nu, de))):rs) = splitAt n (map (fmap (bimap id (\x -> x - 1))) ps) 
                   in (if nu == 1 then (ls ++ rs) else (ls ++ ((LN (s, (nu - 1, de))):rs)))
+
+-- | Variation of (*) that throws away the first label
+(*|) :: LabelledNum Fraction -> LabelledNum Fraction -> LabelledNum Fraction
+(LN (s, n)) *| (LN (s', m)) = LN (s', n * m)
+
+
+-- | Examples of basic branch-labelled trees
 
 blt1 = node [(5, leaf),
              (9, node [(1, leaf)]),
