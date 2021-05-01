@@ -94,7 +94,8 @@ edgeDetector = buildSMStr (SF es0)
  the encoding of traffic states, as this example was adapted from
  there
 
- The traffic lights favour north-bound traffic over east-bound
+ The traffic lights favour north-bound traffic over east-bound, in
+ presence of no traffic will turn NS lights green.
 -}
 
 data TrafficInput = None | NS | EW | Both deriving Show
@@ -126,6 +127,11 @@ trafficLights :: SMStr TrafficInput TrafficOutput
 trafficLights = buildSMStr (SF ts0)
 
 
+-- | More simple examples
+
+fibCalc :: SMStr (Int, Int) Int
+fibCalc = MCons $ \(n, m) -> (m, MCons $ (uncons fibCalc) . const (m, n+m))
+
 ------------------------------------------------------------------------
 
 -- | Type of state machines with 'feedback loops'
@@ -151,6 +157,6 @@ modCounter n = MCons (state (\x -> ((x, modCounter n), (x+1) `mod` n)))
 fibGen :: FBMachine (Int, Int) Int
 fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 
-fib :: Stream Int
-fib = runFBStr fibGen (0, 1)
+fibS :: Stream Int
+fibS = runFBStr fibGen (0, 1)
 

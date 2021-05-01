@@ -34,7 +34,7 @@ Using < !! n > you can see the list of all possible outcomes after taking n choi
 Collecting like terms here allows you to calculate probabilites of taking particular
 colours on your next choice, after n previous choices.
 
-< pruneWithM f n > is also very useful here - it allows calculation of all probabilities
+< dropWithM (*) n > is also very useful here - it allows calculation of all probabilities
 past a particular number of choices
 
 > collectLikeTerms = foldr (\(LN (s, a)) acc -> case findIndex (\(LN (s', _)) -> s == s') acc of
@@ -42,13 +42,13 @@ past a particular number of choices
 >                                                  Just i  -> let (ls, (LN (s', b)):rs) = splitAt i acc in 
 >                                                                ls P.++ (LN (s', a + b)):rs) []
 
-> probsAfter n = printLines $ collectLikeTerms . head $ pruneWithM (*|) n ballProbTree
+> probsAfter n = printLines $ collectLikeTerms . head $ dropWithM (*|) n ballProbTree
 
 
-With < pruneWithM > you can verify that the calculated probabilities always add up to 1 at each 
+With < dropWithM > you can verify that the calculated probabilities always add up to 1 at each 
 level in the tree
 
-> verifyProbs n = putStrLn . show $ foldr1 (+) (head (pruneWithM (*) n ballProbTree))
+> verifyProbs n = putStrLn . show $ foldr1 (+) (head (dropWithM (*) n ballProbTree))
 
 
 
@@ -75,3 +75,6 @@ time.
 > trafficInsertDemo = runSMStrList (insert 0 (\_ -> (NS_Red, EW_Red)) trafficLights) 
 >                      [NS, Both, EW, EW, Both, Both, NS]
 
+
+Processes
+---------

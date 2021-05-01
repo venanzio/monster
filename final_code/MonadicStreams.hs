@@ -62,10 +62,10 @@ module MonadicStreams
      groupMF,
      isPrefixOfMF,
      joinWithM,
-     pruneWithM,
      indexWithM,
      pruneL,
      dropM,
+     dropWithM,
      
      splitAtM,
      splitAtM',
@@ -75,8 +75,11 @@ module MonadicStreams
      intersperse,
      intersperseMF,
      interleave,
+     interleaveReadM,
      insertActM,
+     insertActReadM,
      insert,
+     insertRead,
      
      unconsMF,
      lastMF,
@@ -117,6 +120,7 @@ import qualified Prelude as P ((!!), iterate, head, tail, cycle)
  
 import Control.Applicative
 import Control.Monad hiding (liftM, filterM)
+import Control.Monad.Trans.Reader
 import Control.Comonad
 
 -- | Type of monadic streams, m is not required 
@@ -468,16 +472,11 @@ joinWithM :: Monad m => (a -> a -> a) -> MonStr m a -> MonStr m a
 joinWithM f (MCons ma) = MCons $ do (a , (MCons mb)) <- ma
                                     (b , mc)         <- mb
                                     return (f a b, mc)
-                                    
--- | Prunes the stream at a depth n, using a binary operation to
--- collect together the elements were pruned 
-pruneWithM :: Monad m => (a -> a -> a) -> Int -> MonStr m a -> MonStr m a
-pruneWithM f n ms = (P.iterate (joinWithM f) ms) P.!! n
 
 -- | Combines the first n elements, using a binary operation to
 -- collect them together
 indexWithM :: Monad m => (a -> a -> a) -> Int -> MonStr m a -> m a
-indexWithM f n ms = head (pruneWithM f n ms)
+indexWithM f n ms = head (dropWithM f n ms)
 
 -- | "Internal" version of take: pruning the stream at depth n
 pruneL :: (Functor m, Alternative m) => Int -> MonStr m a -> MonStr m a
@@ -493,7 +492,12 @@ dropM n ms
   | n == 0    = ms
   | n > 0     = dropM (n - 1) (tailM ms)
   | otherwise = error "MonadicStreams.dropM: negative argument."
-  
+
+-- | 'Drops' the first n elements, using a binary operation to
+-- collect together the elements were dropped
+dropWithM :: Monad m => (a -> a -> a) -> Int -> MonStr m a -> MonStr m a
+dropWithM f n ms = (P.iterate (joinWithM f) ms) P.!! n
+
 -- | Splits the MonStr at the given index
 splitAtM :: Monad m => Int -> MonStr m a -> ([m a], MonStr m a)
 splitAtM n ms = (takeM'' n ms, dropM n ms)
@@ -523,12 +527,26 @@ intersperseMF ma = initMF'' . (intersperse ma)
 interleave :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
 interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
 
+-- | Interleaves monadic actions, where the actions of the second monadic stream
+-- can depend on the values in the first
+interleaveReadM :: Monad m => MonStr m a -> MonStr (ReaderT a m) b -> MonStr m b
+interleaveReadM (MCons ma) (MCons f) = MCons $ do (a, ma') <- ma
+                                                  (b, f')  <- runReaderT f a 
+                                                  return (b, interleaveReadM ma' f')
+
 -- | Inserts a given monadic action at the specified index in the stream
 -- This only inserts the action, and will ignore the value of the return 
 -- type
-insertActM :: Monad m => Int -> m a -> MonStr m a -> MonStr m a
+insertActM :: Monad m => Int -> m b -> MonStr m a -> MonStr m a
 insertActM 0 ma mas = MCons . join $ (\(h,t) -> fmap (const (h, t)) ma) <$> uncons mas
 insertActM n ma mas = MCons $ (\(h,t) -> (h, insertActM (n-1) ma t)) <$> uncons mas
+
+-- | Inserts a 'dependent' monadic action at the specified index in the stream
+-- This only inserts the action, and will ignore the value of the return 
+-- type
+insertActReadM :: Monad m => Int -> (a -> m b) -> MonStr m a -> MonStr m a
+insertActReadM 0 f mas = MCons . join $ (\(h,t) -> fmap (const (h, t)) (f h)) <$> uncons mas
+insertActReadM n f mas = MCons $ (\(h,t) -> (h, insertActReadM (n-1) f t)) <$> uncons mas
 
 -- | Inserts a given functor action and its return value at the specified 
 -- index in the stream
@@ -536,6 +554,11 @@ insert :: Functor m => Int -> m a -> MonStr m a -> MonStr m a
 insert 0 ma mas = MCons $ fmap (\(h,t) -> (h, MCons $ fmap (\a -> (a, t)) ma)) (uncons mas)
 insert n ma mas = MCons $ fmap (\(h,t) -> (h, insert (n-1) ma t)) (uncons mas)
 
+-- | Inserts a 'dependent' value into the stream at a given index, that
+-- reads the value of the element before it
+insertRead :: Functor m => Int -> (a -> m a) -> MonStr m a -> MonStr m a
+insertRead 0 f mas = MCons $ fmap (\(h, t) -> (h, MCons $ fmap (\a -> (a, t)) (f h))) (uncons mas)
+insertRead n f mas = MCons $ fmap (\(h,t) -> (h, insertRead (n-1) f t)) (uncons mas)
 
 -- |
 --

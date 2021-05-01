@@ -1,7 +1,12 @@
 module Examples.Processes where
   
-import MonadicStreams hiding ((++))
+import Prelude hiding (head, tail, interleave)
+import MonadicStreams hiding ((++), (!!))
 import System.IO.Unsafe
+import Control.Monad.Trans
+import Control.Monad.Trans.Reader
+
+import Examples.GenericStreams
 
 -- | Type of processes
 type Process a = MonStr IO a
@@ -40,6 +45,7 @@ stopAtPredLazy p s = do ns <- unsafeRunProcess s
 
 -- | Examples of processes
 
+
 -- | A process that adds up the inputs from the user, printing
 -- the partial sums
 sumProc :: Int -> Process Int
@@ -49,3 +55,52 @@ sumProc n = MCons $ do
     let n' = n + read s
     return (n', sumProc n')
 
+
+
+-- | An example of combining two processes with interleaveReadM
+
+inputProc :: Process Char
+inputProc = MCons $ do c <- getChar
+                       return (c, inputProc)
+                       
+-- | A neat way of printing outputs from an arbitrary process
+-- This is like a 'dependent' process - each action needs to be
+-- generated from an element of a
+outputProc :: Show a => MonStr (ReaderT a IO) ()
+outputProc = MCons $ do a <- ask 
+                        liftIO $ putStrLn (show a)
+                        return ((), outputProc)
+
+-- | Showing how the input and output processes can be interleaved
+testProc0 :: IO ()
+testProc0 = runVoidProcess (interleaveReadM inputProc outputProc)
+
+
+
+-- | A set of examples demonstrating the differences between lazy
+-- and strict IO 
+
+-- | Will not terminate or print the first element of the process
+run0 :: IO ()
+run0 = do as <- runProcess (sumProc 5)
+          putStrLn $ show (as !! 0)
+
+-- | Will terminate, printing the required element - uses lazy IO
+run1 :: IO ()
+run1 = do as <- unsafeRunProcess (sumProc 5)
+          putStrLn $ show (as !! 0)
+
+-- | Inserts the printing operation to execute it at the desired
+-- point, but the process doesn't teerminate 
+run2 :: IO ()
+run2 = runProcess (insertActReadM 0 (\a -> do putStrLn (show a); return a) (sumProc 5)) >> return ()
+
+-- | Does exactly the same as run1, but without unsafeInterleaveIO
+run3 :: IO ()
+run3 = stopAtPred (\(n, _) -> n == 0) (zipA nats proc) >> return ()
+       where proc = insertActReadM 0 (\a -> do putStrLn (show a); return a) (sumProc 5)
+
+-- | This also works fine now and is much cleaner
+run4 :: IO ()
+run4 = do a <- stopAtPred (\(n, _) -> n == 0) (zipA nats (sumProc 5)) 
+          putStrLn $ show (snd a)

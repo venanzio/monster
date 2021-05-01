@@ -311,5 +311,25 @@ mealyToMonStr' (Mealy' s tf outf) = mealyToMonStr $ Mealy s (\p -> (tf p, outf p
 monStrToMealy' :: MonStr ((->) e) a -> Mealy' (Fix (MFunc e a)) e a
 monStrToMealy' ms = let (Mealy s tf) = monStrToMealy ms in Mealy' s (\p -> fst $ tf p) (\p -> snd $ tf p)
 
-                               
-                               
+{-
+                
+Comonoadic stream of monadic streams
+
+head (wma : MonStr w (MonStr m a)) = h : (ma : MonStr m a, wma : MonStr w (MonStr m a) )
+
+an interaction law can then be used between m and w to traverse the stream ma
+
+phi : (m a, w (MonStr m a)) -> (a , MonStr m a)                       
+    
+-}
+
+{-
+
+Streams polymorphic on the monad - a stream of game states, where instanciating
+with lists gives the game tree, with IO gives a playable game etc.
+
+Stream of game states - need a function a -> GameState, then monster can
+produce as to select game states?
+
+
+-}

@@ -321,13 +321,9 @@ There is a well-known connection between finality of a coalgebra and the coinduc
 
 By instantiating monadic streams with different monads, you can form well-known data types, or variations of these. This has provided good insight into what kinds of operations are possible to perform on monadic streams in general.
 
-For each one of these instances, we look at how they correspond to other related data structures. Near the end of this section, we investigate how a few generic functions on monadic streams act on each of these instances, with respect to the data structures they represent.
+For each one of these instances, we look at how they correspond to other related data structures. In the next section, we also investigate how a few generic functions on monadic streams act on each of these instances, with respect to the data structures they represent.
 
 Many of these instances of monadic streams, and their related operations, are implemented in the attached library.
-
-\begin{ccomment}
-	Definition of the {\em standard} functions on those data types in a general way.
-\end{ccomment}
 
 \subsection{Identity monad}
 
@@ -423,7 +419,7 @@ These are a type of finite state transducer, with a set of states $S$, input alp
 
 $$
 \begin{array}[t]{l}
-\codata\;
+\mathbf{record}\;
 \mathsf{Mealy}(S,\Sigma,\Delta):\set\\
 \quad \delta : S \times \Sigma \to S \times \Delta \\
 \quad s_0 : S
@@ -455,33 +451,132 @@ Instantiation of monsters with the state monad gives a type that is similar agai
 
 $$
 \begin{array}[t]{l}
-\codata\;
+\mathbf{record}\;
 \mathsf{FBMachine}(S,\Sigma,\Delta):\set\\
 \quad \delta : S \times \Sigma \to S \times \Sigma \times \Delta \\
 \quad s_0 : S
 \end{array}
 $$
 
-Another way to think about a State-monster is a delayed unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes a state and returns a value, a new state, and a continuation function (another State-monster). This is essentially a specification for an operation that, when given an initial state, will calculate an infinite stream of values - very similar to the unfold function, also called the stream \emph{co-iterator}.
+Another way to think about a State-monster is a delayed unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes state, and returns a value, a new state, and a continuation function (another State-monster). This is essentially a specification for an operation that, when given an initial state, will calculate an infinite stream of values - quite similar to the unfold function, also called the stream \emph{co-iterator}.
 
 The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives much more control over the output values, allowing each function to define what the next function should be, given an input state, making them analogous to state machines.
 
-Most of what can be said about State-monsters is said in the Reader-monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$.
+Most of what can be said about State-monsters is said in the reader monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$. The main difference is in how the stream is traversed - the state monad's join operation threads the state though each nested computation, whereas a Reader-monster can't do this with the reader monad operations alone.
 
 \subsection{IO monad}
 
-A monadic stream of IO actions corresponds to a non-terminating process. 
+A monadic stream of IO actions corresponds to a non-terminating process. Due to the nature of the IO monad, these operate much differently to other monsters.
 
+One interesting property is that an IO-monster is the only kind of non-well founded (infinite) monster, as far as we know, where collapsing the whole stream into one monadic action is possible and meaningful. This is done using the \verb+runProcess+ family of functions:
 
+\begin{haskell}
+runProcess :: Process a -> IO [a]
+runProcess (MCons s) = do (a,s') <- s
+                          as     <- runProcess s'
+                          return (a:as)
+\end{haskell}
 
-Processes - IO \\
- - talk about lazy IO (unsafeInterleaveIO) and how it is needed to run the processes in a particular way \\
- - leave till last probably \\
+This is because IO actions can continuously interact with the outside world, and call other functions, \emph{without having to terminate}. The IO action produced by collapsing an IO-monster is the sequence of all IO operations in the stream. \\
+
+Given a process (an IO-monster), you may want to use some of the output values in another computation. To get these values, you need to run the IO actions in the monster. However, since the first action will never return (as all of the subsequent actions are nested inside), this is not possible with strict IO. Instead, you have to use lazy IO, so that only the values that are calculated inside the IO-monster are immediately available. This requires \verb+unsafeInterleaveIO+, which defers execution of IO actions until their result is needed. 
+
+In these functions, we are trying to output the first value computed by running a process \verb+proc0+:
+
+\begin{haskell}
+proc0 :: Process a
+
+run0 :: IO ()
+run0 = do as <- runProcess proc0
+          putStrLn $ show (as !! 0)
+
+run1 :: IO ()
+run1 = do as <- unsafeRunProcess proc0
+          putStrLn $ show (as !! 0)
+\end{haskell}
+
+Here, \verb+run0+ will run the process \verb+proc0+ and the code to show the first element will never be reached since \verb+runProcess proc0+ doesn't terminate. 
+
+In \verb+run1+, we use \verb+unsafeRunProcess+, which is defined as:
+
+\begin{haskell}
+unsafeRunProcess :: Process a -> IO [a]
+unsafeRunProcess (MCons s) = 
+	do (a,s') <- s
+	   as     <- unsafeInterleaveIO (unsafeRunProcess s')
+	   return (a:as)
+\end{haskell}
+
+Each of the IO actions in the process are run with \verb+unsafeInterleaveIO+, allowing the process to return 'early', and the \verb+putStrLn $ show (as !! 0)+ statement to be reached. This then forces the first IO action in the process to run, since the first element of \verb+as+ is needed (\verb+as !! 0+ returns the first element of the accumulated values from running the process).
+
+Using \verb+unsafeInterleaveIO+ introduces concurrency problems into otherwise relatively pure Haskell programs. For simple IO-monsters, that just output values to the screen, this is not a big issue, but more complicated ones may cause problems (for example ones that read and write to a file). \\
+
+This problem informed the development of a more general operation on monadic streams, \verb+interleaveReadM+, which allows for interleaving two monsters, where each element in the second depends on elements in the first.
+
+\begin{haskell}
+interleaveReadM :: Monad m => MonStr m a -> MonStr (ReaderT a m) b 
+															-> MonStr m b
+interleaveReadM (MCons ma) (MCons f) = MCons $ 
+	do (a, ma') <- ma
+	   (b, f')  <- runReaderT f a 
+	   return (b, interleaveReadM ma' f')
+\end{haskell}
+
+This is useful for sequencing IO-monsters, without resorting to possibly unsafe methods. It relies on the \verb+ReaderT+ monad transformer, monad transformers being something we haven't touched on in this paper. They are essentially a method of stacking different monads to combine their effects. Here, we are using the \verb+ReaderT a IO+ monad, which represents an IO action that is computed from some environment of type \verb+a+. 
+
+Shown below is an example of combining two processes with this operation.
+
+\begin{haskell}
+inputProc :: Process Char
+inputProc = MCons $ do c <- getChar
+                       return (c, inputProc)
+                       
+outputProc :: Show a => MonStr (ReaderT a IO) ()
+outputProc = MCons $ do a <- ask 
+                        liftIO $ putStrLn (show a)
+                        return ((), outputProc)
+
+testProc :: IO ()
+testProc = runVoidProcess (interleaveReadM inputProc outputProc)
+\end{haskell}
+
+Using this function lets you define dependant processes separately and then combine them afterwards. 
+
+Variations on this function give lots of options for modifying processes. For example, we could write a version of \verb+run1+ from earlier using \verb+insertActReadM+, which inserts a 'dependent' monadic action at a given index.
+
+\begin{haskell}
+run1 :: IO [Int]
+run1 = runProcess (insertActReadM 0 (\a -> 
+	do putStrLn (show a); 
+	   return ()) proc0)
+\end{haskell}
+
+This won't terminate, but prints the first element of the IO-monster like we wanted. 
+
+To stop the process (without resorting to \verb+unsafeInterleaveIO+), we modify \verb+runProcess+ so that it stops unfolding the IO-monster when a given predicate is true:
+
+\begin{haskell}
+stopAtPred :: (a -> Bool) -> Process a -> IO a
+stopAtPred p (MCons s) = do (a, s') <- s
+                            if p a then (return a) else (stopAtPred p s')
+\end{haskell}
  
+As a side-note, \verb+runProcess+ can now be written as:
  
-\subsection{General operations}
+ \begin{haskell}
+runProcess :: Process a -> IO a
+runProcess = stopAtPred (\_ -> False)
+\end{haskell}
 
-In light of these interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented.
+It is now possible to terminate the process given a particular predicate. It is also possible to terminate a process at a particular index in the IO-monster, thus giving exactly the behaviour we wanted for \verb+run1+, without the unsafe IO (this is included in the example code, as it is a bit more complicated). \\
+
+As demonstrated, IO-monsters are tricky, but provide an interesting intensional way of modelling processes, allowing them to be modified on the fly.
+ 
+\section{General functions and operations}
+
+In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented. 
+
+Consider the takeM function
 
 
 \section{Instances of Functor, Applicative, Monad}
