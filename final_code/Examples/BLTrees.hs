@@ -6,6 +6,7 @@ module Examples.BLTrees where
 import MonadicStreams hiding ((++))
 import Data.List (intercalate, splitAt)
 import Control.Applicative
+import Control.Monad
 import Data.Foldable
 import Data.Bifunctor
 
@@ -96,20 +97,34 @@ rightmost (MCons ((b, ts):[])) = rightmost ts
 rightmost (MCons ((b, ts):bs)) = rightmost (MCons bs)
 
 
+-- | Prunes a tree based on a predicate
+pruneBy :: (a -> Bool) -> BLTree a -> BLTree a
+pruneBy p (MCons blt) = MCons $ do (a, st) <- blt 
+                                   guard (p a)
+                                   return (a, pruneBy p st)
+
+
 -- | BLT examples
 
 -- | Type to encode fractional numbers
 type Fraction = (Integer, Integer)
 
+-- | Reduces a labelled fraction to its simplest terms
+reduceFrac :: LabelledNum Fraction -> LabelledNum Fraction
+reduceFrac (LN (s, f)) = LN (s, reduce f)
+
+reduce :: Fraction -> Fraction
+reduce f@(a , b) = let gcf = gcd a b in if gcf == 0 then f else (a `div` gcf , b `div` gcf)
+
 instance Num Fraction where
-  (a, b) + (c, d) = (a + c, d)
+  (a, b) + (c, d) = if b == d then (a + c, d) else reduce ((a * d) + (b * c), b * d)
   (a, b) * (c, d) = (a * c, b * d)
   abs (a, b) = (abs a, abs b)
   signum (a, b) = ((signum a) * (signum b), 1)
   fromInteger n = (n, 1)
   negate (a, b) = (-a, b)
   
-data LabelledNum a = LN (String, a)
+data LabelledNum a = LN (String, a) deriving Eq
 
 instance Num a => Num (LabelledNum a) where
   (LN (s, n)) + (LN (s', m)) = LN (s ++ " | " ++ s', n + m)
@@ -125,6 +140,7 @@ instance Show a => Show (LabelledNum a) where
 instance Functor LabelledNum where
    fmap f (LN (s, a)) = LN (s, f a)
    
+   
 -- | Tree representing probability tree of taking one of n
 -- balls from a bag, where there are m different colours,
 -- with an amount a_0, a_1, ... , a_m of each colour. 
@@ -137,11 +153,26 @@ genCondProbTree ps = MCons $ map (\(p, t) -> (p, genCondProbTree t)) (zip ps [pi
 
 pickOne :: Int -> [LabelledNum Fraction] -> [LabelledNum Fraction]
 pickOne n ps = let (ls, (LN (s, (nu, de))):rs) = splitAt n (map (fmap (bimap id (\x -> x - 1))) ps) 
-                  in (if nu == 1 then (ls ++ rs) else (ls ++ ((LN (s, (nu - 1, de))):rs)))
+                  in (if nu == 1 then (ls ++ rs) else (ls ++ (reduceFrac (LN (s, (nu - 1, de))):rs)))
 
 -- | Variation of (*) that throws away the first label
 (*|) :: LabelledNum Fraction -> LabelledNum Fraction -> LabelledNum Fraction
 (LN (s, n)) *| (LN (s', m)) = LN (s', n * m)
+
+
+-- | Word tree 
+
+wordTree = node [('a', node [(' ', node [('b', node [('a', node [('t', leaf)]),
+                                                     ('u', node [('r', node [('e', node [('a', node [('u', node [('c', node [('r', node [('a', node [('t', leaf)])])])])])])])])
+                                                    ]),
+                                         ('c', node [('a', node [('t', leaf)])])
+                                        ]),
+                             ('n', node [(' ', node [('a', node [('p', node [('e', leaf)])])
+                                                    ]),
+                                         ('i', node [('m', node [('a', node [('l', leaf)])])])
+                                        ])
+                            ])
+                ]
 
 
 -- | Examples of basic branch-labelled trees

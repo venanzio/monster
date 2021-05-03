@@ -458,15 +458,15 @@ $$
 \end{array}
 $$
 
-Another way to think about a State-monster is a delayed unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes state, and returns a value, a new state, and a continuation function (another State-monster). This is essentially a specification for an operation that, when given an initial state, will calculate an infinite stream of values - quite similar to the unfold function, also called the stream \emph{co-iterator}.
+Another way to think about a State-monster is an unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes a state, and returns a value, a new state, and a continuation function (another State-monster). When the new state is continuously applied to the next continuation, this calculates an infinite stream of values from an initial 'seed' state - quite similar to the unfold function, also called the stream \emph{co-iterator}.
 
-The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives much more control over the output values, allowing each function to define what the next function should be, given an input state, making them analogous to state machines.
+The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives a richer language by which to calculate outputs, where each function defines what the next function should be, depending on an input state. This makes them analogous to state machines, where $S$ is the set of functions the monster contains, and $\Sigma$ is the state values given as inputs.
 
 Most of what can be said about State-monsters is said in the reader monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$. The main difference is in how the stream is traversed - the state monad's join operation threads the state though each nested computation, whereas a Reader-monster can't do this with the reader monad operations alone.
 
 \subsection{IO monad}
 
-A monadic stream of IO actions corresponds to a non-terminating process. Due to the nature of the IO monad, these operate much differently to other monsters.
+A monadic stream of IO actions corresponds to a non-terminating process. Due to the nature of the IO monad, these operate quite differently to other monsters.
 
 One interesting property is that an IO-monster is the only kind of non-well founded (infinite) monster, as far as we know, where collapsing the whole stream into one monadic action is possible and meaningful. This is done using the \verb+runProcess+ family of functions:
 
@@ -522,7 +522,7 @@ interleaveReadM (MCons ma) (MCons f) = MCons $
 	   return (b, interleaveReadM ma' f')
 \end{haskell}
 
-This is useful for sequencing IO-monsters, without resorting to possibly unsafe methods. It relies on the \verb+ReaderT+ monad transformer, monad transformers being something we haven't touched on in this paper. They are essentially a method of stacking different monads to combine their effects. Here, we are using the \verb+ReaderT a IO+ monad, which represents an IO action that is computed from some environment of type \verb+a+. 
+This is useful for sequencing IO-monsters, without resorting to possibly unsafe methods. It relies on the \verb+ReaderT+ monad transformer, monad transformers being something we haven't touched on yet. They are essentially a method of stacking different monads to combine their effects. Here, we are using the \verb+ReaderT a IO+ monad, which represents an IO action that is computed from some environment of type \verb+a+. 
 
 Shown below is an example of combining two processes with this operation.
 
@@ -570,14 +570,50 @@ runProcess = stopAtPred (\_ -> False)
 
 It is now possible to terminate the process given a particular predicate. It is also possible to terminate a process at a particular index in the IO-monster, thus giving exactly the behaviour we wanted for \verb+run1+, without the unsafe IO (this is included in the example code, as it is a bit more complicated). \\
 
-As demonstrated, IO-monsters are tricky, but provide an interesting intensional way of modelling processes, allowing them to be modified on the fly.
+As demonstrated, IO-monsters are tricky, but provide an interesting intensional way of modelling processes, allowing the computations that they consist of to be modified after their definition.
  
 \section{General functions and operations}
 
-In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented. 
+In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented. \\
 
-Consider the takeM function
+Consider the \verb+dropM+ function. 
 
+\begin{haskell}
+dropM :: Monad m => Int -> MonStr m a -> MonStr m a
+dropM n ms
+  | n == 0    = ms
+  | n > 0     = dropM (n - 1) (tailM ms)
+  | otherwise = error "MonadicStreams.dropM: negative argument."
+\end{haskell}
+
+This drops the first $n$ elements of a monster. Doing so requires the joining of the first $n$ monadic actions, which in the case of State-monsters for example will keep the first $n$ state modifications. This is equivalent to ignoring the output of the feedback machine for its first $n$ feedbacks, so this operation could be seen as moving forwards in time $n$ steps. 
+
+This 'moving forwards' interpretation is similar in every kind of monadic stream - in a List-monster, you get the list of choices after $n$ previous choices were made. In an IO-monster you get the output after the first $n$ computations. In a Reader-monster (state machine) you get the output and next state after giving the same input $n$ times. In a Maybe-monster (lazy list), you drop the first $n$ items from the list. \\
+
+Another interesting function is \verb+scanM+. 
+
+\begin{haskell}
+scanA :: Applicative m => (a -> b -> a) -> a -> MonStr m b -> MonStr m a
+scanA f z s = z <: scanH f z s
+              where scanH f z s = MCons $ (\(a, s') -> 
+              		(f z a, scanH f (f z a) s')) <$> uncons s
+              
+scanM :: Monad m => (a -> a -> a) -> MonStr m a -> MonStr m a
+scanM f s = absorbM $ (\(a, s') -> scanA f a s') <$> uncons s
+\end{haskell}
+
+It combines each pair of elements in the stream together with a given function, resulting in a stream of the intermediate values. \verb+scanA+ also does this, but leaves an extra monadic action at the beginning of the stream, which \verb+scanM+ deals with by essentially removing it.
+
+In the context of List-monads used as probability trees, \verb+scanM (*)+ will (when applied to a tree), returns the tree of sequential probabilities. That is, given two sequential branches of the tree $l_1$ and $l_2$ (which represent probabilities), this scan instance calculates $l_1 * l_2$, the probability of traversing the first branch \emph{and then} the second. The scan carries this result forward, so over three sequential branches $l_1$, $l_2$ and $l_3$, the function would produce the probability $l_1 * l_2 * l_3$ at the third branch of the new tree. 
+
+In the same way, \verb+scanM (+)+ calculates the disjoint unions of probabilities across each combination of branches in the tree. \\
+
+
+
+
+%State machine function interpretations:
+%- filterM - if an output doesn't fulfil the predicate, feeds the same input back into the next function, until a %'good' output is reached
+%- 
 
 \section{Instances of Functor, Applicative, Monad}
 
@@ -906,7 +942,7 @@ This, alongside the reimplementation of Swiestra and Dijk's streams library, sho
 
 \subsection{FRP applications}
 
-One application of monadic streams is they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, one can implement the integral signal function using the Reader monad. First you define the type of monadic stream - we use the same names as for the same constructs in Yampa, to make the correspondence clear:
+One application of monadic streams is they can be seen as a form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, one can implement the integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
 
 \begin{haskell}
 type DTime = Double
@@ -925,19 +961,17 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
 
-This can be generalised to any VectorSpace type.
-
 \subsection{Relation to Dunai}
 
 Dunai \cite{frp_refactored} is an FRP library implemented using monadic stream functions (MSFs). \\
 
 This library we've developed allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (instantiated with the Reader monad), most functions in our library could be incorporated into Dunai, giving a set of potentially useful generalised transformations for MSF networks. \\
 
-For example, the \verb+insert+ combinator could be used to insert an arbitrary extra function into a monadic stream function.
+For example, the \verb+insert+ combinator could be used to insert an arbitrary extra functions into a monadic stream function.
 
-Additionally, comonadic streams could be a useful extension to MSF based FRP - as seen in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams however, you can model arbitrarily nested input streams. That is, inputs streams whose inputs are input streams. (this needs much more seeing to)
+Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams however, you can model arbitrarily nested input streams. That is, inputs streams whose inputs are input streams. (this needs much more seeing to)
 
-Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment as it is operated on in some way. The comonad provides the notion of environment, and the stream embues it with a way of modelling its progression in time. These streams only model the notion of current and future values of the environment.
+Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment as it is operated on in some way. The comonad provides the notion of environment, and the stream embues it with a way of modelling its progression in time. This only models the notion of current and future values of the environment, with past states being discarded.
 
 This could be useful to model systems which have some kind of self referential data store, or some kind of environment that can be used to modify itself.
 
