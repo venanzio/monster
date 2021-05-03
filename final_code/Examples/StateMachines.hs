@@ -6,7 +6,6 @@ module Examples.StateMachines where
 import MonadicStreams
 import Examples.PureStreams
 import Control.Monad.State
-import Data.Fix
 
 -- | Type of state machines, using the Reader monad
 type SMStr i o = MonStr ((->) i) o
