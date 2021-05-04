@@ -653,6 +653,8 @@ Give conterexamples where it isn't a monad (using State).
 
 Also examples when it is a monad even if the underlying monad is not commutative and idempotent: with List as underlying monad we obtain Trees, which are a monad. Can this be generalized.
 
+This section outlines the Functor, Applicative, and Comonad instances
+
 \subsection{Functor Instance}
 
 To show that $\stream{M}$ is a functor whenever $M$ is, we have to define its behaviour on morphisms: if $f:A\rightarrow B$, then we must define how $f$ maps on monadic streams:
@@ -759,6 +761,21 @@ fmap (f . g) = transformMS (\a s -> (f . g) a, fmap (f . g) s)
 = fmap f . fmap g
 \end{haskell}
 
+\subsection{Applicative instance in Haskell}
+
+\begin{haskell}
+unwrapMS :: MonStr m a -> m (a, MonStr m a)
+unwrapMS (MCons m) = m
+
+transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) ->
+                                  MonStr m a -> MonStr m b
+transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
+
+instance Functor m => Functor (MonStr m) where
+   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
+   fmap f = transformMS (\a s -> (f a, fmap f s))
+\end{haskell}
+
 \subsection{Comonad instance in Haskell}
 
 \begin{haskell}
@@ -843,9 +860,13 @@ fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) ->
 
 \section{Related work and applications}
 
+The general application of this library is hinted at in the examples section: data structures that can be represented as monadic streams (with the underlying functor being a monad) give interesting and useful semantics to the general operations we have developed. 
+
+Perhaps the most interesting data structure correspondence is that of Reader-monsters and finite state transducers. In this context, the functions in our library provide a set of useful combinators to work with and define state machines. A few of these have been mentioned in sections 4 and 5, but more are shown in the attached example code.
+
 \subsection{FRP application}
 
-One application of monadic streams is that they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, you can implement an integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
+One further application of monadic streams is that they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, you can implement an integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
 
 \begin{haskell}
 type DTime = Double
@@ -882,17 +903,21 @@ speeds :: SignalFunc Env Double
 speeds = scanM (\a b -> b - a) positions
 \end{haskell}
 
+Here, \verb+Env+ is just the type representing some environment the signal functions operate on. \\
+
 On the other hand, there are many interesting concepts in Dunai which could be incorporated into new functions in this library, such as their concept of FRP constructs. 
 
-These encapsulate the semantics of going from a \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, to a \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. When the monad transformer is \verb+ListT+ for example, this gives rise to the concept of parallelism with broadcasting. \\
+These encapsulate the semantics of going from a \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, to a \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. When the monad transformer is \verb+ListT+ for example, this gives rise to the concept of parallelism with broadcasting. 
+
+Monad transformers were only briefly explored in the library, but this shows that there may be many more interesting constructs possible when taking them into account. \\
 
 Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams, you could model input streams where the value of the input (and the rest of the stream) depends on some environment. 
 
-Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment under some iterated operation. The comonad provides the notion of environment, and the stream embues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
+Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as the progressing timelines of an environment under some iterated operation. The comonad provides the notion of environment, and the stream imbues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
 
-This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. 
+This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. \\
 
-One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this definitely isn't a solution). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside the program.
+One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this is unsafe, as the name suggests). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside the program.
 
 \section{Conclusions}
 
@@ -900,7 +925,9 @@ One possible barrier to using this concept concretely, is that often inputs into
 	Further discussion of related literature and open problems is needed
 \end{ccomment}
 
-Future work on this library would include a review of the efficiency of many functions - this project was initially an exercise to see what could be done with monadic streams, but if this library could be used for larger applications then efficiency may be an issue. 
+One glaring open problem is to prove that monadic streams are themselves monads when the underlying functor is an indempotent monad. We have almost proven this, and it seems to be the case experimentally, but a convincing proof is yet to be developed.\\
+
+Future work on this library would include a review of the efficiency of many functions we defined - this project was initially an exercise to see what could be done with monadic streams, but if this library could be used for larger applications then efficiency could be an issue. 
 
 Another angle of interest is to look further into exactly how monadic streams are different from the cofree comonad over a functor. The difference is only that there is no first 'unguarded' element in a monadic stream, but this is enough make them function entirely differently when instantiated with the same functors.
 
@@ -914,10 +941,7 @@ data MSFDual w a = MonLst (EnvT w a)
 \end{haskell}
 which is essentially a nested tuple, with each layer after the first guarded with a comonad. Evaluating the comonad with \verb+extract+ or a co-Kleisli arrow will either result in a final tuple of type \verb+(e, a)+, or another layer of type \verb+(e, MonLst (EnvT w a))+. 
 
-This is like an environment where values can be repeatedly extracted from, but at some point the environment will become exhausted, returning a single \verb+a+ instead of a new environment. 
-
-
-
+This is like an environment where values can be repeatedly extracted from, but at some point the environment will become exhausted, returning a single \verb+a+ instead of a new environment.
 
 \bibliography{monster_biblio.bib}
 
