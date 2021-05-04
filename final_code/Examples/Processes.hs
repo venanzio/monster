@@ -11,9 +11,13 @@ import Examples.GenericStreams
 -- | Type of processes
 type Process a = MonStr IO a
 
+-- | Shorthand for returning nothing and continuing the process
+continue :: Process a -> IO ((), Process a)
+continue proc = return ((), proc)
+
 -- | Runs a process, throwing away the values. Will not terminate
 runVoidProcess :: Process a -> IO ()
-runVoidProcess (MCons s) = do (a,s') <- s
+runVoidProcess (MCons s) = do (a, s') <- s
                               runVoidProcess s'
                               
 -- | Runs a process, accumulating the values. Will not terminate

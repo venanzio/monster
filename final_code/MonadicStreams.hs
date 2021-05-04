@@ -19,6 +19,7 @@ module MonadicStreams
      transform,
      transformA,
      
+     repeat,
      repeatA,
      liftToStrM,
      absorbM,
@@ -29,6 +30,7 @@ module MonadicStreams
      iterate',
      decomp,
      mapOutM,
+     evalMap,
      scanA,
      scanM,
      (++),
@@ -81,6 +83,7 @@ module MonadicStreams
      intersperse,
      intersperseMF,
      interleave,
+     interleaveActM,
      interleaveReadM,
      insertActM,
      insertActReadM,
@@ -261,6 +264,11 @@ instance (Foldable m, Applicative m, Eq (m a), Eq (m Bool)) => Eq (MonStr m a) w
 -- Operations
 -----------------
 
+-- | Repeatedly nests a value wrapped in a container into itself
+-- to form a monadic stream
+repeat :: Functor m => m a -> MonStr m a
+repeat ma = MCons $ fmap (\a -> (a, repeat ma)) ma
+
 -- | Repeats an element and turns it into a monadic stream - requires
 -- m Applicative
 repeatA :: Applicative m => a -> MonStr m a
@@ -309,6 +317,11 @@ decomp ms = (head ms, tail ms)
 mapOutM :: Monad m => (a -> MonStr m a -> MonStr m b) ->
                        MonStr m a -> MonStr m b
 mapOutM f s = absorbM $ fmap (uncurry f) (uncons s)
+
+-- | Maps a function that 'evaluates' each action over the stream,
+-- keeping the actions but replacing their values with those evaluated
+evalMap :: Functor m => (m a -> b) -> MonStr m a -> MonStr m b
+evalMap f (MCons ma) = let b = f (fmap fst ma) in MCons $ fmap (\(a, ma') -> (b, evalMap f ma')) ma
 
 -- | Scan returns the stream of intermediate results, operates
 -- in the same was as scanl in Data.List
@@ -554,9 +567,15 @@ intersperse ma = transform (\h t -> (h, ma <:: (intersperse ma t)))
 intersperseMF :: (Monad m, Foldable m) => m a -> MonStr m a -> MonStr m a
 intersperseMF ma = initMF'' . (intersperse ma)
 
--- | Interleaves the elements (and actions) of two monadic streams
-interleave :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
+-- | Interleaves the elements of two monadic streams
+interleave :: Functor m => MonStr m a -> MonStr m a -> MonStr m a
 interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
+
+-- | Interleaves monadic actions, discarding the elements in the second stream
+interleaveActM :: Monad m => MonStr m a -> MonStr m b -> MonStr m a
+interleaveActM (MCons ma) (MCons mb) = MCons $ do (a, ma') <- ma
+                                                  (b, mb') <- mb
+                                                  return (a, interleaveActM ma' mb')
 
 -- | Interleaves monadic actions, where the actions of the second monadic stream
 -- can depend on the values in the first

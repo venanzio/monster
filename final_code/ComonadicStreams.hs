@@ -25,7 +25,7 @@ takeC n s = headC s : takeC (n-1) (tailC s)
 -- | Generates a comonadic stream using a coKleisli arrow and a starting environment
 -- as a seed
 iterateC :: Comonad w => (w a -> a) -> w a -> MonStr w a
-iterateC f wa = MCons $ fmap (\a -> (a, iterateC f (f <<= wa))) wa
+iterateC f wa = let ~wa' = f <<= wa in MCons $ fmap (\a -> (a, iterateC f wa')) wa
 
 -- | Evaluates all of the environments in the stream sequentially with the given coKleisli
 -- arrow
@@ -37,7 +37,7 @@ collapseAllC f ws = MCons $ return (f (head ws), collapseAllC f (extract (tail w
 a <@: (MCons ws) = MCons $ fmap (\wa -> (a, MCons wa)) $ duplicate ws
 
 -- | Extracting at a given index of a comonster
-(!@!) :: Comonad w => MonStr w a -> Int -> a
-ws !@! 0 = headC ws
+(!@!) :: Comonad w => MonStr w a -> Int -> w a
+ws !@! 0 = head ws
 ws !@! n = tailC ws !@! (n - 1)
 

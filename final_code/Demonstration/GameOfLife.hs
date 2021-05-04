@@ -3,204 +3,177 @@
 
 module Demonstration.GameOfLife where
 
-import MonadicStreams hiding (iterate, (++), (!!), head, tail)
-import qualified MonadicStreams as MS (iterate, (!!), head, tail)
+import MonadicStreams hiding (iterate, iterate', repeat, (++), (!!), head, tail)
+import qualified MonadicStreams as MS (repeat, iterate, iterate', (!!), head, tail)
 
 import ComonadicStreams
 
 import Control.Concurrent
 import Examples.Processes 
 
-import Control.Comonad.Store
+data Grid a = Grid ([([a],a,[a])], ([a],a,[a]), [([a],a,[a])])
 
-
--- | This example is adapted from one in Neighbourhood of Infinity
--- http://blog.sigfpe.com/2006/12/evaluating-cellular-automata-is.html 
-
-
-data U a = U [a] a [a]
-
-data U2 a = U2 (U (U a))
-
-left :: U a -> U a
-left (U (l:ls) x rs) = U ls l (x:rs)
-
-right :: U a -> U a
-right (U ls x (r:rs)) = U (x:ls) r rs 
-
-instance Functor U where
-  fmap f (U ls x rs) = U (map f ls) (f x) (map f rs)
-  
-instance Comonad U where
-  extract (U _ x _) = x
-  duplicate u = U (tail $ iterate left u) u (tail $ iterate right u)
-  
+type LifeStream a = MonStr Grid a
  
-instance Functor U2 where
-  fmap f (U2 u) = U2 (fmap (fmap f) u)
-  
-instance Comonad U2 where
-  extract (U2 u) = extract . extract $ u
-  duplicate (U2 u) = fmap U2 $ U2 $ roll $ roll u 
-                     where iterate1 f = tail . iterate f
-                           roll a = U (iterate1 (fmap left) a) a (iterate1 (fmap right) a)
+-- | Map grid tuple
+mapGT :: (a -> b) -> ([a],a,[a]) -> ([b],b,[b])
+mapGT f (ls, a, rs) = (map f ls, f a, map f rs)
 
-up :: U2 a -> U2 a
-up (U2 a) = U2 (fmap left a)
+triMap :: ([a] -> [b]) -> (a -> b) -> ([a] -> [b]) -> ([a],a,[a]) -> ([b],b,[b])
+triMap lf af rf (ls, a, rs) = (lf ls, af a, rf rs)
 
-down :: U2 a -> U2 a
-down (U2 a) = U2 (fmap right a)
+-- | Operations to move the grid focus
 
-left2 :: U2 a -> U2 a
-left2 (U2 a) = U2 (left a)
+leftShunt :: ([a],a,[a]) -> ([a],a,[a])
+leftShunt (ls, a, (r:rs)) = ((a:ls), r, rs)
 
-right2 :: U2 a -> U2 a
-right2 (U2 a) = U2 (right a)
+rightShunt :: ([a],a,[a]) -> ([a],a,[a])
+rightShunt ((l:ls), a, rs) = (ls, l, (a:rs))
 
-set :: a -> U2 a -> U2 a
-set a (U2 (U ls (U ls' x rs') rs)) = U2 (U ls (U ls' a rs') rs)
+upRoll :: Grid a -> Grid a
+upRoll (Grid t) = Grid (leftShunt t)
 
-moveX :: Int -> U2 a -> U2 a
-moveX x u2 = if x >= 0 then (iterate left2 u2) !! x  else (iterate right2 u2) !! (abs x)
+downRoll :: Grid a -> Grid a
+downRoll (Grid t) = Grid (rightShunt t)
 
-moveY :: Int -> U2 a -> U2 a
-moveY y u2 = if y >= 0 then (iterate down u2) !! y else (iterate up u2) !! (abs y)
+leftRoll :: Grid a -> Grid a
+leftRoll (Grid t) = Grid (mapGT leftShunt t)
 
+rightRoll :: Grid a -> Grid a
+rightRoll (Grid t) = Grid (mapGT rightShunt t)
 
-rule :: U2 Bool -> Bool
-rule (U2 (U
-         (U (u0:_) u1 (u2:_):_)
-         (U (u3:_) u4 (u5:_))
-         (U (u6:_) u7 (u8:_):_))) =
-         let n = length $ filter id [u0,u1,u2,u3,u5,u6,u7,u8] in
-            u4 && (n==2 || n==3) || (not u4) && n==3
-            
-zs :: [Bool]
-zs = repeat False
-            
-pattern1 :: U2 Bool
-pattern1 = U2 (U
-              ((U (False:zs) True (False:zs)):(repeat (U zs False zs)))
-               (U (False:zs) False (True:zs))
-              ((U (True:zs) True (True:zs)):(repeat (U zs False zs))))
-
-shift i u = (iterate (if i<0 then left else right) u) !! abs i
-
-toList' :: Int -> Int -> U a -> [a]
-toList' i j u = take (j-i) $ half $ shift i u 
-                where half (U _ b c) = [b] ++ c
-
-toBoard :: Int -> Int -> U2 Bool -> [[Char]]         
-toBoard i j (U2 u) = toList' i j (fmap (map (\x -> if x then '#' else ' ') . toList' i j) u) 
-
-rule' (U (a:_) b (c:_)) = not (a && b && not c || (a==b))
-
-main = let u = pattern1
-       in (sequence $ fmap (\x -> putStrLn x >> getChar) . fmap unlines $
-          map (toBoard (-10) 10) $
-          iterate (=>> rule) u) >> return ()
-          
-          
-          
-
-mstrength :: Monad m => m a -> b -> m (a, b)
-mstrength ma b = ma >>= (\a -> return (a, b))
-
-type LifeStream a = MonStr U2 a
-
-ls :: LifeStream Bool
-ls = iterateC rule pattern1
-
-iLs :: MonStr IO (MonStr U2 Bool)
-iLs = fmap (iterateC rule) (MS.iterate newCell pattern1)
-
-setCell :: Int -> Int -> Bool -> U2 Bool -> U2 Bool
-setCell x y b = moveY (-y) . moveX (-x) . set b . moveX x . moveY y
-
-lifeToScreen :: Int -> Int -> U2 Bool -> IO ()
-lifeToScreen n m u2 = do threadDelay 250000 -- sleep for a quarter second, 0.25 million microseconds
-                         putStr "\ESC[2J"
-                         putStrLn (unlines $ toBoard n m u2)
-                               
-newCell :: U2 Bool -> IO (U2 Bool)
-newCell u2 = do putStrLn "Input x, y coord to turn on"
-                x <- getLine >>= (readIO :: String -> IO Int)
-                y <- getLine >>= (readIO :: String -> IO Int) 
-                return $ setCell x y True u2
-
-lsShow :: MonStr IO ()
-lsShow = rebaseW (lifeToScreen (-20) 20) ls
-
-ilsShow :: MonStr IO (MonStr IO ())
-ilsShow = fmap (rebaseW (lifeToScreen (-20) 20)) iLs
-
-rebaseW :: (Comonad w, Functor n) => (w a -> n b) -> MonStr w a -> MonStr n b
-rebaseW f (MCons ma) = MCons $ fmap (\(h, t) -> (h, rebaseW f t)) (rebaseWaux f ma)
-
-rebaseWaux :: (Comonad w, Functor n) => (w a -> n b) -> forall c. w (a, c) -> n (b, c)
-rebaseWaux f wac = fmap (\a -> (a, snd (extract wac))) $ f (fmap fst wac)
+-- | Class instances for Grid 
+ 
+instance Functor Grid where
+  fmap f (Grid (lss, as, rss)) = Grid (map (mapGT f) lss, mapGT f as, map (mapGT f) rss)
 
 
--- | Functions to run the show
+omnidirectionalIteratedShunts :: Grid a -> Grid (Grid a)
+omnidirectionalIteratedShunts g = Grid $ triMap (map lrShunts) lrShunts (map lrShunts) (tail (iterate downRoll g), g, tail (iterate upRoll g))
+                                  where lrShunts g' = (tail (iterate rightRoll g'), g', tail (iterate leftRoll g'))
 
-run = runVoidProcess lsShow
+instance Comonad Grid where
+  extract (Grid (_, (_,a,_), _)) = a
+  duplicate = omnidirectionalIteratedShunts
 
-runInteractive = runVoidProcess (takeInnerM 2 ilsShow)
+-- | Game of life demonstration using the Grid comonad
+
+countLine :: ([Bool], Bool, [Bool]) -> Int
+countLine ((l:_), a, (r:_)) = sum [1 | b <- [l, a, r], b]
+
+-- | The rule for evolving the grid
+rule :: Grid Bool -> Bool
+rule (Grid ((l:_), a@(_,f,_), (r:_))) = let n = (countLine l) + (if f then (countLine a) - 1 else countLine a) + (countLine r)
+                                           in case n of
+                                                 2 -> f
+                                                 3 -> True
+                                                 _ -> False
+
+catTup :: ([a],a,[a]) -> [a]
+catTup (ls,a,rs) = (reverse ls) ++ (a:rs)
+
+gridToString :: Int -> Int -> Grid Bool -> String
+gridToString w h (Grid (ups, as, dns)) = let ud = h `div` 2
+                                             lr = w `div` 2
+                                             cut = triMap (take lr) id (take lr)
+                                             uplines = reverse (map (catTup . cut) (take ud ups))
+                                             downlines = map (catTup . cut) (take ud dns)
+                                             midline = catTup (cut as)
+                                             printB b = if b then '#' else ' ' 
+                                             in unlines (map (map printB) uplines) ++ (map printB midline) ++ "\n" ++ unlines (map (map printB) downlines)
+
+{-
+  #                         
+   #                        
+ ### 
+-}   
+                                            
+glider1 :: Grid Bool
+glider1 = Grid (
+           (repeat False, True,  (repeat False)):(repeat emptyLine), 
+           (repeat False, False, (True:(repeat False))),
+           ((True:(repeat False)), True, (True:(repeat False))):(repeat emptyLine)
+          )
+          where emptyLine = (repeat False, False, repeat False)
+
+{-
+   #                      
+  ###                     
+ #                        
+  ##                      
+  #   
+-}   
+        
+glider2 :: Grid Bool
+glider2 = Grid (
+           ((True:(repeat False)), True, (True:(repeat False))):(repeat False, True, (repeat False)):(repeat emptyLine), 
+           (False:True:(repeat False), False, (False:(repeat False))),
+           ((True:(repeat False)), True, (repeat False)):((True:(repeat False)), False, (repeat False)):(repeat emptyLine)
+          )
+          where emptyLine = (repeat False, False, repeat False)
+
+
+-- | A stream of GoL environments where each element is the string representation
+lifeStreamShow :: LifeStream String
+lifeStreamShow = evalMap (gridToString 50 50) (iterateC rule glider1)
+
+
+-- | You can index a particular point in the stream of states with !@!
+indexLife n = putStrLn $ extract (lifeStreamShow !@! n)
+
+
+-- | This creates a process which prints the outputs at each point in the
+-- life stream
+lifeShowProc :: LifeStream String -> Process ()
+lifeShowProc ls = MCons $ let (a, nxt) = extract (uncons ls)
+                              in do putStrLn a
+                                    continue (lifeShowProc nxt)
+
+-- | This can be combined with the above process to add delays and
+-- screen clearing between each iteration
+betterDisplayProc :: Process ()
+betterDisplayProc = MS.repeat (do threadDelay 250000; putStr "\ESC[2J")
+
+-- | This shows how they can be combined
+demoProc = interleaveActM (lifeShowProc lifeStreamShow) betterDisplayProc
 
 
 
--- | New example with Store comonad instead
 
-type Grid a = Store (Int, Int) a
+-- | Interactive demo
 
-type LifeStreamG a = MonStr (Store (Int, Int)) a
+-- | Allowing setting particular cells to True or False
 
--- | Helper to quickly evaluate a store
-appStore :: Store a b -> b
-appStore str = let (f, s) = runStore str in f s
+set :: Bool -> Grid Bool -> Grid Bool
+set a (Grid (lss, (ls, _, rs), rss)) = Grid (lss, (ls, a, rs), rss)
 
-adjacentAlive :: Grid Bool -> Int
-adjacentAlive str = let (f, (x, y)) = runStore str in sum [1 | x' <- [x - 1 .. x + 1], y' <- [y], (x /= x' || y /= y') && f (x', y') ]
+setCellX :: Bool -> Int -> Grid Bool -> Grid Bool
+setCellX b x g | x == 0    = set b g
+               | x > 0     = iterate rightRoll (set b (iterate leftRoll g !! x)) !! x
+               | otherwise = iterate leftRoll (set b (iterate rightRoll g !! (abs x))) !! (abs x)
 
-ruleG :: Grid Bool -> Bool
-ruleG str = case adjacentAlive str of
-               2 -> appStore str
-               3 -> True
-               _ -> False
+-- | Sets a cell relative to the current position
+setCell :: Bool -> Int -> Int -> Grid Bool -> Grid Bool
+setCell b x y g | y == 0    = setCellX b x g
+                | y > 0     = iterate downRoll (setCellX b x (iterate upRoll g !! y)) !! y
+                | otherwise = iterate upRoll (setCellX b x (iterate downRoll g !! (abs y))) !! (abs y)
 
-lifeG :: (Int, Int) -> Bool
-lifeG (9 , 9 ) = True
-lifeG (10, 9 ) = True
-lifeG (11, 9 ) = True
-lifeG (11, 10) = True
-lifeG (10, 11) = True
-lifeG (10, 8 ) = False
-lifeG _        = False
+newCell :: Grid Bool -> IO (Grid Bool)
+newCell g = do putStrLn "Input x, y coord to turn on"
+               x <- getLine >>= (readIO :: String -> IO Int)
+               y <- getLine >>= (readIO :: String -> IO Int)
+               return $ setCell True x y g
 
-lifeGrid :: Grid Bool
-lifeGrid = store lifeG (0, 0)
+-- | A stream of streams where the nth is the stream where you can set n+1 cells before
+-- the GoL is run
+interactiveLifeStream :: Process (LifeStream Bool)
+interactiveLifeStream = fmap (iterateC rule) (MS.iterate newCell glider2)
 
-toBoardG :: Int -> Int -> Grid Bool -> [[Char]]
-toBoardG w h str = let (f, _) = runStore str in [[if f (x, y) then '#' else ' ' | x <- [0 .. w]] | y <- [0 .. h]]
+-- | Turns each of the inner streams into processes which print the evolution after a
+-- particular number of cell additions by a user
+interactiveLifeStreamShow :: Process (Process ())
+interactiveLifeStreamShow = fmap (lifeShowProc . evalMap (gridToString 50 50)) interactiveLifeStream
 
-displayLifeG :: Int -> Int -> Grid Bool -> IO ()
-displayLifeG w h = putStrLn . unlines . toBoardG w h
+-- | Setting cells (5, 4) (5, 5) (5, 6), with n as 2 gives an interesting patterns
+interactiveDemo n = interleaveActM (takeInnerM n interactiveLifeStreamShow) betterDisplayProc
 
-setCellG :: Bool -> Int -> Int -> Grid Bool -> Grid Bool
-setCellG b x y str = let (f, fcs) = runStore str in store (\(x', y') -> if x' == x && y' == y then b else f (x', y')) fcs
-
-newCellG :: Grid Bool -> IO (Grid Bool)
-newCellG str = do putStrLn "Input x, y coord to turn on"
-                  x <- getLine >>= (readIO :: String -> IO Int)
-                  y <- getLine >>= (readIO :: String -> IO Int) 
-                  return $ setCellG True x y str
-
-waitProc :: Process ()
-waitProc = MS.iterate (const (threadDelay 250000)) () -- sleeps for a quarter second
-
-lsG :: LifeStreamG Bool
-lsG = iterateC ruleG lifeGrid
-
-lsGShow = rebaseW (displayLifeG 20 20) lsG
-
-oneIter = displayLifeG 20 20 (ruleG <<= lifeGrid)
