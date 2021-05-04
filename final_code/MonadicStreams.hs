@@ -3,6 +3,9 @@ module MonadicStreams
    -- The type of monadic streams
      MonStr(..),
      
+     module Control.Monad,
+     module Control.Comonad,
+     
      uncons,
      head,
      tail,
@@ -17,12 +20,13 @@ module MonadicStreams
      transformA,
      
      repeatA,
-     liftM,
+     liftToStrM,
      absorbM,
      graftF,
      toMonStr,
      unfold,
      iterate,
+     iterate',
      decomp,
      mapOutM,
      scanA,
@@ -46,6 +50,7 @@ module MonadicStreams
      takeM'',
      takeMF,
      takeMF',
+     takeInnerM,
      
      spanM,
      spanMF,
@@ -120,7 +125,7 @@ import Prelude hiding (head, tail, map, scanl, scanl1,
 import qualified Prelude as P ((!!), iterate, head, tail, cycle)
  
 import Control.Applicative
-import Control.Monad hiding (liftM, filterM)
+import Control.Monad hiding (filterM)
 import Control.Monad.Trans.Reader
 import Control.Comonad
 
@@ -262,8 +267,8 @@ repeatA :: Applicative m => a -> MonStr m a
 repeatA = pure
 
 -- | Lifts monadic actions from elements to the stream
-liftM :: Monad m => MonStr m (m a) -> m (MonStr m a)
-liftM ms = pure (\(ma,ms') -> ma <::: liftM ms') <*> uncons ms
+liftToStrM :: Monad m => MonStr m (m a) -> m (MonStr m a)
+liftToStrM ms = pure (\(ma,ms') -> ma <::: liftToStrM ms') <*> uncons ms
 
 -- | Monadic monsters can "absorb" a monadic action
 absorbM :: Monad m => m (MonStr m a) -> MonStr m a
@@ -278,14 +283,20 @@ graftF s1 s2 = if null s1 then s2
 toMonStr :: (Foldable t, Applicative m, Alternative m) => t a -> MonStr m a
 toMonStr = foldr (<:) empty
 
--- | Unfolds a monadic stream from a seed value - monadic stream co-iterator
+-- | Unfolds a monadic stream from a seed value - a monadic stream co-iterator
 unfold :: Functor m => (b -> (m a, b)) -> b -> MonStr m a
 unfold f b = a <:: unfold f b'
              where (a, b') = f b
 
--- | Produces an infinite sequence of repeated applications of f to x
-iterate :: Functor m => (m a -> m a) -> m a -> MonStr m a
-iterate f x = x <:: iterate f (f x)
+-- | Produces an infinite sequence of repeated applications of f to an element
+-- of a
+iterate :: Functor m => (a -> m a) -> a -> MonStr m a
+iterate f a = MCons $ fmap (\a -> (a, iterate f a)) (f a)
+
+-- | Produces an infinite sequence of repeated applications of f to an element
+-- of m a
+iterate' :: Functor m => (m a -> m a) -> m a -> MonStr m a
+iterate' f x = x <:: iterate' f (f x)
 
 -- | Deconstructs a MonStr into its head and tail - the head
 -- and tail cannot be recombined to produce the same monster
@@ -400,6 +411,10 @@ takeMF n ms
 -- | take with  m Foldable - returns the list inside a single monadic action
 takeMF' :: (Monad m, Foldable m) => Int -> MonStr m a -> m [a]
 takeMF' n ms = sequence (takeMF n ms)
+
+-- | Takes the nth inner stream from a stream of streams
+takeInnerM :: Monad m => Int -> MonStr m (MonStr m a) -> MonStr m a
+takeInnerM n = absorbM . (!! n)
 
 -- | Returns the longest prefix of ma that satisfies p
 -- together with the remainder of the monadic stream, 

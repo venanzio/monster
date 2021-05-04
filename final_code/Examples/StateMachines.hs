@@ -14,12 +14,19 @@ instance Show (SMStr i o) where
   show _ = "[ A Mealy machine ]"
 
 
--- | Correspondance between Reader-monsters and Mealy machines
-
--- | The type of Mealy machines
+-- | The usual type of Mealy machines
 data Mealy st inA outA = Mealy { initState :: st
                                , transf :: (st , inA) -> (st , outA)
                                }
+                               
+runMealy :: Mealy s i o -> i -> (o, Mealy s i o)
+runMealy (Mealy s0 tf) i = let (s, o) = tf (s0, i) in (o, Mealy s tf)
+
+runMealyList :: Mealy s i o -> [i] -> ([o], Mealy s i o)
+runMealyList (Mealy s0 tf) []     = ([], Mealy s0 tf)
+runMealyList (Mealy s0 tf) (i:is) = let (s, o) = tf (s0, i) in (\(os, smf) -> (o:os, smf)) $ runMealyList (Mealy s tf) is
+
+-- | Correspondance between Reader-monsters and Mealy machines
 
 data StateFunc i o = SF { getSF :: i -> (StateFunc i o, o) }
 
@@ -85,6 +92,22 @@ es2 I = (SF es2, "No edge")
 
 edgeDetector :: SMStr Bin String
 edgeDetector = buildSMStr (SF es0)
+
+
+-- | The actual Mealy machine for comparison
+
+data EDState = A | B | C deriving Show
+
+edMTrans :: (EDState, Bin) -> (EDState, String)
+edMTrans (A, O) = (B, "No edge")
+edMTrans (A, I) = (C, "No edge")
+edMTrans (B, O) = (B, "No edge")
+edMTrans (B, I) = (C, "Edge detected")
+edMTrans (C, O) = (B, "Edge detected")
+edMTrans (C, I) = (C, "No edge")
+
+edgeDetectorMealy :: Mealy EDState Bin String
+edgeDetectorMealy = Mealy A edMTrans
 
 {-
  | Traffic light example

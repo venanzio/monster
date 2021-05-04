@@ -376,6 +376,8 @@ prop_drop = forAll (genListMonStr >*< chooseInt (0,1000)) $
 
 This function builds a QuickCheck property, which checks whether the drop function (removal of the first $n$ elements) on lists and Maybe-monsters work identically. This makes use of the isomorphism, allowing the types to be freely converted between in order to check equality. 
 
+Included with the library is a whole suite of tests in this style, showing the correspondence between functions on Maybe-monsters and functions on lazy lists defined in the Haskell standard library.
+
 All standard (and many non-standard) operations on lists are implemented for generic monads, sometimes with the requirement that the functor is an instance of \verb+Foldable+ or \verb+Alternative+.
 
 \subsection{List monad}
@@ -479,7 +481,7 @@ runProcess (MCons s) = do (a,s') <- s
 
 This is because IO actions can continuously interact with the outside world, and call other functions, \emph{without having to terminate}. The IO action produced by collapsing an IO-monster is the sequence of all IO operations in the stream. \\
 
-Given a process (an IO-monster), you may want to use some of the output values in another computation. To get these values, you need to run the IO actions in the monster. However, since the first action will never return (as all of the subsequent actions are nested inside), this is not possible with strict IO. Instead, you have to use lazy IO, so that only the values that are calculated inside the IO-monster are immediately available. This requires \verb+unsafeInterleaveIO+, which defers execution of IO actions until their result is needed. 
+Given a process (an IO-monster), you may want to use some of the output values in another computation. To get these values, you need to run the IO actions in the monster. However, since the first action will never return (as all of the subsequent actions are nested inside), this is not possible with strict IO. Instead, you have to use lazy IO, so that only the values that are calculated inside the IO-monster are immediately available. This requires \verb+unsafeInterleaveIO+ \cite{unsafe_io}, which defers execution of IO actions until their result is needed. 
 
 In these functions, we are trying to output the first value computed by running a process \verb+proc0+:
 
@@ -495,7 +497,7 @@ run1 = do as <- unsafeRunProcess proc0
           putStrLn $ show (as !! 0)
 \end{haskell}
 
-Here, \verb+run0+ will run the process \verb+proc0+ and the code to show the first element will never be reached since \verb+runProcess proc0+ doesn't terminate. 
+Here, \verb+run0+ will run the process \verb+proc0+, and the code that show the first element will never be reached since \verb+runProcess proc0+ doesn't terminate.
 
 In \verb+run1+, we use \verb+unsafeRunProcess+, which is defined as:
 
@@ -540,14 +542,14 @@ testProc :: IO ()
 testProc = runVoidProcess (interleaveReadM inputProc outputProc)
 \end{haskell}
 
-Using this function lets you define dependant processes separately and then combine them afterwards. 
+Using this function lets you define dependent processes separately and then combine them afterwards. 
 
 Variations on this function give lots of options for modifying processes. For example, we could write a version of \verb+run1+ from earlier using \verb+insertActReadM+, which inserts a 'dependent' monadic action at a given index.
 
 \begin{haskell}
 run1 :: IO [Int]
 run1 = runProcess (insertActReadM 0 (\a -> 
-	do putStrLn (show a); 
+	do putStrLn (show a)
 	   return ()) proc0)
 \end{haskell}
 
@@ -572,9 +574,21 @@ With this, it is now possible to terminate the process given a particular predic
 
 As demonstrated, IO-monsters are tricky, but provide an interesting intensional way of modelling processes, allowing the computations that they consist of to be modified after their definition.
  
+\subsection{Store comonad}
+
+The store comonad is a pair of a state (called the store) and a function to extract a value from that state:
+
+\begin{haskell}
+data Store = Store (s -> a) s
+\end{haskell}
+
+A Store-comonster, a monadic stream using the store comonad, is a stream where extracting from the store gives a value, and a \emph{new store}. This encapsulates the idea of an environment that can be used to modify itself. Cellular automata fit this description perfectly, where the state of the environment is calculated from the previous using a rule. 
+
+The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a State-comonster already 'contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
+ 
 \section{General functions and operations}
 
-In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in each context presented. \\
+In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in all of some of the contexts presented. \\
 
 Consider the \verb+dropM+ function. 
 
@@ -617,7 +631,7 @@ interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
 
 In the context of List-monsters again, this function lets you interleave choices - for two List-monsters $L_0$ and $L_1$, representing decision trees, interleaving them results in a tree $L_{0,1}$ where the first decision in $L_{0,1}$ is the first in $L_0$, the second decision is the first in $L_1$, and so on. This can describe situations where different kinds of choices need to be made cyclically. In IO-monsters, this function lets you interleave the actions of two process, effectively implementing a simple kind of user-level multithreading. 
 
-In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state of the second depends on the outputs of the first. This could be extended so that both state machines are dependant on each other, which is left as an exercise to the reader. \\
+In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state of the second depends on the outputs of the first. This could be extended so that both state machines are dependent on each other, which is left as an exercise to the reader. \\
 
 The main aim of this library was to define general functions that operate on generic data structures (defined as monadic streams), such that the functions have interesting, or even novel, uses in the contexts presented by different monads or functors. We hope that the functions presented above, alongside the example in section 4, give a taste of this idea.
 
@@ -820,23 +834,13 @@ fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) ->
 
 
 %\section{Monad proof}
-%\include{monster_article_monad_proof}
+%\input{monster_article_monad_proof}
 
-\section{Applications}
+\section{Related work and applications}
 
-\subsection{Examples}
+\subsection{FRP application}
 
-Included with the library is a suite of tests showing the correspondence between functions on $Maybe$-monsters and functions on lazy lists defined in the Haskell standard library. 
-
-This, alongside the reimplementation of Swiestra and Dijk's streams library, show that monadic streams can at least be used to generalise infinite and finite lists, using the identity and maybe monads respectively.
-
-\begin{ccomment}
-	Show a few applications and motivate the usefulness of Monadic Streams.
-\end{ccomment}
-
-\subsection{FRP applications}
-
-One application of monadic streams is they can be seen as a form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, one can implement the integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
+One application of monadic streams is they can be seen as a form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, you can implement the integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
 
 \begin{haskell}
 type DTime = Double
@@ -855,19 +859,33 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
 
+This concept of signal functions is generalised further in Dunai.
+
 \subsection{Relation to Dunai}
 
-Dunai \cite{frp_refactored} is an FRP library implemented using monadic stream functions (MSFs). \\
+Dunai \cite{frp_refactored}\cite{dunai} is an FRP library implemented using monadic stream functions (MSFs), which Yampa has been implemented on top of (see BearRiver \cite{bearriver}). \\
 
-This library we've developed allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (instantiated with the Reader monad), most functions in our library could be incorporated into Dunai, giving a set of potentially useful generalised transformations for MSF networks. \\
+The library we've developed in this article allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (monsters with the underlying functor \verb+ReaderT a m+, where \verb+m+ is a monad), many functions in our library could be incorporated into Dunai, giving a set of potentially useful generalised transformations for MSF networks. \\
 
-For example, the \verb+insert+ combinator could be used to insert an arbitrary extra functions into a monadic stream function.
+For example, \verb+scanM+ could be used to calculate a stream of intermediate velocity values from a stream of position values, by taking the difference of each consecutive position:
+\begin{haskell}
+positions :: SignalFunc Env Double 
 
-Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams however, you can model arbitrarily nested input streams. That is, inputs streams whose inputs are input streams. (this needs much more seeing to)
+speeds :: SignalFunc Env Double 
+speeds = scanM (\a b -> b - a) positions
+\end{haskell}
 
-Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment as it is operated on in some way. The comonad provides the notion of environment, and the stream embues it with a way of modelling its progression in time. This only models the notion of current and future values of the environment, with past states being discarded.
+On the other hand, there are many interesting concepts in Dunai which could be incorporated into new functions in this library, such as their concept of FRP constructs. 
 
-This could be useful to model systems which have some kind of self referential data store, or some kind of environment that can be used to modify itself.
+These encapsulate the semantics of going from a \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, to a \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. When the monad transformer is \verb+ListT+ for example, this gives rise to the concept of parallelism with broadcasting. \\
+
+Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams, you can model input streams where the value of the input (and the rest of the stream) depends on some environment. 
+
+Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment under some iterated operation. The comonad provides the notion of environment, and the stream embues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
+
+This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. 
+
+One possible implementation issue is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context dependent inputs, when those inputs come from outside the program.
 
 \section{Conclusions}
 

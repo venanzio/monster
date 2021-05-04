@@ -1,6 +1,6 @@
-> module Demonstration where
+> module Demonstration.Demonstration where
 
-> import DemonstrationHelper
+> import Demonstration.DemonstrationHelper
 
 > import Examples.PureStreams 
 > import Examples.LazyLists
@@ -86,7 +86,13 @@ both dependant on the choice of monad when it comes to their outputs, as shown.
 State machines					
 --------------
 
+These two edge detectors are extensionally identical - looking at their defining code you
+can see the similarity between Mealy machines and Reader-monsters
+
 > edgesDemo = printLines . fst $ runSMStrList edgeDetector [O, I, O, O, I, I, I, O, O]
+
+> edgesMealyDemo = printLines . fst $ runMealyList edgeDetectorMealy [O, I, O, O, I, I, I, O, O]
+
 
 > trafficDemo = printLines . fst $ runSMStrList trafficLights [NS, Both, EW, EW, Both, Both, NS]
 
@@ -110,3 +116,4 @@ time.
 
 Processes
 ---------
+

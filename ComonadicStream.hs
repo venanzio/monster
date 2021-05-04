@@ -33,29 +33,29 @@ import PureStreams
 import Combinators
 import Operations
 
-headCMS :: Comonad w => MonStr w a -> a
-headCMS (MCons s) = fst (extract s)
+headC :: Comonad w => MonStr w a -> a
+headCM (MCons s) = fst (extract s)
 
-tailCMS :: Comonad w => MonStr w a -> MonStr w a
-tailCMS (MCons s) = snd (extract s)
+tailC :: Comonad w => MonStr w a -> MonStr w a
+tailC (MCons s) = snd (extract s)
 
-takeCMS :: Comonad w => Int -> MonStr w a -> [a]
-takeCMS 0 s = []
-takeCMS n s = headCMS s : takeCMS (n-1) (tailCMS s)
+takeC :: Comonad w => Int -> MonStr w a -> [a]
+takeC 0 s = []
+takeC n s = headCMS s : takeCMS (n-1) (tailCMS s)
 
--- Makes a sort of trivial comonadic stream using a coKleisli arrow and a starting
--- environment as a seed
-iterateCMS :: Comonad w => (w a -> a) -> w a -> MonStr w a
-iterateCMS f wa = MCons $ fmap (\a -> (a, iterateCMS f (f <<= wa))) wa
+-- | Generates a comonadic stream using a coKleisli arrow and a starting environment
+-- as a seed
+iterateC :: Comonad w => (w a -> a) -> w a -> MonStr w a
+iterateC f wa = MCons $ fmap (\a -> (a, iterateCMS f (f <<= wa))) wa
 
 {-
-  You can kind of think of a comonster as a history of states of the environment in the underlying comonad
+  You can think of a comonster as a history of states of the environment in the underlying comonad
 -}
 
-{-
+
 extractAllC :: Comonad w => (w a -> b) -> MonStr w a -> Stream b
 extractAllC f ws = MCons $ Identity (f (head ws), extractAllC f (extract (tail ws)))
--}
+
 
 -- Appending to a comonadic stream 
 (<@:) :: Comonad w => a -> MonStr w a -> MonStr w a
@@ -247,6 +247,13 @@ rebaseWaux f wac = fmap (\a -> (a, snd (extract wac))) $ f (fmap fst wac)
 
 iterateM :: Monad m => (a -> m a) -> a -> MonStr m a
 iterateM f a = MCons $ fmap (\a -> (a, iterateM f a)) (f a)
+
+-- Not sure how much I trust these functions
+rebaseM :: (Monad m, Monad n) => (forall a b. (m a -> n b)) -> MonStr m a -> MonStr n b
+rebaseM f (MCons ma) = MCons $ fmap (\(h, t) -> (h, rebaseM f t)) (rebaseMaux f ma)
+
+rebaseMaux :: (Monad m, Monad n) => (forall a b. (m a -> n b)) -> forall c. m (a, c) -> n (b, c)
+rebaseMaux f mac = pairA (f (fmap fst mac)) (f (fmap snd mac))
 
 
 -- runVoidProcess lsShow

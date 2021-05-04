@@ -1,4 +1,4 @@
-module DemonstrationHelper where
+module Demonstration.DemonstrationHelper where
  
 import Examples.PureStreams 
 import Examples.LazyLists
