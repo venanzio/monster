@@ -579,12 +579,17 @@ As demonstrated, IO-monsters are tricky, but provide an interesting intensional 
 The store comonad is a pair of a state (called the store) and a function to extract a value from that state:
 
 \begin{haskell}
-data Store = Store (s -> a) s
+data Store s a = Store (s -> a) s
 \end{haskell}
 
 A Store-comonster, a monadic stream using the store comonad, is a stream where extracting from the store gives a value, and a \emph{new store}. This encapsulates the idea of an environment that can be used to modify itself. Cellular automata fit this description perfectly, where the state of the environment is calculated from the previous using a rule. 
 
 The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a State-comonster already 'contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
+
+To show this, there is an implementation of Conways game of life included in the demonstration code. This demo uses a kind of Zipper comonad instead of store for some more efficiency, but the type used is isomorphic to \verb+Store Int Bool+.
+
+
+
  
 \section{General functions and operations}
 
@@ -633,7 +638,7 @@ In the context of List-monsters again, this function lets you interleave choices
 
 In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state of the second depends on the outputs of the first. This could be extended so that both state machines are dependent on each other, which is left as an exercise to the reader. \\
 
-The main aim of this library was to define general functions that operate on generic data structures (defined as monadic streams), such that the functions have interesting, or even novel, uses in the contexts presented by different monads or functors. We hope that the functions presented above, alongside the example in section 4, give a taste of this idea.
+The main aim of this library was to define general functions that operate on generic data structures (defined as monadic streams), such that the functions have interesting, or even novel, uses in the contexts presented by different monads or functors. We hope that the functions presented above, alongside the example in section 4, give readers a general sense of this.
 
 
 \section{Instances of Functor, Applicative, Monad}
@@ -840,7 +845,7 @@ fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) ->
 
 \subsection{FRP application}
 
-One application of monadic streams is they can be seen as a form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, you can implement the integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
+One application of monadic streams is that they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, you can implement an integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
 
 \begin{haskell}
 type DTime = Double
@@ -859,7 +864,9 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
 
-This concept of signal functions is generalised further in Dunai.
+Additionally, combinators defined in our library work similarly to combinators in Yampa. For example, the (internal) signal function composition combinator \verb+compPrim+ is conceptually the same as our function \verb+interleaveReadM+, which was covered in the IO monad examples section.
+
+Yampas concept of signal functions is generalised further in Dunai, a library with an even closer relationship to monadic streams.
 
 \subsection{Relation to Dunai}
 
@@ -879,21 +886,38 @@ On the other hand, there are many interesting concepts in Dunai which could be i
 
 These encapsulate the semantics of going from a \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, to a \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. When the monad transformer is \verb+ListT+ for example, this gives rise to the concept of parallelism with broadcasting. \\
 
-Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams, you can model input streams where the value of the input (and the rest of the stream) depends on some environment. 
+Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams, you could model input streams where the value of the input (and the rest of the stream) depends on some environment. 
 
 Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as a progressing timeline of an environment under some iterated operation. The comonad provides the notion of environment, and the stream embues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
 
 This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. 
 
-One possible implementation issue is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context dependent inputs, when those inputs come from outside the program.
+One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this definitely isn't a solution). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside the program.
 
 \section{Conclusions}
 
-Discussion of related literature.
+\begin{ccomment} 
+	Further discussion of related literature and open problems is needed
+\end{ccomment}
 
-Open problems.
+Future work on this library would include a review of the efficiency of many functions - this project was initially an exercise to see what could be done with monadic streams, but if this library could be used for larger applications then efficiency may be an issue. 
 
-Future Work.
+Another angle of interest is to look further into exactly how monadic streams are different from the cofree comonad over a functor. The difference is only that there is no first 'unguarded' element in a monadic stream, but this is enough make them function entirely differently when instantiated with the same functors.
+
+Finally, whether comonadic streams could have a role in functional reactive programming is still an open problem. It may also be interesting to look at a dual of Dunai's monadic stream functions \cite{dunai}. The dual of (co)monadic streams are monadic lists:
+\begin{haskell}
+data MonLst m a = m (Either a (MonLst m a)) 
+\end{haskell}
+Since the type of monadic stream functions is isomorphic to monadic streams with the reader monad transformer, the dual of monadic stream functions might be the following:
+\begin{haskell}
+data MSFDual w a = MonLst (EnvT w a)
+\end{haskell}
+which is essentially a nested tuple, with each layer after the first guarded with a comonad. Evaluating the comonad with \verb+extract+ or a co-Kleisli arrow will either result in a final tuple of type \verb+(e, a)+, or another layer of type \verb+(e, MonLst (EnvT w a))+. 
+
+This is like an environment where values can be repeatedly extracted from, but at some point the environment will become exhausted, returning a single \verb+a+ instead of a new environment. 
+
+
+
 
 \bibliography{monster_biblio.bib}
 

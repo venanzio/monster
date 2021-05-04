@@ -81,7 +81,6 @@ both dependant on the choice of monad when it comes to their outputs, as shown.
 > wordTreeDemo2 = unwordsMFL wordTreeDemo1
 
 
-
 --------------
 State machines					
 --------------
@@ -117,3 +116,4 @@ time.
 Processes
 ---------
 
+See GameOfLife.hs

@@ -265,7 +265,7 @@ instance (Foldable m, Applicative m, Eq (m a), Eq (m Bool)) => Eq (MonStr m a) w
 -----------------
 
 -- | Repeatedly nests a value wrapped in a container into itself
--- to form a monadic stream
+-- to form a trivial monadic stream
 repeat :: Functor m => m a -> MonStr m a
 repeat ma = MCons $ fmap (\a -> (a, repeat ma)) ma
 
