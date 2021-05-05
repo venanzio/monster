@@ -113,6 +113,18 @@ time.
 >                      						[NS, Both, EW, EW, Both, Both, NS]
 
 
+Zip demo
+--------
+
+> maxDemo = printLines $ zip (fst $ runSMStrList maxFin3 [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]) 
+>                                        [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
+
+> minDemo = printLines $ zip (fst $ runSMStrList minFin3 [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]) 
+>                                        [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
+
+> zipDemo = printLines $ zip (fst $ runSMStrList (zipWithA (==) maxFin3 minFin3) [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two])
+>                                        [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
+
 Processes
 ---------
 

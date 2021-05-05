@@ -434,11 +434,11 @@ takeInnerM n = absorbM . (!! n)
 -- with the prefix inside the monad m
 --
 -- /Beware/: this function may diverge if every element
---  of the given monadic stream satisfies the predicate
+-- of the given monadic stream satisfies the predicate,
+-- and has undefined behaviour when the stream is finite
 spanM :: Monad m => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
-spanM p ma = uncons ma >>= \(h,t) -> if p h then let ret = spanM p t in 
-                                                     fmap (\(l, s) -> (h:l, s)) ret
-                                            else return ([], h <: t)
+spanM p mas = do (a, mas') <- (uncons mas)
+                 if not (p a) then return ([], mas) else (fmap (\(l, t) -> (a:l, t)) (spanM p mas'))
 
 -- | span with Foldable type constraint
 spanMF :: (Monad m, Foldable m) => (a -> Bool) -> MonStr m a -> m ([a], MonStr m a)
@@ -483,12 +483,15 @@ partitionMF p ma = uncons ma >>= \(h,t) -> let ret = (if null t then pure (t, t)
                                                       else (\p' -> fmap (\(t, f) -> (t, h <: f)) p') ret
 
 -- | Groups consecutive equal elements of a monadic monster into lists
+-- 
+-- /Beware/: this function has undefined behaviour on finite 
+-- streams
 groupM :: (Monad m, Eq a) => MonStr m a -> MonStr m [a]
-groupM mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupM t')) (spanM (==h) t)) <$> uncons mas
+groupM mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupM t')) (spanM (== h) t)) <$> uncons mas
 
 -- | Group with m Foldable
 groupMF :: (Monad m, Eq a, Foldable m) => MonStr m a -> MonStr m [a]
-groupMF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMF t')) (spanMF (==h) t)) <$> uncons mas
+groupMF mas = MCons . join $ (\(h,t) -> fmap (\(h',t') -> (h:h', groupMF t')) (spanMF (== h) t)) <$> uncons mas
 
 -- | isPrefixOfMMS returns True if the first argument is a prefix of the second, 
 -- and False otherwise. Will diverge if the monsters being compared are the same 

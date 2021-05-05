@@ -5,7 +5,7 @@ module Examples.StateMachines where
   
 import MonadicStreams
 import Examples.PureStreams
-import Control.Monad.State
+import Control.Monad.State.Lazy
 
 import Prelude hiding (head, tail)
 
@@ -122,10 +122,10 @@ edgeDetectorMealy = Mealy A edMTrans
  presence of no traffic will turn NS lights green.
 -}
 
-data TrafficInput = None | NS | EW | Both deriving Show
+data TrafficInput = None | NS | EW | Both deriving (Show, Eq)
 
-data NS_Lights = NS_Green | NS_Yellow | NS_Red deriving Show
-data EW_Lights = EW_Green | EW_Yellow | EW_Red deriving Show
+data NS_Lights = NS_Green | NS_Yellow | NS_Red deriving (Show, Eq)
+data EW_Lights = EW_Green | EW_Yellow | EW_Red deriving (Show, Eq)
 
 type TrafficOutput = (NS_Lights, EW_Lights)
 
@@ -151,7 +151,117 @@ trafficLights :: SMStr TrafficInput TrafficOutput
 trafficLights = buildSMStr (SF ts0)
 
 
--- | More simple examples
+{-
+ | Max and min example to demonstrate composition with
+ zipWithA
+
+-}
+
+data Fin3 = One | Two | Thr deriving (Show, Eq, Ord)
+
+-- | Max of last 3 inputs
+
+-- Previous input was 3
+mxb3 :: PreStateFunc Fin3 Fin3
+mxb3 One = (SF mx3b1, Thr)
+mxb3 Two = (SF mx3b2, Thr)
+mxb3 Thr = (SF mxb3, Thr)
+
+-- Last inputs were 3 then 2
+mx3b2 :: PreStateFunc Fin3 Fin3
+mx3b2 One = (SF mx2b1, Thr)
+mx3b2 Two = (SF mxb2, Thr)
+mx3b2 Thr = (SF mxb3, Thr)
+
+-- Last input was 2
+mxb2 :: PreStateFunc Fin3 Fin3
+mxb2 One = (SF mx2b1, Two)
+mxb2 Two = (SF mxb2, Two)
+mxb2 Thr = (SF mxb3, Thr)
+
+-- Last inputs were 2 then 1
+mx2b1 :: PreStateFunc Fin3 Fin3
+mx2b1 One = (SF mx1b1, Two)
+mx2b1 Two = (SF mxb2, Two)
+mx2b1 Thr = (SF mxb3, Thr)
+
+-- Last inputs were 1 then 1
+mx1b1 :: PreStateFunc Fin3 Fin3
+mx1b1 One = (SF mx1b1, One)
+mx1b1 Two = (SF mxb2, Two)
+mx1b1 Thr = (SF mxb3, Thr)
+
+-- Last inputs were 3 then 1
+mx3b1 :: PreStateFunc Fin3 Fin3
+mx3b1 One = (SF mx1b1, Thr)
+mx3b1 Two = (SF mxb2, Thr)
+mx3b1 Thr = (SF mxb3, Thr)
+
+-- Entry state
+mxa :: PreStateFunc Fin3 Fin3
+mxa One = (SF mx1b1, One)
+mxa Two = (SF mxb2, Two)
+mxa Thr = (SF mxb3, Thr)
+
+maxFin3 :: SMStr Fin3 Fin3
+maxFin3 = buildSMStr (SF mxa)
+
+
+-- | Min of last 3 inputs
+
+-- Previous input was 1
+mnb1 :: PreStateFunc Fin3 Fin3
+mnb1 One = (SF mnb1, One)
+mnb1 Two = (SF mn1b2, One)
+mnb1 Thr = (SF mn1b3, One)
+
+-- Last inputs were 1 then 2
+mn1b2 :: PreStateFunc Fin3 Fin3
+mn1b2 One = (SF mnb1, One)
+mn1b2 Two = (SF mnb2, One)
+mn1b2 Thr = (SF mn3b3, One)
+
+-- Last input was 2
+mnb2 :: PreStateFunc Fin3 Fin3
+mnb2 One = (SF mnb1, One)
+mnb2 Two = (SF mnb2, Two)
+mnb2 Thr = (SF mn2b3, Two)
+
+-- Last inputs were 2 then 3
+mn2b3 :: PreStateFunc Fin3 Fin3
+mn2b3 One = (SF mnb1, One)
+mn2b3 Two = (SF mnb2, Two)
+mn2b3 Thr = (SF mn3b3, Two)
+
+-- Last inputs were 1 then 3
+mn1b3 :: PreStateFunc Fin3 Fin3
+mn1b3 One = (SF mnb1, One)
+mn1b3 Two = (SF mnb2, One)
+mn1b3 Thr = (SF mn3b3, One)
+
+-- Last inputs were 3 then 3
+mn3b3 :: PreStateFunc Fin3 Fin3
+mn3b3 One = (SF mnb1, One)
+mn3b3 Two = (SF mnb2, Two)
+mn3b3 Thr = (SF mn3b3, Thr)
+
+-- Entry state
+mna :: PreStateFunc Fin3 Fin3
+mna One = (SF mnb1, One)
+mna Two = (SF mnb2, Two)
+mna Thr = (SF mn3b3, Thr)
+
+minFin3 :: SMStr Fin3 Fin3
+minFin3 = buildSMStr (SF mna)
+
+
+-- | Zipping the two togther
+
+zipMinMaxFin3 :: SMStr Fin3 Bool
+zipMinMaxFin3 = zipWithA (==) minFin3 maxFin3
+
+
+-- | Simpler example(s)
 
 fibCalc :: SMStr (Int, Int) Int
 fibCalc = MCons $ \(n, m) -> (m, MCons $ (uncons fibCalc) . const (m, n+m))

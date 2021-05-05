@@ -60,10 +60,10 @@ printTree :: Show a => BLTree a -> IO ()
 printTree = putStrLn . showTree
 
 
-{-
- | Some common operations on trees, translated into 
- 'branch-labelled tree' versions
--}
+
+-- | Some common operations on trees, translated into 
+-- 'branch-labelled' versions
+
 
 -- | Depth-first traversal
 dfLabels :: BLTree a -> [a]
@@ -105,6 +105,17 @@ pruneBy p (MCons blt) = MCons $ do (a, st) <- blt
 
 
 -- | BLT examples
+-----------------
+
+-- | Generators for trees that always branch according 
+-- to a given list
+
+treeBranchList :: [a] -> BLTree a
+treeBranchList l = node $ map (\a -> (a, treeBranchList l)) l
+
+incrementingTree :: [Int] -> BLTree Int
+incrementingTree l = node $ map (\a -> (a, incrementingTree (map (+1) l))) l
+
 
 -- | Type to encode fractional numbers
 type Fraction = (Integer, Integer)
@@ -173,7 +184,6 @@ wordTree = node [('a', node [(' ', node [('b', node [('a', node [('t', leaf)]),
                                         ])
                             ])
                 ]
-
 
 -- | Examples of basic branch-labelled trees
 

@@ -48,7 +48,7 @@ stopAtPredLazy p s = do ns <- unsafeRunProcess s
 
 
 -- | Examples of processes
-
+--------------------------
 
 -- | A process that adds up the inputs from the user, printing
 -- the partial sums
@@ -58,7 +58,6 @@ sumProc n = MCons $ do
     s <- getLine
     let n' = n + read s
     return (n', sumProc n')
-
 
 
 -- | An example of combining two processes with interleaveReadM

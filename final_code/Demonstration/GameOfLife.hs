@@ -167,7 +167,7 @@ newCell g = do putStrLn "Input x, y coord to turn on"
 -- | A stream of streams where the nth is the stream where you can set n+1 cells before
 -- the GoL is run
 interactiveLifeStream :: Process (LifeStream Bool)
-interactiveLifeStream = fmap (iterateC rule) (MS.iterate newCell glider2)
+interactiveLifeStream = fmap (iterateC rule) (MS.iterate newCell glider1)
 
 -- | Turns each of the inner streams into processes which print the evolution after a
 -- particular number of cell additions by a user
