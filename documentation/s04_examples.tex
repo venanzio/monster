@@ -1,0 +1,271 @@
+\section{Examples}
+
+By instantiating monadic streams with different monads, you can form well-known data types, or variations of these. This has provided good insight into what kinds of operations are possible to perform on monadic streams in general.
+
+For each one of these instances, we look at how they correspond to other related data structures. In the next section, we also investigate how a few generic functions on monadic streams act on each of these instances, with respect to the data structures they represent.
+
+All of these instances of monadic streams, and some of their related operations, are implemented in the attached library.
+
+
+\subsection{Identity monad}
+
+To recap from section 2, when instantiating $\stream{M,A}$ with the identity monad, we obtain the type of pure streams.
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{A}:\set\\
+\quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}
+\end{array}
+$$
+All standard operations on streams can be implemented for this type.
+
+Interestingly, pure streams are also comonads, and this is also true in general for any monadic stream where the underlying functor has a comonad structure. This is discussed at the end of this section, where we look at examples of comonadic streams.
+
+\subsection{Maybe monad}
+
+When the underlying functor is $\maybe$, we get the type of lazy lists
+
+$$
+\begin{array}[t]{l}
+\codata\;
+\lst{A}:\set\\
+\quad (\scons): A\times \lst{A}\rightarrow\lst{A}\\
+\quad \nil: \lst{A}
+\end{array}
+$$
+
+This type is isomorphic to lazy lists, with every operation possible on lists also possible on Maybe-monsters. This isomorphism is witnessed by the two functions:
+
+\begin{haskell}
+fromL :: [a] -> MonStr Maybe a
+fromL [] = Nothing
+fromL (x:xs) = MCons (Just (x, fromL xs))
+
+toList :: MonStr Maybe a -> [a]
+toList (MCons Nothing) = []
+toList (MCons Just (x, xs)) = x : (toList xs)
+\end{haskell} 
+
+It is clear from the definitions that these are the exact inverse of one another. 
+
+This isomorphism has provided a useful benchmark to test different functions on generic monadic streams against. For each function in \verb+Data.List+ that has been generalised for monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the original function in \verb+Data.List+. For this, we use the QuickCheck library:
+
+\begin{haskell}
+prop_drop :: Property
+prop_drop = forAll (genListMonStr >*< chooseInt (0,1000)) $
+               \((l, ms), n) -> drop n l === toList (dropM n ms)
+\end{haskell}
+
+This function builds a QuickCheck property, which checks whether the drop function (removal of the first $n$ elements) on lists and Maybe-monsters work identically. This makes use of the isomorphism, allowing the types to be freely converted between in order to check equality. 
+
+Included with the library is a whole suite of tests in this style, showing the correspondence between functions on Maybe-monsters and functions on lazy lists defined in the Haskell standard library.
+
+All standard (and many non-standard) operations on lists are implemented for generic monads, sometimes with the requirement that the functor is an instance of \verb+Foldable+ or \verb+Alternative+.
+
+\subsection{List monad}
+
+When instantiating with the list monad, we get the type of branch-labelled trees. These are a variation on the usual type of Rose trees, where the \emph{edges} of the trees contain values, not the nodes or leaves.
+
+$$
+\begin{array}[t]{l}
+\codata\;
+\mathsf{BLTree}(A):\set\\
+\quad \mathsf{node} : \lst{A \times \mathsf{BLTree}(A)} \rightarrow \mathsf{BLTree}(A)\\
+\quad \mathsf{leaf} : \mathsf{BLTree}(A)
+\end{array}
+$$
+
+Branch-labelled trees with one extra 'root' element are isomorphic to Rose trees, as shown below - this corresponds to the idea that every node in a tree has a unique branch from its parent, with the exception of the root node, which has no parent.
+
+\begin{haskell}
+data RoseTree a = RNode a [RoseTree a]
+
+phi :: (a, MonStr [] a) -> RoseTree a
+phi (a , MCons ts) = RNode a (fmap phi ts)
+
+psi :: RoseTree a -> (a, MonStr [] a)
+psi (RNode a ts) = (a , MCons (fmap psi ts))
+\end{haskell}
+
+Branch-labelled trees in general are more useful for applications where you care only about \emph{paths} down a tree, or \emph{transitions} between states rather than the states themselves. 
+
+As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a List-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree.
+
+Another example is probability trees - the branches represent choices, and the labels the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. Included in the demonstration code are some operations on and examples of List-monsters, with this concept in mind. \\
+
+Some standard operations on trees don't work for this variation, but traversal operations return the branch labels in the expected order, with the convention of traversing left-to-right. 
+
+\subsection{Reader monad}
+
+Yet another interesting type is that of Reader-monsters, which weakly correspond to the type of Mealy machines. 
+
+These are a type of finite state transducer, with a set of states $S$, input alphabet $\Sigma$, output alphabet $\Delta$, an initial state $s_0 \in S$, and a transition function $\delta : S \times \Sigma \to S \times \Delta$. They are typically used to model computations where the outputs depend on both the internal state and an input.
+
+$$
+\begin{array}[t]{l}
+\mathbf{record}\;
+\mathsf{Mealy}(S,\Sigma,\Delta):\set\\
+\quad \delta : S \times \Sigma \to S \times \Delta \\
+\quad s_0 : S
+\end{array}
+$$
+
+There is a close correspondence (maybe an equivalence?) between these two types, indicated by these natural transformations:
+\begin{haskell}
+data StateFunc i o = SF { getSF :: i -> (StateFunc i o, o) }
+
+mealyToMonStr :: Mealy s i o -> SMStr i o
+mealyToMonStr (Mealy s tf) = MCons (\e -> let (s', a) = tf (s, e) 
+	in (a, mealyToMonStr (Mealy s' tf)))
+
+monStrToMealy :: SMStr i o -> Mealy (StateFunc i o) i o
+monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (getSF g) e)
+	where 
+		aux :: (e -> (a, MonStr ((->) e) a)) -> StateFunc e a
+		aux f = SF (\e -> let (a, g) = f e in (aux (uncons g), a))
+\end{haskell}
+
+The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. The Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function (or rather the part of the transition function corresponding to the state of the implied Mealy machine). \\
+
+Another type that Reader-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
+                             
+\subsection{State monad}
+
+Instantiation of monsters with the state monad gives a type that is similar again to that of Mealy machines, but supplies it's own input to each computation (after the first) - you can either 'restart' the machine by supplying a fresh state, or let it run with the states that it produces itself. This could be seen as a Mealy machine with feedback, one who's transition function returns a new input. We refer to this as a feedback machine ($\mathsf{FBMachine}$ for short):
+
+$$
+\begin{array}[t]{l}
+\mathbf{record}\;
+\mathsf{FBMachine}(S,\Sigma,\Delta):\set\\
+\quad \delta : S \times \Sigma \to S \times \Sigma \times \Delta \\
+\quad s_0 : S
+\end{array}
+$$
+
+Another way to think about a State-monster is an unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes a state, and returns a value, a new state, and a continuation function (another State-monster). When the new state is continuously applied to the next continuation, this calculates an infinite stream of values from an initial 'seed' state - quite similar to the unfold function, also called the stream \emph{co-iterator}.
+
+The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives a richer language by which to calculate outputs, where each function defines what the next function should be, depending on an input state. This makes them analogous to state machines, where $S$ is the set of functions the monster contains, and $\Sigma$ is the state values given as inputs.
+
+Most of what can be said about State-monsters is said in the reader monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$. The main difference is in how the stream is traversed - the state monad's join operation threads the state though each nested computation, whereas a Reader-monster can't do this with the reader monad operations alone.
+
+\subsection{IO monad}
+
+A monadic stream of IO actions corresponds to a non-terminating process. Due to the nature of the IO monad, these operate quite differently to other monsters.
+
+One interesting property is that an IO-monster is the only kind of non-well founded (infinite) monster, as far as we know, where collapsing the whole stream into one monadic action is possible and meaningful. This is done using the \verb+runProcess+ family of functions:
+
+\begin{haskell}
+runProcess :: Process a -> IO [a]
+runProcess (MCons s) = do (a,s') <- s
+                          as     <- runProcess s'
+                          return (a:as)
+\end{haskell}
+
+This is because IO actions can continuously interact with the outside world, and call other functions, \emph{without having to terminate}. The IO action produced by collapsing an IO-monster is the sequence of all IO operations in the stream. \\
+
+Given a process (an IO-monster), you may want to use some of the output values in another computation. To get these values, you need to run the IO actions in the monster. However, since the first action will never return (as all of the subsequent actions are nested inside), this is not possible with strict IO. Instead, you have to use lazy IO, so that only the values that are calculated inside the IO-monster are immediately available. This requires \verb+unsafeInterleaveIO+ \cite{unsafe_io}, which defers execution of IO actions until their result is needed. 
+
+In these functions, we are trying to output the first value computed by running a process \verb+proc0+:
+
+\begin{haskell}
+proc0 :: Process a
+
+run0 :: IO ()
+run0 = do as <- runProcess proc0
+          putStrLn $ show (as !! 0)
+
+run1 :: IO ()
+run1 = do as <- unsafeRunProcess proc0
+          putStrLn $ show (as !! 0)
+\end{haskell}
+
+Here, \verb+run0+ will run the process \verb+proc0+, and the code that show the first element will never be reached since \verb+runProcess proc0+ doesn't terminate.
+
+In \verb+run1+, we use \verb+unsafeRunProcess+, which is defined as:
+
+\begin{haskell}
+unsafeRunProcess :: Process a -> IO [a]
+unsafeRunProcess (MCons s) = 
+	do (a,s') <- s
+	   as     <- unsafeInterleaveIO (unsafeRunProcess s')
+	   return (a:as)
+\end{haskell}
+
+Each of the IO actions in the process are run with \verb+unsafeInterleaveIO+, allowing the process to return 'early', and the \verb+putStrLn $ show (as !! 0)+ statement to be reached. This then forces the first IO action in the process to run, since the first element of \verb+as+ is needed (\verb+as !! 0+ returns the first element of the accumulated values from running the process).
+
+Using \verb+unsafeInterleaveIO+ introduces concurrency problems into otherwise relatively pure Haskell programs. For simple IO-monsters, that just output values to the screen, this is not a big issue, but more complicated ones may cause problems (for example ones that read and write to a file). \\
+
+This problem informed the development of a more general operation on monadic streams, \verb+interleaveReadM+, which allows for interleaving two monsters, where each element in the second depends on elements in the first.
+
+\begin{haskell}
+interleaveReadM :: Monad m => MonStr m a -> MonStr (ReaderT a m) b 
+															-> MonStr m b
+interleaveReadM (MCons ma) (MCons f) = MCons $ 
+	do (a, ma') <- ma
+	   (b, f')  <- runReaderT f a 
+	   return (b, interleaveReadM ma' f')
+\end{haskell}
+
+This is useful for sequencing IO-monsters, without resorting to possibly unsafe methods. It relies on the \verb+ReaderT+ monad transformer, monad transformers being something we haven't touched on yet. They are essentially a method of stacking different monads to combine their effects. Here, we are using the \verb+ReaderT a IO+ monad, which represents an IO action that is computed from some environment of type \verb+a+. 
+
+Shown below is an example of combining two processes with this operation.
+
+\begin{haskell}
+inputProc :: Process Char
+inputProc = MCons $ do c <- getChar
+                       return (c, inputProc)
+                       
+outputProc :: Show a => MonStr (ReaderT a IO) ()
+outputProc = MCons $ do a <- ask 
+                        liftIO $ putStrLn (show a)
+                        return ((), outputProc)
+
+testProc :: IO ()
+testProc = runVoidProcess (interleaveReadM inputProc outputProc)
+\end{haskell}
+
+Using this function lets you define dependent processes separately and then combine them afterwards. 
+
+Variations on this function give lots of options for modifying processes. For example, we could write a version of \verb+run1+ from earlier using \verb+insertActReadM+, which inserts a 'dependent' monadic action at a given index.
+
+\begin{haskell}
+run1 :: IO [Int]
+run1 = runProcess (insertActReadM 0 (\a -> 
+	do putStrLn (show a)
+	   return ()) proc0)
+\end{haskell}
+
+This won't terminate, but prints the first element of the IO-monster like we wanted. 
+
+To stop the process (without resorting to \verb+unsafeInterleaveIO+), we modify \verb+runProcess+ so that it stops unfolding the IO-monster when a given predicate is true:
+
+\begin{haskell}
+stopAtPred :: (a -> Bool) -> Process a -> IO a
+stopAtPred p (MCons s) = do (a, s') <- s
+                            if p a then (return a) else (stopAtPred p s')
+\end{haskell}
+ 
+As a side-note, \verb+runProcess+ can now be written as:
+ 
+ \begin{haskell}
+runProcess :: Process a -> IO a
+runProcess = stopAtPred (\_ -> False)
+\end{haskell}
+
+With this, it is now possible to terminate the process given a particular predicate. It is also possible to terminate a process at a particular index in the IO-monster, thus giving exactly the behaviour we wanted for \verb+run1+, without the unsafe IO (this is included in the example code, as it is a bit more complicated). \\
+
+As demonstrated, IO-monsters are tricky, but provide an interesting intensional way of modelling processes, allowing the computations that they consist of to be modified after their definition.
+ 
+\subsection{Store comonad}
+
+The store comonad is a pair of a state (called the store) and a function to extract a value from that state:
+
+\begin{haskell}
+data Store s a = Store (s -> a) s
+\end{haskell}
+
+A Store-comonster, a monadic stream using the store comonad, is a stream where extracting from the store gives a value, and a \emph{new store}. This encapsulates the idea of an environment that can be used to modify itself. Cellular automata fit this description perfectly, where the state of the environment is calculated from the previous using a rule. 
+
+The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a State-comonster already 'contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
+
+To show this, there is an implementation of Conways game of life included in the demonstration code. This demo uses a kind of Zipper comonad instead of store for some more efficiency, but the type used is isomorphic to \verb+Store Int Bool+.
