@@ -107,7 +107,7 @@ In practice the coinduction principle is applied by recursively invoking the sta
 As an example, let us use the coinduction principle to prove that the two versions of the function $\sfr$ defined in Section \ref{sec:mstreams} are equal,
 that is, $\sf\,n = \sfp\,n$ for all natural numbers $n$.
 We will first need a lemma about $\sfp$, basically saying that it satisfies the tail equaltion of $\sfr$, which we also prove by coinduction.
-\begin{lemma}
+\begin{lemma}\label{lemma:sfp}
 For all natural numbers $n$, $\tail\,(\sfp\,n) = \sfp\,(n+1)$.
 \end{lemma}
 \begin{proof}
@@ -116,7 +116,42 @@ $$
 \begin{array}{r@{{}={}}l}
 \tail\,(\sfp\,n)
 & \tail\,(n \scons (\sfp\,n \oplus \bar{1}))\\
-& \sfp\,n \oplus \bar{1}
+& \sfp\,n \oplus \bar{1}\\
+& (\head\,(\sfp\,n) +1) \scons (\tail\,(\sfp\,n)  \oplus \bar{1})\\
+& (n+1) \scons (\tail\,(\sfp\,n)  \oplus \bar{1})\\
+\sfp\,(n+1)
+& (n+1) \scons (\sfp\,(n+1) \oplus \bar{1})
 \end{array}
 $$
+The two expressions have the same head, $n+1$, so we just need to prove that the tails are equal.
+For this we can simply invoke the {\em coinductive hypothesis}, that is, apply the statement of the lemma $\tail\,(\sfp\,n) = \sfp\,(n+1)$.
 \end{proof}
+
+To readers unfamiliar with this style of reasoning, this proof may seem hopelessly circular: we invoke the statement that we're trying to prove in its own proof.
+However, the circular appeal to the statement is restricted to proving equality of the tails: it is guarded by constructors. 
+This constraint on the structure of the proof makes it ameanable to be reformulated more rigorously in the form of a bisimulation.
+(Strictly speaking, the coinductive hypothesis is applied to terms that are arguments of $\oplus$, so it is not technically guarded; but as in the case of the definition of $\sfp$, this lax use can be readily justified.)
+
+We can now use the lemma to prove that both versions of the function are equal.
+\begin{theorem}
+For all natural numbers $n$, $\sfr\,n = \sfp\,n$.
+\end{theorem}
+\begin{proof}
+We unfold the left-hand side of the equation, then use the coinductive hypothesis and the previous lemma to reduce it to the right-hand side.
+$$
+\begin{array}{r@{{}={}}ll}
+\sfr\,n
+& n \scons \sfr\,(n+1)\\
+& n \scons \sfp\,(n+1) & \mbox{by Coinductive Hypothesis}\\
+& n \scons \tail\,(\sfp\,n) & \mbox{by Lemma \ref{lemma:sfp}}\\
+& \sfp\,n
+\end{array}
+$$
+The last step is justified because $n = \head\,(\sfp\,n)$ by definition and trivially any stream $\sigma$ is equal to $\head\,\sigma \scons \tail\,\sigma$.
+\end{proof}
+
+When working with monadic streams, we can similarly use proof by coinduction by invoking as coinductive hypothesis the statement we are proving.
+Uses of the coinductive hypothesis are justified if they are applied to the {\em sub-components} of the stream.
+
+We will illustrate this when we prove statements about some of the instantiations monadic streams.
+For example, when using list-monsters (monadic streams where the underlying monad $M$ is $\lstsym$), we are allowed to apply the coinductive hypothesis to the tails of all elements in the list.
