@@ -195,7 +195,7 @@ outMS ms = (headMS ms, tailMS ms)
 
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
-  as >>= f = (joinInnerMS . joinPrelimMS . makeMonMatrix f) as
+  as >>= f = (joinMS' . fmap f) as
 
   
 

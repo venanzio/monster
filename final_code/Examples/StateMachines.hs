@@ -7,6 +7,8 @@ import MonadicStreams
 import Examples.PureStreams
 import Control.Monad.State
 
+import Prelude hiding (head, tail)
+
 -- | Type of state machines, using the Reader monad
 type SMStr i o = MonStr ((->) i) o
 
@@ -175,6 +177,9 @@ flipper = MCons (state (\n -> ((n, flipper), (n+1) `mod` 2)))
 modCounter :: Int -> FBMachine Int Int
 modCounter n = MCons (state (\x -> ((x, modCounter n), (x+1) `mod` n)))
 
+fromStep :: Int -> FBMachine Int Int
+fromStep n = MCons (state (\x -> ((x, fromStep (n+1)), x+n)))
+
 -- | Generates the fibonnacci numbers
 fibGen :: FBMachine (Int, Int) Int
 fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
@@ -182,3 +187,21 @@ fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 fibS :: Stream Int
 fibS = runFBStr fibGen (0, 1)
 
+
+-- MOMENTARILY HERE FOR EXPLORING MONAD COUNTEREXAMPLE
+
+joinPrelimMS :: Monad m => MonStr m (MonStr m a) -> MonStr m (m a)
+joinPrelimMS mm = MCons $ fmap (\(as,ss) -> (head as, joinPrelimMS (fmap (absorbM . tail) ss))) (uncons mm)
+
+joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
+joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> uncons mas)
+
+joinMS' ::  Monad m => MonStr m (MonStr m a) -> MonStr m a
+joinMS' = joinInnerMS . joinPrelimMS
+
+outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
+outMS ms = (head ms, tail ms)
+
+instance Monad m => Monad (MonStr m) where
+  -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
+  as >>= f = (joinMS' . fmap f) as
