@@ -1,4 +1,3 @@
-
 \section{The Coinduction Principle}
 
 As inductive types come together with an {\em induction principle}, stating that we can prove statements about them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
@@ -105,4 +104,19 @@ Final coalgebras satisfy the coinduction principle.
 
 In practice the coinduction principle is applied by recursively invoking the statement that we want to prove as {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is deployed to prove the statement on the components of the initial terms.
 
-For example
+As an example, let us use the coinduction principle to prove that the two versions of the function $\sfr$ defined in Section \ref{sec:mstreams} are equal,
+that is, $\sf\,n = \sfp\,n$ for all natural numbers $n$.
+We will first need a lemma about $\sfp$, basically saying that it satisfies the tail equaltion of $\sfr$, which we also prove by coinduction.
+\begin{lemma}
+For all natural numbers $n$, $\tail\,(\sfp\,n) = \sfp\,(n+1)$.
+\end{lemma}
+\begin{proof}
+We unfold the two sides of the equality, simplifying according to the definitions of $\sfp$, $\oplus$, and $\bar{1}$:
+$$
+\begin{array}{r@{{}={}}l}
+\tail\,(\sfp\,n)
+& \tail\,(n \scons (\sfp\,n \oplus \bar{1}))\\
+& \sfp\,n \oplus \bar{1}
+\end{array}
+$$
+\end{proof}
