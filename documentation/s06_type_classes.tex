@@ -218,38 +218,95 @@ fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) ->
 
 \subsection{Monad Counter-example}
 
-It's natural to ask, given the chosen name for this data structure, whether monsters themselves are monads, at least when the underlying functor is a monad. This is also a natural question because pure streams (with no functor guarding the elements) are monads. However, it turns out not to be the case in general, and we suspect that more constraints need to be placed on the underlying monad for the monster itself to be a monad. Namely, we believe the underlying monad should be idempotent.
+It's natural to ask, given the chosen name for this data structure, whether monsters themselves are monads, at least when the underlying functor is a monad. This is also a natural question because pure streams (with no functor guarding the elements) are monads. However, it turns out not to be the case in general, and we suspect that more constraints need to be placed on the underlying monad for the monster itself to be a monad. Namely, we believe the underlying monad should be idempotent. \\
 
-One fairly easy example of why monadic streams aren't monads in general uses State-monsters. The one defined here, when run, generates the stream of integers where the first two differ by $n$, the next two differ by $n+1$, and so on:
+An example of why monadic streams aren't monads in general uses State-monsters. The one defined here, when run, generates the stream of integers where the first two differ by $n$, the next two differ by $n+1$, and so on:
 \begin{haskell}
 fromStep :: Int -> FBMachine Int Int
 fromStep n = MCons (state (\x -> ((x, fromStep (n+1)), x+n)))
 \end{haskell}
 \verb+FBMachine (Int,Int)+ is shorthand for \verb+MonStr (State (Int, Int))+, standing for 'feedback machine' (the meaning is explained in the examples).
 
-For monadic streams to be a monad, we have to be able to join, or flatten, a monster of monsters into a single monster, with respect to certain laws. We also need a function \verb+return+ which injects a pure value into a monster.
+For monadic streams to be a monad, we have to be able to join, or flatten, a monster of monsters into a single monster, with respect to certain laws - this is done in Haskell using a function \verb+>>=+, pronounced 'bind'. We also need a function \verb+return+ which injects a pure value into a monster.
 
 The only return operation that makes sense is to apply the return of the underlying monad, and then repeatedly nest this inside itself (the same as \verb+pure+ from the Applicative instance):
 \begin{haskell}
 return :: Monad m => a -> MonStr m a
 return a = MCons $ fmap (\a -> (a, return a) (return a)
 \end{haskell}
-Bear in mind that the rightmost \verb+return a+ is of type \texttt{a $\to$ m a}, and the one nested inside the tuple is of type \texttt{Monad m $\Rightarrow$ a $\to$ MonStr m a}.
+Bear in mind that the rightmost \verb+return a+ is of type \texttt{a $\to$ m a}, and the one nested inside the tuple is of type \texttt{Monad m $\Rightarrow$ a $\to$ MonStr m a}. \\
 
-One of the monad laws this definition would need to obey is the left identity law, which states: 
+One of the monad laws any monad needs to obey is the left identity law, which states: 
 \begin{haskell}
 f :: a -> MonStr m b
 a :: a
 return a  >>=  f == f a
 \end{haskell}
+In Haskell this laws is defined in terms of the bind (\verb+>>=+) operation, but is equivalent to left identity law in the Kleisli category of a monad.
 
-To show that monsters are not a monad, we look at the result of running the State-monster \verb+fromStep 1+ with the starting state \verb+1+, and reason why \texttt{return 1 >>= fromStep} will not produce the same output when run with the same initial state.\\
+Another monad law that bind has to obey is the right identity:
+\begin{haskell}
+ma :: MonStr m a
+ma  >>= return == ma
+\end{haskell}
+
+We use the fact that bind is defined in terms of join:
+\begin{haskell}
+(>>= f) = join . fmap f 
+\end{haskell}
+The \verb+join+ function in this case is of type \texttt{MonStr m (MonStr m a) $\to$ MonStr m a}, which can be thought of as flattening a monster of monsters down into a single monster. \\
+
+To show that monsters are not a monad, we reason that for any possible definition of join, there are counter-examples where it doesn't satisfy either the left or right identity laws.\\
 
 Running \verb+fromStep 1+ with \verb+1+ produces the stream:
 \begin{haskell}
 runFBStr (fromStep 1) 1 = 1 <: 2 <: 4 <: 7 <: 11 <: (*...*)
 \end{haskell}
 
-\verb+return 1+ produces a monster where every element is $1$, polymorphic in the monad. Since \verb+return+ is the left and right unit for composition of Kleisli arrows (in any correctly defined monad), we ignore any actions produced by it in the following reasoning.
+This is the stream where, starting at $1$ for example, you add $1$ to get $2$, then add $2$ to get $4$, then add $3$ to get $7$, and so on. The fact that each step in the stream can be thought of as an action of 'adding some number' is pivotal to the upcoming reasoning.\\
 
-The bind operation \verb+(>>= fromStep)+ is identical to \texttt{join . fmap fromStep}, \verb+join+ being a function of type \texttt{MonStr m (MonStr m a) $\to$ MonStr m a} that flattens a monster of monsters into a single monster. 
+\verb+return 1+ produces a monster where every element is $1$, polymorphic in the monad. \verb+return+ is the left and right unit for composition of Kleisli arrows (in any correctly defined monad), so we ignore any actions produced by it as they have no effect. \\
+
+Since \verb+>>=+ is defined in terms of \verb+fmap+ and \verb+join+, we can start by looking just at \verb+fmap fromStep (return 1)+, and come back to joining the monster of monsters later.
+\begin{haskell}
+fmap fromStep (return 1) = (fromStep 1) <: (fromStep 1) <: (*...*)
+\end{haskell}
+
+Now, to join (flatten) this into a single stream, we need to somehow reconstruct \verb+fromStep 1+. There are three ways to do this, WLOG:
+
+\subsection{Case 1}
+We cannot take just the head of each stream, because the first action in each is 'adding $1$' - we would end up with a stream where $1$ is added to the previous element to get the next, which wasn't the definition of \verb+fromStep 1+. This could be thought of as taking the 'horizontal'. 
+
+\subsection{Case 2}
+The other naive method, which would work in this case, is to just take the first element of the stream, which \emph{is} \verb+fromStep 1+. We call this taking the 'vertical', which doesn't work in general as shown by another example:
+
+Consider the pure stream \verb+from n+, defined as
+\begin{haskell}
+from :: Monad m => Int -> MonStr m a 
+from n = n <: (from (n+1))
+\end{haskell}
+
+\verb+from 0+ gives the stream of natural numbers.
+\begin{haskell}
+from 0 = 0 <: 1 <: 2 <: (*...*)
+\end{haskell}
+
+We now look a the monster of monsters defined with this in mind:
+\begin{haskell}
+fmap return (from 0) = (return 0) <: (return 1) <: (return 2) <: (*...*)
+\end{haskell}
+
+Considering the right identity monad law, it is clear in this case that the join operation cannot be defined as taking the first element of the monster, since \verb+return 0+ $\neq$ \verb+from 0+.
+
+\subsection{Case 3}
+
+The only other way, considering the two examples, is to take the diagonal. This is because, in the first example:
+\begin{haskell}
+fmap fromStep (return 1) = (fromStep 1) <: (fromStep 1) <: (*...*)
+\end{haskell}
+we need the first action of the first stream (adding $1$), the second action of the second stream (adding $2$), and so on, to recreate  \verb+fromStep 1+.
+
+However, to get the second action of the second stream (an 'adding $2$' action), we also need to traverse the \emph {first} action of the second stream (another 'adding $1$' action), since each element in a monadic stream is guarded by the previous. This would result in the net effect of 'adding $3$', which isn't what we need to reconstruct the second action of \verb+fromStep 1+. 
+
+Any other, more convoluted way of trying to get the action of 'adding $2$' falls under either, or a combination of, these three cases, which can be seen by reasoning with the examples given.
+

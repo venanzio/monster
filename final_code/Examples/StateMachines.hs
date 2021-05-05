@@ -315,3 +315,8 @@ outMS ms = (head ms, tail ms)
 instance Monad m => Monad (MonStr m) where
   -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
   as >>= f = (joinMS' . fmap f) as
+
+
+f = fromStep
+a = f 1
+b = return 1 >>= fromStep
