@@ -1,0 +1,255 @@
+
+\section{Instances of Functor, Applicative, Monad}
+
+Show that monadic streams are an instance of these three classes, under some assumptions about the underlying monad.
+
+So far we determined that we think that MonStr satisfies the monad laws if the underlying monad is commutative and idempotent \cite{idempotent_monads}. (Proof?)
+
+What about Applicative?
+
+Give conterexamples where it isn't a monad (using State).
+
+Also examples when it is a monad even if the underlying monad is not commutative and idempotent: with List as underlying monad we obtain Trees, which are a monad. Can this be generalized.
+
+This section outlines the Functor, Applicative, and Comonad instances, proving that the functions defined on monadic streams to implement these satisfy the relevant laws. We will prove these with a mixture of equational reasoning (using Haskell), and categorical reasoning.
+
+\subsection{Functor Instance}
+
+To show that $\stream{M}$ is a functor whenever $M$ is, we have to define its behaviour on morphisms: if $f:A\rightarrow B$, then we must define how $f$ maps on monadic streams:
+$$
+\begin{array}{l}
+\stream{M}\,f : \stream{M,A} \rightarrow \stream{M,B}\\
+\stream{M}\,f\,(\mcons\,m) = \mcons\,(M\,(f\times \stream{M}\,f)\,m)
+\end{array}
+$$
+
+This definition doesn't strictly comply with the {\em guarded-by-constructors} discipline: the recursive call to $(\stream{M}\,f)$ doesn't occur directly as an argument to the constructor $\mcons$, but it is below the $\times$ operator and an application of $M$.
+However, this is just the application of the functor $M\,(- \times -)$ which defines the final coalgebras. In other words, this is actually how we determine the positions in the container tree.
+\begin{vcomment}
+	This is very badly explained: needs more extensive clarification.
+\end{vcomment}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Functor instance in Haskell}
+
+\begin{haskell}
+unwrapMS :: MonStr m a -> m (a, MonStr m a)
+unwrapMS (MCons m) = m
+
+transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) ->
+                                  MonStr m a -> MonStr m b
+transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
+
+instance Functor m => Functor (MonStr m) where
+   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
+   fmap f = transformMS (\a s -> (f a, fmap f s))
+\end{haskell}
+
+\subsubsection{Functor proof}
+
+Proof that \hcode{fmap id == id}
+
+\begin{haskell}
+fmap id = transformMS (\a s -> id a, fmap id s)
+-- definition of `transformMS`
+= \s -> MCons $ fmap (\(h,t) -> (\a s -> (id a, fmap id s)) h t) (unwrapMS s)
+-- application of `(\a s -> (id a, fmap id s))` to `h t`
+= \s -> MCons $ fmap (\(h,t) -> (id h, fmap id t)) (unwrapMS s)
+-- take as assumption that `fmap id t == id t` - coinductive hypothesis?
+= \s -> MCons $ fmap (\(h,t) -> (id h, id t)) (unwrapMS s)
+-- definition of `id`
+= \s -> MCons $ fmap (\(h,t) -> (h,t)) (unwrapMS s)
+-- definition of `id`
+= \s -> MCons $ fmap id (unwrapMS s)
+-- `unwrapMS` returns an element in a functor, so `fmap id == id` in this case
+= \s -> MCons $ id (unwrapMS s)
+-- application of `id`
+= \s -> MCons $ (unwrapMS s)
+-- MCons and unwrapMS are inverses
+= \s -> id s 
+= id
+\end{haskell}
+
+Proof that \verb+fmap (f . g) == (fmap f) . (fmap g)+
+
+To simplify notation in the proof, we introduce the notation \verb+tr(f)+ for the expression \verb+\(h,t) -> (f h, fmap f t)+.
+
+We're going to use the fact that the underlying operator \verb+m+ is a functor and so satisfies the functor laws, and also that the pairing operator \verb+(,)+ is functorial in both arguments.
+
+By definition of \verb+fmap+ for monsters, we have that
+\begin{haskell}
+fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
+         = MCons $ fmap (\ (h,t) -> (\a s -> (f a, fmap f s) h t)) (unwrapMS s)
+         = MCons $ fmap (\ (h,t) -> (f h, fmap f t)) (unwrapMS s)
+         = MCons $ fmap tr(f) (unwrapMS s)
+\end{haskell}
+
+We also use the fact that the monster constructor \verb+MCons+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
+
+\begin{haskell}
+fmap (f . g) = transformMS (\a s -> (f . g) a, fmap (f . g) s)
+-- definition of `transformMS`
+= \s -> MCons $ fmap (\(h,t) -> (\a s -> ((f . g) a, fmap (f . g) s)) h t) (unwrapMS s)
+-- application of `(\a s -> ((f . g) a, fmap (f . g) s))` to `h t`
+= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, fmap (f . g) t)) (unwrapMS s)`
+-- take as assumption that `fmap (f . g) t == (fmap f . fmap g) t` - coinductive hypothesis?
+= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, (fmap f . fmap g) t)) (unwrapMS s)
+-- By fuctoriality of pairing in both components
+= \s -> MCons $ fmap (tr(f) . tr(g)) (unwrapMS s)
+-- By functoriality of the underlying operator m
+= \s -> MCons $ (fmap tr(f)) . (fmap tr(g)) (unwrapMS s)
+-- MCons and unwrapMS are inverses
+= \s -> MCons $ fmap tr(f)) $ unwrapMS $ MCons $ fmap tr(g) (unwrapMS s)
+= \s -> MCons $ fmap tr(f)) $ unwrapMS $ fmap g s
+= \s -> fmap f $ fmap g s
+= fmap f . fmap g
+\end{haskell}
+
+\subsection{Applicative instance in Haskell}
+
+\begin{haskell}
+unwrapMS :: MonStr m a -> m (a, MonStr m a)
+unwrapMS (MCons m) = m
+
+transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) ->
+                                  MonStr m a -> MonStr m b
+transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
+
+instance Functor m => Functor (MonStr m) where
+   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
+   fmap f = transformMS (\a s -> (f a, fmap f s))
+\end{haskell}
+
+\subsection{Comonad instance in Haskell}
+
+\begin{haskell}
+instance Comonad w => Comonad (MonStr w) where
+  --extract :: MonStr w a -> a
+  extract = extract . headMS
+  
+  --duplicate :: MonStr w a -> MonStr w (MonStr w a)
+  duplicate s = MCons $ fmap (\(h,t) -> (s, duplicate t)) (unwrapMS s)
+\end{haskell}
+
+\verb+headMS+ returns the first element of the first pair in the monster, wrapped in the underlying functor. Since this functor is required to be a comonad, extract can be used to return the wrapped values inside.
+
+We introduce \verb+mm(s)+ for the "monster matrix" formed by a monadic stream \verb+s+ - this is defined as a monster where the first element is \verb+s+, the second is the tail of \verb+s+, the third is the tail of the tail of \verb+s+, and so on.
+
+The \verb+duplicate+ instance for monadic streams forms this "monster matrix": \verb+duplicate s = mm(s)+
+
+\subsubsection{Comonad law proofs}
+
+Proof that \verb+extract . duplicate == id+
+
+\begin{haskell}
+extract . duplicate 
+= \ms -> extract (MCons $ fmap (\(h,t) -> (ms, duplicate t)) 
+	(unwrapMS ms))
+= \ms -> extract (headMS (MCons $ fmap (\(h,t) -> (ms, duplicate t)) 
+	(unwrapMS ms)))
+= \ms -> ms 
+= id
+\end{haskell}
+
+Proof that \verb+fmap extract . duplicate == id+
+
+\begin{haskell}
+fmap extract . duplicate = \ms -> fmap extract (MCons $ fmap (\(h,t) -> 
+	(ms, duplicate t)) (unwrapMS ms))
+= \ms -> transformMS (\a s -> (extract a, fmap extract s)) (MCons $ 
+	fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+  [transformMS definition]
+= \ms -> MCons $ fmap (\(h,t) -> (extract h, fmap extract t)) 
+	(fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)) 
+= \ms -> MCons $ fmap (\(h,t) -> (extract ms, fmap extract (duplicate t))) 
+	(unwrapMS ms)
+  [coinductive hypothesis]
+= \ms -> MCons $ fmap (\(h,t) -> ((extract . headMS) ms, id t)) (unwrapMS ms)
+  [(extract . headMS) ms = a, first element of ms]
+= \ms -> MCons $ fmap (\(h,t) -> (a, id t)) (unwrapMS ms)
+  [a is defined as the first element of ms, so h = a under the fmap]
+= \ms -> ms
+= id
+\end{haskell}
+
+Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
+
+\begin{haskell}
+duplicate . duplicate = \ms -> duplicate (duplicate ms)
+= \ms -> MCons $ fmap (\(h,t) -> (duplicate ms, duplicate t)) $
+	(fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+= \ms -> MCons $ fmap ((\(h,t) -> (duplicate ms, duplicate (duplicate t))) 
+	(unwrapMS ms)
+                      
+fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) -> 
+	(ms, duplicate t)) (unwrapMS ms))
+= \ms -> transformMS (\a s -> (duplicate a, fmap duplicate s)) $
+	(MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+= \ms -> MCons $ fmap (\(h,t) -> (\a s -> 
+	(duplicate a, fmap duplicate s)) h t) (unwrapMS (MCons $ fmap (\(h,t) -> 
+	(ms, duplicate t)) (unwrapMS ms)))
+= \ms -> MCons $ fmap (\(h,t) -> (duplicate h, fmap duplicate t)) $ 
+	(fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms))
+= \ms -> MCons $ fmap (\(h,t) -> 
+	(duplicate ms, fmap duplicate (duplicate t))) (unwrapMS ms)
+  [coinductive hypothesis]
+= \ms -> MCons $ fmap ((\(h,t) -> 
+	(duplicate ms, duplicate (duplicate t))) (unwrapMS ms)
+= duplicate . duplicate
+\end{haskell}
+
+
+%\section{Monad proof}
+%\input{monster_article_monad_proof}
+
+\subsection{Monad Counter-example}
+
+It's natural to ask, given the chosen name for this data structure, whether monsters themselves are monads, at least when the underlying functor is a monad. This is also a natural question because pure streams (with no functor guarding the elements) are monads. However, it turns out not to be the case in general, and we suspect that more constraints need to be placed on the underlying monad for the monster itself to be a monad. Namely, we believe the underlying monad should be idempotent.
+
+One fairly easy example of why monadic streams aren't monads in general uses State-monsters. The one defined here, when run, generates the stream of integers where the first two differ by $n$, the next two differ by $n+1$, and so on:
+\begin{haskell}
+fromStep :: Int -> FBMachine Int Int
+fromStep n = MCons (state (\x -> ((x, fromStep (n+1)), x+n)))
+\end{haskell}
+\verb+FBMachine (Int,Int)+ is shorthand for \verb+MonStr (State (Int, Int))+, standing for 'feedback machine' (the meaning is explained in the examples).
+
+For monadic streams to be a monad, we have to be able to join, or flatten, a monster of monsters into a single monster, with respect to certain laws. We also need a function \verb+return+ which injects a pure value into a monster.
+
+The only return operation that makes sense is to apply the return of the underlying monad, and then repeatedly nest this inside itself (the same as \verb+pure+ from the Applicative instance):
+\begin{haskell}
+return :: Monad m => a -> MonStr m a
+return a = MCons $ fmap (\a -> (a, return a) (return a)
+\end{haskell}
+Bear in mind that the rightmost \verb+return a+ is of type \texttt{a $\to$ m a}, and the one nested inside the tuple is of type \texttt{Monad m $\Rightarrow$ a $\to$ MonStr m a}.
+
+One of the monad laws this definition would need to obey is the left identity law, which states: 
+\begin{haskell}
+f :: a -> MonStr m b
+a :: a
+return a  >>=  f == f a
+\end{haskell}
+
+To show that monsters are not a monad, we look at the result of running the State-monster \verb+fromStep 1+ with the starting state \verb+1+, and reason why \texttt{return 1 >>= fromStep} will not produce the same output when run with the same initial state.\\
+
+Running \verb+fromStep 1+ with \verb+1+ produces the stream:
+\begin{haskell}
+runFBStr (fromStep 1) 1 = 1 <: 2 <: 4 <: 7 <: 11 <: (*...*)
+\end{haskell}
+
+\verb+return 1+ produces a monster where every element is $1$, polymorphic in the monad. Since \verb+return+ is the left and right unit for composition of Kleisli arrows (in any correctly defined monad), we ignore any actions produced by it in the following reasoning.
+
+The bind operation \verb+(>>= fromStep)+ is identical to \texttt{join . fmap fromStep}, \verb+join+ being a function of type \texttt{MonStr m (MonStr m a) $\to$ MonStr m a} that flattens a monster of monsters into a single monster. 

@@ -1,0 +1,63 @@
+
+\section{Related work and applications}
+
+The general application of this library is hinted at in the examples section: data structures that can be represented as monadic streams (with the underlying functor being a monad) give interesting and useful semantics to the general operations we have developed. 
+
+Perhaps the most interesting data structure correspondence is that of Reader-monsters and finite state transducers. In this context, the functions in our library provide a set of useful combinators to work with and define state machines. A few of these have been mentioned in sections 4 and 5, but more are shown in the attached example code.
+
+\subsection{FRP application}
+
+One further application of monadic streams is that they can be seen as a generalised form of Yampa's \cite{yampa_arcade} signal functions. This is expanded on by Perez et al. in \cite{frp_refactored}. For example, you can implement an integral signal function using the Reader monad. We use the same names as for the same constructs in Yampa, to make the correspondence clear:
+
+\begin{haskell}
+type DTime = Double
+
+type SignalFunc a b = MonStr ((->) (DTime, a)) b
+\end{haskell}
+
+\begin{haskell}
+integral :: SignalFunc Double Double
+integral = MCons integralAuxF
+                 
+integralAuxF :: (DTime, Double) -> (Double, SignalFunc DTime Double)
+integralAuxF (_, a) = (0 , integralAux 0 a)
+   where integralAux igrl a_prev = MCons (\(dt, a') -> 
+   		(igrl' dt, integralAux (igrl' dt) a'))
+      where igrl' dt' = igrl + (dt' * a_prev)
+\end{haskell}
+
+Additionally, combinators defined in our library work similarly to combinators in Yampa. For example, the (internal) signal function composition combinator \verb+compPrim+ is conceptually the same as our function \verb+interleaveReadM+, which was covered in the IO monad examples section.
+
+Yampas concept of signal functions is generalised further in Dunai, a library with an even closer relationship to monadic streams.
+
+\subsection{Relation to Dunai}
+
+Dunai \cite{frp_refactored}\cite{dunai} is an FRP library implemented using monadic stream functions (MSFs), which Yampa has been implemented on top of (see BearRiver \cite{bearriver}). \\
+
+The library we've developed in this article allows for a wide variety of operations on monadic streams. Since the MSFs used in Dunai are a special case of monsters (monsters with the underlying functor \verb+ReaderT a m+, where \verb+m+ is a monad), many functions in our library could be incorporated into Dunai, giving a set of potentially useful generalised transformations for MSF networks. \\
+
+For example, \verb+scanM+ could be used to calculate a stream of intermediate velocity values from a stream of position values, by taking the difference of each consecutive position:
+\begin{haskell}
+positions :: SignalFunc Env Double 
+
+speeds :: SignalFunc Env Double 
+speeds = scanM (\a b -> b - a) positions
+\end{haskell}
+
+Here, \verb+Env+ is just a type representing some environment the signal function is operating on. \\
+
+On the other hand, there are many interesting concepts in Dunai which could be incorporated into new functions in this library, such as their concept of FRP constructs. 
+
+These encapsulate the semantics of going from a \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, to a \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. When the monad transformer is \verb+ListT+ for example, this gives rise to the concept of parallelism with broadcasting. 
+
+Monad transformers were only briefly explored in the library, but this shows that there may be many more interesting constructs possible when taking them into account. \\
+
+Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams, you could model input streams where the value of the input (and the rest of the stream) depends on some environment. 
+
+Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as the progressing timelines of an environment under some iterated operation. The comonad provides the notion of environment, and the stream imbues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
+
+This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. \\
+
+One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this is unsafe, as the name suggests). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside the program.
+
+

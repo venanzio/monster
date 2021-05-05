@@ -1,0 +1,157 @@
+\section{The Coinduction Principle}
+
+As inductive types come together with an {\em induction principle}, stating that we can prove statements about them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
+
+Let us illustrate the idea with the example of pure streams:
+Suppose that we want to prove that two stream $\sigma_0$ and $\sigma_1$ are equal.
+Since streams are infinite sequences of elements, that will require proving equality of their entries in corresponding positions: if $\sigma_0 = a_0\scons a_1\scons a_2\scons \cdots$ and  $\sigma_1 = b_0\scons b_1\scons b_2\scons \cdots$, we must prove $a_0 = b_0$, $a_1 = b_1$, $a_2=b_2$, and so on (we assume equality on streams is extensional).
+This is an infinite sequence of equalities to prove.
+Clearly we cannot produce all the proofs explicitely.
+However, the proof of equality can be seen itself as a stream of proofs of equalities of their elements.
+We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitely the equality of the heads.
+
+More specifically, we often need to prove that two functions produce equal streams.
+Suppose $f,g:X \rightarrow \stream{A}$ are the two functions, and they are both defined by guarded recursion (that is, defined by coalgebras):
+$$
+f\,x = h_f(x) \scons f\,(t_f(x)) \qquad g\,x = h_g(x) \scons f\,(t_g(x)).
+$$
+So $f$ is defined by the coalgebra $\langle h_f, t_f\rangle : X \rightarrow A\times X$ and $g$ is defined by the coalgebra $\langle h_g, t_g\rangle : X \rightarrow A\times X$.
+We want to prove that the two functions are extensionally equal; let us give a name to the proof of that statement:
+$$
+H: \forall x:X, f\,x = g\,x.
+$$
+We can do this by proving directly that the heads must be equal, $p_h:h_f(x) = h_g(x)$, and we would like to invoke the {\em coinduction hypothesis} $H$ for the tails.
+However, since the recursive calls are applied to potentially different elements of $X$ ($t_f(x)$ and $t_g(x)$), we can't apply $H$ directly.
+
+We can get around this problem by generalizing our goal: instead of proving that the functions give the same result when applied to the same input, we aim for the stronger statement that they give the same result when applied to inputs related by a certain binary relation $\bisim$:
+$$
+H: \forall x y:X, x\bisim y \rightarrow f\,x = g\,x.
+$$
+If $\bisim$ is reflexive, this will imply our original goal.
+
+Two other properties are necessary to make things work.
+First, we need the equality of the heads of the output: if $x\bisim y$, then $h_f(x) = h_g(x)$.
+Second, we need that $\bisim$ is preseved under taking the tail functions for $f$ and $g$: if $x\bisim y$, then $t_f(x) \bisim t_g(x)$; so that we can now apply $H$ to obtain that $f(t_f(x)) = g(t_g(x))$.
+
+A relation $\bisim$ satisfying these two properties is called a {\em bisimulation} between the coalgebras $\langle h_f, t_f\rangle$ and $\langle h_g, t_g\rangle$.
+The principle of coinduction states that bisimilar elements generate equal streams.
+
+This notion can be generalized to coalgebras of any functor $F$.
+To formulated it we need a notion of {\em lifting} of a relation by the functor $F$: if $\bisim$ is a relation on a type $X$, we want to lift it to a relation $\bslift{F}$ on $F\,X$.
+A simple way to do it is to apply $F$ to the set-theoretic characterization of the relation: the set of all pairs that satisfy it: $R = \{ \langle x, y \rangle \mid x \bisim y\}$.
+We can then use the functorial lift of the projections $\pi_0, \pi_1:R \rightarrow X$ to say that two elements $u,w:F\,X$ are related if there exists an element $s:F\,R$ such that $F\,\pi_0\,s = u$ and $F\,\pi_1\,s = w$.
+This can be further generalized by allowing $R$ to be any type: a collection of {\em receipts} that certify that pairs of elements are related. 
+In category theory, this notion is called a {\em span}.
+
+\begin{definition}\label{def:span}
+Let $A$ be a type; a {\em span} on $A$ is a triple $\langle R,r_1,r_2\rangle$ where $R$ is a type and $r_1, r_2$ are functions $R\rightarrow A$.
+If $F$ is a functor, the {\em lifting of the span $R$ by $F$} is the span $\langle F\,R,F\,r_1,F\,r_2\rangle$ on $F\,A$.
+\end{definition}
+
+\begin{definition}\label{def:bisimulation}
+Let $\langle A,\alpha \rangle$ be a coalgebra.
+A span $\langle R,r_1,r_2\rangle$ is a {\em bisimulation} if there exists a morphism $\rho:R\rightarrow FR$ such that both $r_1$ and $r_2$ are coalgebra morphisms from $\langle R,\rho\rangle$ to $\langle A,\alpha\rangle$:
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{r}{R} & \Rnode{a}{A} \\[30pt]
+\Rnode{fr}{FR} & \Rnode{fa}{FA} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline[offset=3pt]{r}{a} \taput{r_1}
+\ncline[offset=-3pt]{r}{a} \tbput{r_2}
+\ncline[offset=3pt]{fr}{fa} \taput{Fr_1}
+\ncline[offset=-3pt]{fr}{fa} \tbput{Fr_2}
+\ncline{r}{fr} \tlput{\rho}
+\ncline{a}{fa} \trput{\alpha}
+\quad
+\begin{array}{l}
+\alpha \circ r_1 = Fr_1 \circ \rho\\
+\alpha \circ r_2 = Fr_2 \circ \rho.
+\end{array}
+$$
+(The diagram here is used only to declare the type of the morphisms: we don't assume that it commutes.
+The only equalities are the ones stated on the right.)
+\end{definition}
+
+The idea is that a relation is a bisimulation if, whenever two elements of $A$ are related by it, then their images through $\alpha$ are related by the lifting.
+If you think of $\alpha$ as giving the structure of an element this says: if two elements are related, then they must have the same shape, with components in corresponding positions also related.
+This notion of bisimulation was first introduced by Park \cite{park:1981} and Milner \cite{milner:1980} as a way of reasoning about processes.
+Similar concepts were developed earlier in other fields and substantial previous work prepared the background for its appearance.
+The survey article by Sangiorgi \cite{sangiorgi:2009} tells the history of the idea.  
+Aczel \cite{aczel:1988} adopted it as the appropriate notion of equality for non-well-founded sets.
+There are subtle differences between several notions of bisimulation that are not equivalent in full generality: recent work by Staton \cite{staton:2009} investigates their correlations.
+
+On $\stream{A}$ a bisimulation is a binary relation $\bisim$ such that
+$$
+\forall s_1, s_2:\stream{A}. s_1 \bisim s_2 \Rightarrow
+\hd{s_1} =\hd{s_2} \land
+\tl{s_1}\bisim \tl{s_2}.
+$$
+Notice that $s_1\bisim s_2$ guarantees that corresponding elements in the infinite sequences defined by $s_1$ and $s_2$ are equal, that is, $s_1$ and $s_2$ are extensionally equal.
+In fact, by repeatedly applying the above property, we have that $\heads{s_1}{n} = \heads{s_2}{n}$ for every $n$.
+
+\begin{definition}\label{def:coinduction}
+A coalgebra $\langle A,\alpha\rangle$ is said to satisfy the {\em coinduction principle} if every bisimulation $\langle R,r_1,r_2\rangle$ on it has $r_1=r_2$.
+\end{definition}
+
+Intuitively, the coinduction principle states that the elements of $A$ are completely characterised by their structure, which can be infinite.
+There is a well-known connection between finality of a coalgebra and the coinduction principle.
+
+\begin{theorem}\label{th:coinduction}
+Final coalgebras satisfy the coinduction principle.
+\end{theorem}
+
+In practice the coinduction principle is applied by recursively invoking the statement that we want to prove as {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is deployed to prove the statement on the components of the initial terms.
+
+As an example, let us use the coinduction principle to prove that the two versions of the function $\sfr$ defined in Section \ref{sec:mstreams} are equal,
+that is, $\sf\,n = \sfp\,n$ for all natural numbers $n$.
+We will first need a lemma about $\sfp$, basically saying that it satisfies the tail equaltion of $\sfr$, which we also prove by coinduction.
+\begin{lemma}\label{lemma:sfp}
+For all natural numbers $n$, $\tail\,(\sfp\,n) = \sfp\,(n+1)$.
+\end{lemma}
+\begin{proof}
+We unfold the two sides of the equality, simplifying according to the definitions of $\sfp$, $\oplus$, and $\bar{1}$:
+$$
+\begin{array}{r@{{}={}}l}
+\tail\,(\sfp\,n)
+& \tail\,(n \scons (\sfp\,n \oplus \bar{1}))\\
+& \sfp\,n \oplus \bar{1}\\
+& (\head\,(\sfp\,n) +1) \scons (\tail\,(\sfp\,n)  \oplus \bar{1})\\
+& (n+1) \scons (\tail\,(\sfp\,n)  \oplus \bar{1})\\
+\sfp\,(n+1)
+& (n+1) \scons (\sfp\,(n+1) \oplus \bar{1})
+\end{array}
+$$
+The two expressions have the same head, $n+1$, so we just need to prove that the tails are equal.
+For this we can simply invoke the {\em coinductive hypothesis}, that is, apply the statement of the lemma $\tail\,(\sfp\,n) = \sfp\,(n+1)$.
+\end{proof}
+
+To readers unfamiliar with this style of reasoning, this proof may seem hopelessly circular: we invoke the statement that we're trying to prove in its own proof.
+However, the circular appeal to the statement is restricted to proving equality of the tails: it is guarded by constructors. 
+This constraint on the structure of the proof makes it ameanable to be reformulated more rigorously in the form of a bisimulation.
+(Strictly speaking, the coinductive hypothesis is applied to terms that are arguments of $\oplus$, so it is not technically guarded; but as in the case of the definition of $\sfp$, this lax use can be readily justified.)
+
+We can now use the lemma to prove that both versions of the function are equal.
+\begin{theorem}
+For all natural numbers $n$, $\sfr\,n = \sfp\,n$.
+\end{theorem}
+\begin{proof}
+We unfold the left-hand side of the equation, then use the coinductive hypothesis and the previous lemma to reduce it to the right-hand side.
+$$
+\begin{array}{r@{{}={}}ll}
+\sfr\,n
+& n \scons \sfr\,(n+1)\\
+& n \scons \sfp\,(n+1) & \mbox{by Coinductive Hypothesis}\\
+& n \scons \tail\,(\sfp\,n) & \mbox{by Lemma \ref{lemma:sfp}}\\
+& \sfp\,n
+\end{array}
+$$
+The last step is justified because $n = \head\,(\sfp\,n)$ by definition and trivially any stream $\sigma$ is equal to $\head\,\sigma \scons \tail\,\sigma$.
+\end{proof}
+
+When working with monadic streams, we can similarly use proof by coinduction by invoking as coinductive hypothesis the statement we are proving.
+Uses of the coinductive hypothesis are justified if they are applied to the {\em sub-components} of the stream.
+
+We will illustrate this when we prove statements about some of the instantiations monadic streams.
+For example, when using list-monsters (monadic streams where the underlying monad $M$ is $\lstsym$), we are allowed to apply the coinductive hypothesis to the tails of all elements in the list.

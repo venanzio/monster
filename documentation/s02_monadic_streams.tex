@@ -1,0 +1,147 @@
+\section{Monadic Streams}\label{sec:mstreams}
+
+A monadic stream is a sequence of values in which every stage is obtained by triggering a monadic action.
+If $\sigma$ is such a stream, it will consist of an action for a certain monad $M$ that, when executed, will return a head (first element) and a tail (continuation of the stream).
+This process can be continued in a non-well-founded way: streams constitute a coinductive type.
+
+Formally the type of streams over a monad $M$ (let's call them $M$-monsters) is defined as:
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{M,A}:\set\\
+\quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}.
+\end{array}
+$$
+Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
+
+
+Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
+
+If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
+Its usual definition is the following:
+$$
+\begin{array}[t]{l}
+\codata\;
+\stream{A}:\set\\
+\quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}.
+\end{array}
+$$
+(The type of the constructor has been curried, as is common.)
+An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
+
+If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe,A}$, equivalent to the type of lazy lists $\lst{A}$.
+The $\maybe$ monad is a functor that adds an extra element to the argument type: $\maybe\,X \cong X+1$, so the single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+$$
+\begin{array}[t]{l}
+\codata\;
+\lst{A}:\set\\
+\quad (\scons): A\times \lst{A}\rightarrow\lst{A}\\
+\quad \nil: \lst{A}.
+\end{array}
+$$
+This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\lst{A}$.
+Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
+Therefore $\lst{A}$ is the type of finite and infinite sequences.
+
+
+\begin{vcomment}
+Add example with $M = \lstsym $ (maybe introduce different notations for lazy and strict lists) and give some simple example of functions on monsters.
+\end{vcomment}
+
+
+It is important to make two observations about $M$.
+
+First, $M$ does not need to be a monad for the definition to make sense.
+In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being just a functor.
+So we will take $M$ to be any type operator (but see second observation) and we will explicitly state what properties we assume about it.
+The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
+
+The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
+Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F\,X = M\,(A\times X)$ has a final coalgebra.
+
+\begin{definition}\label{def:fincoal}
+For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
+
+We say that $\langle A,\alpha\rangle$ is a {\em final $F$-coalgebra} if, 
+for every coalgebra $\langle X,\xi:X\rightarrow FX\rangle$, 
+there is a unique coalgebra morphism between the the two coalgebras:
+$\sfr:\langle X,\xi\rangle \to \langle A,\alpha\rangle$.
+Such a morphism is a function between the types that commutes with the coalgebra functions:
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{a}{A} & \Rnode{fa}{FA} \\[30pt]
+\Rnode{x}{X} & \Rnode{fx}{FX} \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline{a}{fa} \taput{\alpha}
+\ncline{x}{fx} \tbput{\xi}
+\ncline[linestyle=dotted]{x}{a}  \tlput{\sfr}
+\ncline{fx}{fa} \trput{F\,\sfr}
+\qquad \alpha \circ f = F\,\sfr \circ \xi.
+$$
+\end{definition}
+
+This definition means that we can define function into a coinductive type by giving a coalgebra.
+For example, consider the data type of pure streams of natural numbers:
+The type $\stream{A}$ is the final coalgebra of the functor $F(X) = A\times X$.
+
+We can define a function into $\stream{A}$ by defining a coalgebra on the domain type.
+For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by the following coalgebra on $\nat$:
+$$
+\begin{array}{l}
+\xi : \nat \rightarrow \nat\times \nat\\
+\xi\,n = \langle n,n+1\rangle
+\end{array}
+$$
+(Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.)
+
+In practical programming, we often let the coalgebra $\xi$ be implicit by directly defining the function $f$ recursively.
+For example, the function above would be defined as:
+$$
+\begin{array}{l}
+\sfr: \nat \rightarrow \stream{\nat}\\
+\sfr\,n = n \scons \sfr\,(n+1)
+\end{array}
+$$
+Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitely give the coalgebra $n \mapsto \langle n, n+1\rangle$.
+This is a general programming pattern: we specify a function by equations that directly give the head of the resulting stream and recursively apply the function itself only at the top of of the argument of the constructor ${\scons}$.
+We way that the recursive call is {\em guarded by the constructor}.
+When this happens we can always find a coalgebra that justifies the definition.
+
+In practical programming we can use a more liberal methodology, coding programs by equations that are not strictly guarded by constructors, but can be reduced in that form (or directly in coalgebra form) by some standard transformation.
+For example, a different way of definition the function $\sfr$ is:
+$$
+\begin{array}{l}
+\sfp: \nat \rightarrow \stream{\nat}\\
+\sfp\,n = n \scons (\sfp\,n \oplus \bar{1})
+\end{array}
+$$
+where $\oplus$ is the pointwise addition of streams and $\bar{1}$ is the constant stream of ones:
+$$
+\begin{array}{l}
+(\oplus): \stream{\nat}\rightarrow \stream{\nat}\rightarrow \stream{\nat}\\
+\sigma_1 \oplus \sigma_2 = (\head\,\sigma_1 + \head\,\sigma_2) \scons (\tail\,\sigma_1 \oplus \tail\,\sigma_2)
+\end{array}
+\quad
+\begin{array}{l}
+\bar{ }: A \rightarrow \stream{A}\\
+\bar{x} = x \scons \bar{x}
+\end{array}
+$$
+Notice that, while the definitions of $\oplus$ and $\bar{ }$ are correctly guarded by constructors, the definition of $\sfp$ is not strictly guarded: the recursive call doesn't occur immediately at the top of the argument of the constructor $\scons$, but as argument of the $\oplus$ operator.
+However, it is relatively easy to modify the definition to make it comply with the strict guardedness condition \cite{capretta:2011}.
+We will allow ourselves to use this more lax definition style.
+
+A class of functors for which the existence of a final coalgebra is guaranteed is that of {\em containers} \cite{AAG:2005}: they are a generalization of tree constructors in which any type can be used for branching; this leads to generalized types of non-well-founded trees.
+
+A common good criterion for the acceptability of recursive definition with a final coalgebra as codomain is {\em guardedness by constructors}: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as dierect arguments of that constructor.
+
+See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
+
+The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
+A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F$ is a container if $M$ is \cite{capretta/fowler:2017}.
+This is the case for all the instances that we consider (but there are well known counterexamples, like the powerset functor and the continuation functor).
+
+Therefore we will silently assume that $M$ is a container and that the final coalgebra exists.
+Cofinality means that we can define functions into the coalgebra by {\em corecursion} and we can prove properties of its elements by {\em coinduction}.
