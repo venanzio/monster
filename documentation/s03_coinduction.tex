@@ -98,3 +98,11 @@ A coalgebra $\langle A,\alpha\rangle$ is said to satisfy the {\em coinduction pr
 
 Intuitively, the coinduction principle states that the elements of $A$ are completely characterised by their structure, which can be infinite.
 There is a well-known connection between finality of a coalgebra and the coinduction principle.
+
+\begin{theorem}\label{th:coinduction}
+Final coalgebras satisfy the coinduction principle.
+\end{theorem}
+
+In practice the coinduction principle is applied by recursively invoking the statement that we want to prove as {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is deployed to prove the statement on the components of the initial terms.
+
+For example
