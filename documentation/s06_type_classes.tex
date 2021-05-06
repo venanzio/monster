@@ -41,7 +41,10 @@ instance Functor m => Functor (MonStr m) where
    fmap f = transformMS (\a s -> (f a, fmap f s))
 \end{haskell}
 
-We can now prove that the functor laws are satisfied by $\stream{M}$.
+We can now prove that the functor laws are satisfied by $\stream{M}$: it's functorial mapping preserves identities and composition.
+The proof are straightforward applications of definitions and the functoriality of $M$ and $\times$, except for the use of coinduction:
+We are allowed to invoke the laws themselves in their proofs, as long as we use them only in the direct recursive subterms of the $\mcons$ constructor, that is, in the {\em positions} for the container $M\,(A\times -)$.
+
 \begin{lemma}\label{lemma:functor_id}
 The identity functor law holds for monadic streams:
 $$
@@ -56,7 +59,7 @@ $$
 {}= \mcons\,(M\,(\id_A\times \stream{M}\,\id_A)\,m)
   & \mbox{by definition}\\
 {}= \mcons\,(M\,(\id_A\times \id_{\stream{M,A}})\,m)
-  & \mbox{by Coinduction Hypothesis}\\
+  & \mbox{by coinduction hypothesis}\\
 {}= \mcons\,(M\,(\id_{A\times \stream{M,A}})\,m)
   & \mbox{by functoriality of }\times\\
 {}= \mcons\,(\id_{M\,(A\times \stream{M,A})}\,m)
@@ -66,9 +69,6 @@ $$
 $$
 \end{proof}
 
-
-
-
 \begin{lemma}\label{lemma:functor_comp}
 The composition functor law holds for monadic streams:
 
@@ -77,67 +77,30 @@ $$
 \stream{M}\,(g\comp f) = (\stream{M}\,g) \comp (\stream{M}\,f)
 $$
 \end{lemma}
-
-
-\subsubsection{Functor proof}
-
-Proof that \hcode{fmap id == id}
-
-\begin{haskell}
-fmap id = transformMS (\a s -> id a, fmap id s)
--- definition of `transformMS`
-= \s -> MCons $ fmap (\(h,t) -> (\a s -> (id a, fmap id s)) h t) (unwrapMS s)
--- application of `(\a s -> (id a, fmap id s))` to `h t`
-= \s -> MCons $ fmap (\(h,t) -> (id h, fmap id t)) (unwrapMS s)
--- take as assumption that `fmap id t == id t` - coinductive hypothesis?
-= \s -> MCons $ fmap (\(h,t) -> (id h, id t)) (unwrapMS s)
--- definition of `id`
-= \s -> MCons $ fmap (\(h,t) -> (h,t)) (unwrapMS s)
--- definition of `id`
-= \s -> MCons $ fmap id (unwrapMS s)
--- `unwrapMS` returns an element in a functor, so `fmap id == id` in this case
-= \s -> MCons $ id (unwrapMS s)
--- application of `id`
-= \s -> MCons $ (unwrapMS s)
--- MCons and unwrapMS are inverses
-= \s -> id s 
-= id
-\end{haskell}
-
-Proof that \verb+fmap (f . g) == (fmap f) . (fmap g)+
-
-To simplify notation in the proof, we introduce the notation \verb+tr(f)+ for the expression \verb+\(h,t) -> (f h, fmap f t)+.
-
-We're going to use the fact that the underlying operator \verb+m+ is a functor and so satisfies the functor laws, and also that the pairing operator \verb+(,)+ is functorial in both arguments.
-
-By definition of \verb+fmap+ for monsters, we have that
-\begin{haskell}
-fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
-         = MCons $ fmap (\ (h,t) -> (\a s -> (f a, fmap f s) h t)) (unwrapMS s)
-         = MCons $ fmap (\ (h,t) -> (f h, fmap f t)) (unwrapMS s)
-         = MCons $ fmap tr(f) (unwrapMS s)
-\end{haskell}
-
-We also use the fact that the monster constructor \verb+MCons+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
-
-\begin{haskell}
-fmap (f . g) = transformMS (\a s -> (f . g) a, fmap (f . g) s)
--- definition of `transformMS`
-= \s -> MCons $ fmap (\(h,t) -> (\a s -> ((f . g) a, fmap (f . g) s)) h t) (unwrapMS s)
--- application of `(\a s -> ((f . g) a, fmap (f . g) s))` to `h t`
-= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, fmap (f . g) t)) (unwrapMS s)`
--- take as assumption that `fmap (f . g) t == (fmap f . fmap g) t` - coinductive hypothesis?
-= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, (fmap f . fmap g) t)) (unwrapMS s)
--- By fuctoriality of pairing in both components
-= \s -> MCons $ fmap (tr(f) . tr(g)) (unwrapMS s)
--- By functoriality of the underlying operator m
-= \s -> MCons $ (fmap tr(f)) . (fmap tr(g)) (unwrapMS s)
--- MCons and unwrapMS are inverses
-= \s -> MCons $ fmap tr(f)) $ unwrapMS $ MCons $ fmap tr(g) (unwrapMS s)
-= \s -> MCons $ fmap tr(f)) $ unwrapMS $ fmap g s
-= \s -> fmap f $ fmap g s
-= fmap f . fmap g
-\end{haskell}
+\begin{proof}
+Let's again apply the left-hand side function to an $M$-monster in constructor form:
+$$
+\begin{array}{ll}
+\stream{M}\,(g\comp f)\,(\mcons\,m)\\
+{}= \mcons\,(M\,((g\comp f)\times \stream{M}\,(g\comp f))\,m)
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\
+{}= \mcons\,(M\,((g\comp f)\times (\stream{M}\,g) \comp (\stream{M}\,f))\,m)
+  & \mbox{by coinduction hypothesis}\\ 
+{}= \mcons\,(M\,((g\times \stream{M}\,g) \comp (f\times \stream{M}\,f))\,m)
+  & \mbox{by functoriality of }\times\\ 
+{}= \mcons\,((M\,(g\times \stream{M}\,g) \comp M\,(f\times \stream{M}\,f))\,m)
+  & \mbox{by functoriality of }M\\ 
+{}= \mcons\,(M\,(g\times \stream{M}\,g)\, (M\,(f\times \stream{M}\,f)\,m))
+  & \mbox{by definition of composition}\\ 
+{}= \stream{M}\,g\, (\mcons\,(M\,(f\times \stream{M}\,f)\,m))
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
+{}= \stream{M}\,g\, (\stream{M}\,f\,m)
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
+{}= ((\stream{M}\,g) \comp (\stream{M}\,f))\,m
+  & \mbox{by definition of composition}
+\end{array}
+$$
+\end{proof}
 
 \subsection{Applicative instance in Haskell}
 
