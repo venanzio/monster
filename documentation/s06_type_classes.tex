@@ -108,19 +108,85 @@ We can sum up these results by stating that the monster operator is a functor if
 If $M$ is a functor, $\stream{M}$ is also a functor.
 \end{theorem}
 
-\subsection{Applicative instance in Haskell}
+\subsection{Applicative instance}
+
+Applicative functors \cite{mcbride/paterson:2008}
+extend the mapping operation by allowing function sequencing under the functor.
+It has two methods: $\apure$, that inject single values into the functor, and $\appl$, that applies functions under the functor.
+
+We assume that the type operator $M$ is an applicative functor, that is, it has methods:
+$$
+\begin{array}{l}
+\apure : A \rightarrow M\,A\\
+\appl: M\,(A\rightarrow B) \rightarrow M\,A \rightarrow M\,B
+\end{array}
+$$
+satisfying the applicative laws.
+
+We will show that $\stream{M}$ is also applicative.
+In order to define the methods, we need some auxiliary functions on applicative monsters.
+First of all, a simplified version of $\mcons$ that appends a single value in front of a monster.
+This in turn uses a similar operator for functors, which appends an $M$-action in from of a monster
+$$
+\begin{array}{l}
+(\fcons): M\,A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
+m \fcons \sigma = \mcons\, (M\,(\lambda a. \langle a, \sigma\rangle)\,m)\\
+\,\\
+(\acons): A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
+a \acons \sigma = (\apure\, a) \fcons \sigma
+\end{array}
+$$
+
+In Haskell:
+\begin{haskell}
+(<::) :: Functor m => m a -> MonStr m a -> MonStr m a
+ma <:: s = MCons (fmap (\a -> (a,s)) ma)
+
+(<:) :: Applicative m => a -> MonStr m a -> MonStr m a
+a <: s = pure a <:: s
+\end{haskell}
+
+The pure method for monsters then consists in iterating the same element forever:
+$$
+\begin{array}{l}
+\apure : A \rightarrow \stream{M}\,A\\
+\apure\,a = a \acons \apure\,a
+\end{array}
+$$
+
+In order to define the function application method, we need several binary operations applying functions to arguments inside products, $M$-actions, $M$-monsters.
+They are mutually recursive:
+$$
+\begin{array}{l}
+\appl : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
+\pappl: (A\rightarrow B)\times (\stream{M}\,(A\rightarrow B)) \rightarrow A\times (\stream{M}\,A) \rightarrow B\times (\stream{M}\,B)\\
+\mappl: M\,((A\rightarrow B)\times (\stream{M}\,(A\rightarrow B))) \rightarrow M\,(A\times (\stream{M}\,A)) \rightarrow M\,(B\times (\stream{M}\,B))\\
+\,\\
+(\mcons\,\phi) \appl (\mcons\,\sigma)
+= \mcons\,(\phi \mappl \sigma)\\
+\,\\
+\langle f,\phi\rangle \pappl \langle a,\sigma\rangle 
+= \langle f\,a, \phi \appl \sigma \rangle\\
+\,\\
+m_f \mappl m_a = (\pappl) \aseq m_f \appl m_a
+\end{array}
+$$
+
+
+
+
 
 \begin{haskell}
-unwrapMS :: MonStr m a -> m (a, MonStr m a)
-unwrapMS (MCons m) = m
+-- | Version of transform for applicative monsters
+transformA :: Applicative m =>
+               (a -> MonStr m a -> b -> MonStr m b -> (c, MonStr m c)) ->
+               MonStr m a -> MonStr m b -> MonStr m c
+transformA f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
+                               <$> uncons as <*> uncons bs
 
-transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) ->
-                                  MonStr m a -> MonStr m b
-transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
-
-instance Functor m => Functor (MonStr m) where
-   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
-   fmap f = transformMS (\a s -> (f a, fmap f s))
+instance Applicative m => Applicative (MonStr m) where
+  pure a = a <: pure a
+  (<*>) = transformA (\f fs a as -> (f a, fs <*> as))  
 \end{haskell}
 
 \subsection{Comonad instance in Haskell}
