@@ -12,6 +12,9 @@ import Prelude hiding (head, tail)
 -- | Type of state machines, using the Reader monad
 type SMStr i o = MonStr ((->) i) o
 
+
+-- | Convenient Show instance for masking Reader-monsters when
+-- printed on the command line
 instance Show (SMStr i o) where
   show _ = "[ A Mealy machine ]"
 
@@ -297,26 +300,3 @@ fibGen = MCons (state (\(a, b) -> ((b, fibGen), (b, a + b))))
 fibS :: Stream Int
 fibS = runFBStr fibGen (0, 1)
 
-
--- MOMENTARILY HERE FOR EXPLORING MONAD COUNTEREXAMPLE
-
-joinPrelimMS :: Monad m => MonStr m (MonStr m a) -> MonStr m (m a)
-joinPrelimMS mm = MCons $ fmap (\(as,ss) -> (head as, joinPrelimMS (fmap (absorbM . tail) ss))) (uncons mm)
-
-joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
-joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> uncons mas)
-
-joinMS' ::  Monad m => MonStr m (MonStr m a) -> MonStr m a
-joinMS' = joinInnerMS . joinPrelimMS
-
-outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
-outMS ms = (head ms, tail ms)
-
-instance Monad m => Monad (MonStr m) where
-  -- (>>=) :: MonStr m a -> (a -> MonStr m b) -> MonStr m b
-  as >>= f = (joinMS' . fmap f) as
-
-
-f = fromStep
-a = f 1
-b = return 1 >>= fromStep

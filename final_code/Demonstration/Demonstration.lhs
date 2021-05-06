@@ -18,6 +18,10 @@
 > printLines :: Show a => [a] -> IO ()
 > printLines = putStrLn . unlines . fmap show
 
+> prettyPrintPairs :: (Show a, Show b) => [(a, b)] -> IO ()
+> prettyPrintPairs as = do putStrLn " Inputs\t| Outputs\n---------------------"
+>                          putStrLn . unlines . fmap (\(b,a) -> " " P.++ show a P.++ "\t| " P.++ show b) $ as
+
 ---------------------
 Branch-labelled trees
 ---------------------
@@ -30,12 +34,12 @@ Branch-labelled trees
 Using < takeM n > or < takeM' n > gives you all possible lists of choices of length n.
 This can be used to find the proability of each outcome, given n choices.
 
-> probOfEachN n = printLines $ map (foldr1 (*)) (takeM' (n + 1) ballProbTree)
+> sequentialProbs n = printLines $ map (foldr1 (*)) (takeM' (n + 1) ballProbTree)
 
 Or, you can use < scanM > to give the whole tree of outcomes given n choices, which
 is much neater and idomatic
 
-> probOfEachN' n = printLines $ (scanM (*) ballProbTree) !! n
+> sequentialProbsScan n = printLines $ (scanM (*) ballProbTree) !! n
 
 Using < !! n > you can see the list of all possible outcomes after taking n choices.
 Collecting like terms here allows you to calculate probabilites of taking particular
@@ -51,18 +55,18 @@ past a particular number of choices
 With < dropWithM > you can verify that the calculated probabilities always add up to 1 at each 
 level in the tree
 
-> verifyProbs n = putStrLn . show $ foldr1 (+) (head (dropWithM (*) n ballProbTree))
+> verifyProbsAt n = putStrLn . show $ foldr1 (+) (head (dropWithM (*) n ballProbTree))
 
 -----
 
 Given the tree of sequential probabilities, i.e. where the probabilities on the second layer have
 been multiplied by the first:
 
-> combinedProbs = scanM (*|) ballProbTree
+> sequentialProbsTree = scanM (*|) ballProbTree
 
 you can use Bayes rule to recalculate the original tree!
 
-> ballProbTree' = bayesScanTree combinedProbs
+> ballProbTree' = bayesScanTree sequentialProbsTree
 
 and then use equality on monadic streams to verify that these are indeed the same
 
@@ -85,15 +89,16 @@ both dependant on the choice of monad when it comes to their outputs, as shown.
 State machines					
 --------------
 
+> demoStateMachine stm inp = prettyPrintPairs $ zip (fst $ runSMStrList stm inp) inp
+
 These two edge detectors are extensionally identical - looking at their defining code you
 can see the similarity between Mealy machines and Reader-monsters
 
-> edgesDemo = printLines . fst $ runSMStrList edgeDetector [O, I, O, O, I, I, I, O, O]
+> edgesDemo = demoStateMachine edgeDetector [O, I, O, O, I, I, I, O, O]
 
-> edgesMealyDemo = printLines . fst $ runMealyList edgeDetectorMealy [O, I, O, O, I, I, I, O, O]
+> edgesMealyDemo = prettyPrintPairs $ zip (fst $ runMealyList edgeDetectorMealy [O, I, O, O, I, I, I, O, O]) [O, I, O, O, I, I, I, O, O]
 
-
-> trafficDemo = printLines . fst $ runSMStrList trafficLights [NS, Both, EW, EW, Both, Both, NS]
+> trafficDemo = demoStateMachine trafficLights [NS, Both, EW, EW, Both, Both, NS]
 
 
 Insert demo
@@ -106,25 +111,22 @@ With state machines, you can stall the control flow, forcing it to stay in the s
 state for an extra tick regardless of input, providing a custom output during this
 time.
 
-> edgesInsertDemo = printLines . fst $ runSMStrList (insert 0 (\b -> "Stalled") edgeDetector) 
->                    					[O, I, O, O, I, I, I, O, O]
+> edgesInsertDemo = demoStateMachine (insert 0 (\b -> "Stalled") edgeDetector) [O, I, O, O, I, I, I, O, O]
 
-> trafficInsertDemo = printLines . fst $ runSMStrList (insert 0 (\_ -> (NS_Red, EW_Red)) trafficLights) 
->                      						[NS, Both, EW, EW, Both, Both, NS]
+> trafficInsertDemo = demoStateMachine (insert 0 (\_ -> (NS_Red, EW_Red)) trafficLights) [NS, Both, EW, EW, Both, Both, NS]
 
 
 Zip demo
 --------
 
-> maxDemo = printLines $ zip (fst $ runSMStrList maxFin3 [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]) 
->                                        [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
+> maxDemo = demoStateMachine maxFin3 [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
 
-> minDemo = printLines $ zip (fst $ runSMStrList minFin3 [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]) 
->                                        [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
+> minDemo = demoStateMachine minFin3 [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
 
-> zipDemo = printLines $ zip (fst $ runSMStrList (zipWithA (==) maxFin3 minFin3) [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two])
->                                        [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
+> zipDemo = demoStateMachine (zipWithA (==) maxFin3 minFin3) [One, Thr, Two, One, Thr, One, One, One, Thr, Two, Two, Two]
 
+
+---------
 Processes
 ---------
 

@@ -9,6 +9,7 @@ import qualified MonadicStreams as MS (repeat, iterate, iterate', (!!), head, ta
 import ComonadicStreams
 
 import Control.Concurrent
+import Examples.GenericStreams
 import Examples.Processes 
 
 data Grid a = Grid ([([a],a,[a])], ([a],a,[a]), [([a],a,[a])])
@@ -55,6 +56,7 @@ omnidirectionalIteratedShunts g = Grid $ triMap (map lrShunts) lrShunts (map lrS
 instance Comonad Grid where
   extract (Grid (_, (_,a,_), _)) = a
   duplicate = omnidirectionalIteratedShunts
+
 
 -- | Game of life demonstration using the Grid comonad
 
@@ -113,9 +115,36 @@ glider2 = Grid (
           where emptyLine = (repeat False, False, repeat False)
 
 
+-- | Functions to set cells to True or False before running with user input
+
+set :: Bool -> Grid Bool -> Grid Bool
+set a (Grid (lss, (ls, _, rs), rss)) = Grid (lss, (ls, a, rs), rss)
+
+setCellX :: Bool -> Int -> Grid Bool -> Grid Bool
+setCellX b x g | x == 0    = set b g
+               | x > 0     = iterate rightRoll (set b (iterate leftRoll g !! x)) !! x
+               | otherwise = iterate leftRoll (set b (iterate rightRoll g !! (abs x))) !! (abs x)
+
+-- | Sets a cell relative to the current position
+setCell :: Bool -> Int -> Int -> Grid Bool -> Grid Bool
+setCell b x y g | y == 0    = setCellX b x g
+                | y > 0     = iterate downRoll (setCellX b x (iterate upRoll g !! y)) !! y
+                | otherwise = iterate upRoll (setCellX b x (iterate downRoll g !! (abs y))) !! (abs y)
+
+newCell :: Grid Bool -> IO (Grid Bool)
+newCell g = do putStrLn "Input x, y coord to turn on"
+               x <- getLine >>= (readIO :: String -> IO Int)
+               y <- getLine >>= (readIO :: String -> IO Int)
+               return $ setCell True x y g
+
+
+--------------------------------------------------
+-- | RUNNING AND DEFINING THE FINAL PROCESSES | --
+--------------------------------------------------
+
 -- | A stream of GoL environments where each element is the string representation
 lifeStreamShow :: LifeStream String
-lifeStreamShow = evalMap (gridToString 50 50) (iterateC rule glider1)
+lifeStreamShow = evalMap (gridToString 50 50) (iterateC rule glider2)
 
 
 -- | You can index a particular point in the stream of states with !@!
@@ -138,42 +167,33 @@ betterDisplayProc = MS.repeat (do threadDelay 250000; putStr "\ESC[2J")
 demoProc = interleaveActM (lifeShowProc lifeStreamShow) betterDisplayProc
 
 
-
-
 -- | Interactive demo
-
--- | Allowing setting particular cells to True or False
-
-set :: Bool -> Grid Bool -> Grid Bool
-set a (Grid (lss, (ls, _, rs), rss)) = Grid (lss, (ls, a, rs), rss)
-
-setCellX :: Bool -> Int -> Grid Bool -> Grid Bool
-setCellX b x g | x == 0    = set b g
-               | x > 0     = iterate rightRoll (set b (iterate leftRoll g !! x)) !! x
-               | otherwise = iterate leftRoll (set b (iterate rightRoll g !! (abs x))) !! (abs x)
-
--- | Sets a cell relative to the current position
-setCell :: Bool -> Int -> Int -> Grid Bool -> Grid Bool
-setCell b x y g | y == 0    = setCellX b x g
-                | y > 0     = iterate downRoll (setCellX b x (iterate upRoll g !! y)) !! y
-                | otherwise = iterate upRoll (setCellX b x (iterate downRoll g !! (abs y))) !! (abs y)
-
-newCell :: Grid Bool -> IO (Grid Bool)
-newCell g = do putStrLn "Input x, y coord to turn on"
-               x <- getLine >>= (readIO :: String -> IO Int)
-               y <- getLine >>= (readIO :: String -> IO Int)
-               return $ setCell True x y g
+---------------------
 
 -- | A stream of streams where the nth is the stream where you can set n+1 cells before
 -- the GoL is run
+--
+-- Here we use the monadic stream iterate function, to produce a monster from iterating
+-- a function from a -> m a
 interactiveLifeStream :: Process (LifeStream Bool)
 interactiveLifeStream = fmap (iterateC rule) (MS.iterate newCell glider1)
 
--- | Turns each of the inner streams into processes which print the evolution after a
+-- | Turns each of the inner streams into processes which prints the evolution after a
 -- particular number of cell additions by a user
 interactiveLifeStreamShow :: Process (Process ())
 interactiveLifeStreamShow = fmap (lifeShowProc . evalMap (gridToString 50 50)) interactiveLifeStream
 
--- | Setting cells (5, 4) (5, 5) (5, 6), with n as 2 gives an interesting patterns
-interactiveDemo n = interleaveActM (takeInnerM n interactiveLifeStreamShow) betterDisplayProc
+-- | This lets you take the nth inner process, collecting the 'outer' IO actions
+-- of setting cells along the way
+--
+-- Setting cells (5, 4) (5, 5) (5, 6), with n as 2 gives interesting behaviour
+interactiveDemo :: Int -> Process ()
+interactiveDemo n = interleaveActM betterDisplayProc (takeInnerM n interactiveLifeStreamShow)
 
+-- | This is the same as the above, but stops at the 20th iteration 
+--
+-- Uses zipA to zip together the process with a monad-polymorphic stream of
+-- natural numbers
+interactiveDemoStop :: Int -> IO ()
+interactiveDemoStop n = do stopAtPred (\(a,b) -> b == 20) $ zipA (interactiveDemo n) nats
+                           putStrLn "Finished!"

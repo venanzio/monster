@@ -318,8 +318,8 @@ mapOutM :: Monad m => (a -> MonStr m a -> MonStr m b) ->
                        MonStr m a -> MonStr m b
 mapOutM f s = absorbM $ fmap (uncurry f) (uncons s)
 
--- | Maps a function that 'evaluates' each action over the stream,
--- keeping the actions but replacing their values with those evaluated
+-- | Maps a function that 'evaluates' each action over the stream, keeping
+-- the actions but replacing their values with those evaluated
 evalMap :: Functor m => (m a -> b) -> MonStr m a -> MonStr m b
 evalMap f (MCons ma) = let b = f (fmap fst ma) in MCons $ fmap (\(a, ma') -> (b, evalMap f ma')) ma
 

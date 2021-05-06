@@ -129,7 +129,7 @@ reduce f@(a , b) = let gcf = gcd a b in if gcf == 0 then f else (a `div` gcf , b
 
 instance Num Fraction where
   (a, b) + (c, d) = if b == d then (a + c, d) else reduce ((a * d) + (b * c), b * d)
-  (a, b) * (c, d) = (a * c, b * d)
+  (a, b) * (c, d) = reduce (a * c, b * d)
   abs (a, b) = (abs a, abs b)
   signum (a, b) = ((signum a) * (signum b), 1)
   fromInteger n = (n, 1)

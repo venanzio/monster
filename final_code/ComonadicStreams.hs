@@ -1,6 +1,3 @@
-{-# LANGUAGE ExplicitForAll #-}
-{-# LANGUAGE Rank2Types #-}
-
 module ComonadicStreams where
 
 import Prelude hiding (head, tail)

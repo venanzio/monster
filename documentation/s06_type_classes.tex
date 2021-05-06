@@ -306,7 +306,9 @@ fmap fromStep (return 1) = (fromStep 1) <: (fromStep 1) <: (*...*)
 \end{haskell}
 we need the first action of the first stream (adding $1$), the second action of the second stream (adding $2$), and so on, to recreate  \verb+fromStep 1+.
 
-However, to get the second action of the second stream (an 'adding $2$' action), we also need to traverse the \emph {first} action of the second stream (another 'adding $1$' action), since each element in a monadic stream is guarded by the previous. This would result in the net effect of 'adding $3$', which isn't what we need to reconstruct the second action of \verb+fromStep 1+. 
+However, to get the second action of the second stream (an 'adding $2$' action), we also need to traverse the \emph {first} action of the second stream (another 'adding $1$' action), since each element in a monadic stream is guarded by the previous. This would result in the net effect of 'adding $3$', which isn't what we need to reconstruct the second action of \verb+fromStep 1+. \\
 
-Any other, more convoluted way of trying to get the action of 'adding $2$' falls under either, or a combination of, these three cases, which can be seen by reasoning with the examples given.
+Any other, more convoluted way of trying to get the action of 'adding $2$' falls under either, or a combination of, these three cases, which can be seen by reasoning with the examples given. This shows that you cannot make monadic streams a monad, with the assumption that the underlying functor is a monad.
+
+The solution to this is to only allow the underlying monad to be idempotent. Taking the diagonal here would work the same way as with the stream monad \cite{}, since 
 
