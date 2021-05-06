@@ -1,4 +1,3 @@
-
 \section{Instances of Functor, Applicative, Monad}
 
 Show that monadic streams are an instance of these three classes, under some assumptions about the underlying monad.
@@ -49,8 +48,28 @@ $$
 \stream{M}\,\id_A = \id_{\stream{M,A}}
 $$
 \end{lemma}
+\begin{proof}
+We apply the left-hand side function to an $M$-monster in constructor form:
+$$
+\begin{array}{ll}
+\stream{M}\,\id_A\,(\mcons\,m)\\
+{}= \mcons\,(M\,(\id_A\times \stream{M}\,\id_A)\,m)
+  & \mbox{by definition}\\
+{}= \mcons\,(M\,(\id_A\times \id_{\stream{M,A}})\,m)
+  & \mbox{by Coinduction Hypothesis}\\
+{}= \mcons\,(M\,(\id_{A\times \stream{M,A}})\,m)
+  & \mbox{by functoriality of }\times\\
+{}= \mcons\,(\id_{M\,(A\times \stream{M,A})}\,m)
+  & \mbox{by functoriality of }M\\
+{}= \mcons\,m
+\end{array}
+$$
+\end{proof}
 
-\begin{lemma}\label{lemma:functor_id}
+
+
+
+\begin{lemma}\label{lemma:functor_comp}
 The composition functor law holds for monadic streams:
 
 If $f:A\rightarrow B$ and $g:B\rightarrow C$, then
