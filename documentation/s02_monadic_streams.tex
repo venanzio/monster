@@ -12,7 +12,7 @@ $$
 \quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}.
 \end{array}
 $$
-Categorically, we can see this type as the final coalgebra of the functor $F\,X = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
+Categorically, we can see this type as the final coalgebra of the functor $F_M\,X = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
 
 
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
@@ -57,7 +57,7 @@ So we will take $M$ to be any type operator (but see second observation) and we 
 The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
 
 The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
-Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F\,X = M\,(A\times X)$ has a final coalgebra.
+Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F_M\,X = M\,(A\times X)$ has a final coalgebra.
 
 \begin{definition}\label{def:fincoal}
 For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
@@ -140,8 +140,31 @@ A common good criterion for the acceptability of recursive definition with a fin
 See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
 
 The definition of $\stream{M,A}$ is not meaningful for all $M$s, because the final coalgebra may not exist or not be unique.
-A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F$ is a container if $M$ is \cite{capretta/fowler:2017}.
+A useful result is that a functor has a final coalgebra if it is a container \cite{AAG:2005}, and $F_M$ is a container if $M$ is \cite{capretta/fowler:2017}.
 This is the case for all the instances that we consider (but there are well known counterexamples, like the powerset functor and the continuation functor).
 
-Therefore we will silently assume that $M$ is a container and that the final coalgebra exists.
+The idea of a container functor $F$ is that, given a type $X$, the elements of $F\,X$ are built by constructors that specify a {\em shape} together with {\em positions} inside the shape where elements of $X$ can be inserted.
+For example, the functor $\maybe$ has two shapes: $\nothing$, with not positions at all, and $\just$, with a single position.
+Another example is the $\lstsym$ functor: we can see it as having an infinite number of shapes: one shape for every natural number $n$, with $n$ positions:
+$$
+\begin{array}{llcll}
+\mbox{shape $n$: } \quad [ & \bullet,  & \cdots ,  & \bullet & ]\\
+\mbox{positions: }     & \uparrow &       & \uparrow
+\end{array}
+$$
+
+In our case, if $M$ is a container, the functor $F_M$ is a container where the shapes are extended with an element of $A$ paired to every positions.
+For example, if $M$ is $\lstsym$, the general form of shapes and positions is this:
+$$
+\begin{array}{lrcrl}
+\mbox{shape $n$: } \quad [ & \langle a_0, \bullet\rangle,  
+                           & \cdots ,  
+                           & \langle a_{n-1}, \bullet \rangle & ]\\
+\mbox{positions: }     & \uparrow\hspace{6pt} &       & \uparrow\hspace{4pt}
+\end{array}
+$$
+
+The coinductive types we use are always final coalgebras of containers.
+From now on we silently assume that $M$ is a container and that the final coalgebra exists.
 Cofinality means that we can define functions into the coalgebra by {\em corecursion} and we can prove properties of its elements by {\em coinduction}.
+This means that we can define a function by equations that recursively apply the function itself to the elements in the positions of the shapes, and we can prove properties of elements by invoking the statement we want to prove on the elements in the positions.
