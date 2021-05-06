@@ -197,3 +197,4 @@ interactiveDemo n = interleaveActM betterDisplayProc (takeInnerM n interactiveLi
 interactiveDemoStop :: Int -> IO ()
 interactiveDemoStop n = do stopAtPred (\(a,b) -> b == 20) $ zipA (interactiveDemo n) nats
                            putStrLn "Finished!"
+                           
