@@ -170,11 +170,11 @@ They are mutually recursive:
 $$
 \begin{array}{l}
 (\appl) : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
-(\mcons\,\phi) \appl (\mcons\,\sigma)
-= \mcons\,(\phi \alift{\pappl} \sigma)\\
+(\mcons\,m_f) \appl (\mcons\,m_a)
+= \mcons\,(m_f \alift{\pappl} m_a)\\
 \qquad \where\;
-\langle f,\phi'\rangle \pappl \langle a,\sigma'\rangle 
-= \langle f\,a, \phi' \appl \sigma' \rangle
+\langle f,\phi\rangle \pappl \langle a,\sigma\rangle 
+= \langle f\,a, \phi \appl \sigma \rangle
 \end{array}
 $$
 
@@ -194,6 +194,45 @@ instance Applicative m => Applicative (MonStr m) where
   pure a = a <: pure a
   (<*>) = transformA (\f fs a as -> (f a, fs <*> as))  
 \end{haskell}
+
+An applicative instance must satisfy four general laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+
+\begin{lemma}\label{lemma:appl_pure_id}
+$$
+(\apure\,\id) \appl m_a = m_a
+$$
+\end{lemma}
+
+\begin{lemma}\label{lemma:appl_pure_app}
+$$
+\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
+$$
+\end{lemma}
+
+\begin{lemma}\label{lemma:appl_app_pure}
+$$
+m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
+$$
+\end{lemma}
+
+\begin{lemma}\label{lemma:appl_assoc}
+$$
+m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a 
+$$
+\end{lemma}
+
+In summary, the monster operator is applicative when the underlying ``monad'' is.
+\begin{theorem}
+If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
+\end{theorem}
+
+
+
+
+
+
+
+
 
 \subsection{Comonad instance in Haskell}
 
