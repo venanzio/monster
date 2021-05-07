@@ -41,7 +41,9 @@ interleave :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
 interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
 \end{haskell}
 
-In the context of List-monsters again, this function lets you interleave choices - for two List-monsters $L_0$ and $L_1$, representing decision trees, interleaving them results in a tree $L_{0,1}$ where the first decision in $L_{0,1}$ is the first in $L_0$, the second decision is the first in $L_1$, and so on. This can describe situations where different kinds of choices need to be made cyclically. In IO-monsters, this function lets you interleave the actions of two process, effectively implementing a simple kind of user-level multithreading. 
+In the context of List-monsters again, this function lets you interleave choices - for two List-monsters $L_0$ and $L_1$, representing decision trees, interleaving them results in a tree $L_{0,1}$ where the first decision in $L_{0,1}$ is the first in $L_0$, the second decision is the first in $L_1$, and so on. This can describe situations where different kinds of choices need to be made cyclically. 
+
+In IO-monsters, this function lets you interleave the actions of two process, effectively implementing a naïve kind of user-level multithreading. 
 
 In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state of the second depends on the outputs of the first. This could be extended so that both state machines are dependent on each other, which is left as an exercise to the reader. \\
 

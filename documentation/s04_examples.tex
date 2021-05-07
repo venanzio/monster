@@ -271,6 +271,6 @@ data Store s a = Store (s -> a) s
 
 A Store-comonster, a monadic stream using the store comonad, is a stream where extracting from the store gives a value, and a \emph{new store}. This encapsulates the idea of an environment that can be used to modify itself. Cellular automata fit this description perfectly, where the state of the environment is calculated from the previous using a rule. 
 
-The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a State-comonster already 'contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
+The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a Store-comonster already 'contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
 
 To show this, there is an implementation of Conways game of life included in the demonstration code. This demo uses a kind of Zipper comonad instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.
