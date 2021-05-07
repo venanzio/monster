@@ -96,10 +96,6 @@ Some standard operations on trees don't work for this variation, but traversal o
 
 \subsection{Reader monad}
 
-\begin{ccomment}
-	Need to add one more function from the library and explain it's effect on Reader-monsters in particular
-\end{ccomment}
-
 Yet another interesting type is that of Reader-monsters, which weakly correspond to the type of Mealy machines. 
 
 These are a type of finite state transducer, with a set of states $S$, input alphabet $\Sigma$, output alphabet $\Delta$, an initial state $s_0 \in S$, and a transition function $\delta : S \times \Sigma \to S \times \Delta$. They are typically used to model computations where the outputs depend on both the internal state and an input.

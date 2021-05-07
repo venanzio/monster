@@ -1,6 +1,3 @@
-{-# LANGUAGE ExplicitForAll #-}
-{-# LANGUAGE Rank2Types #-}
-
 module Demonstration.GameOfLife where
 
 import MonadicStreams hiding (iterate, iterate', repeat, (++), (!!), head, tail)

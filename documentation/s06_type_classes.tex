@@ -311,5 +311,5 @@ However, to get the second action of the second stream (an 'adding $2$' action),
 
 Any other, more convoluted way of trying to get the action of 'adding $2$' falls under either, or a combination of, these three cases, which can be seen by reasoning with the examples given. This shows that you cannot make monadic streams a monad, with the assumption that the underlying functor is a monad.
 
-One solution to this is to only allow the underlying monad to be idempotent. Taking the diagonal here would work fine, since with an idempotent monad, any order in which you join actions results in the same action. This is quite a strong constraint however, and it would be interesting if there is a weaker one.
+One solution to this is to only allow the underlying monad to be idempotent \cite{idempotent_monads}. Taking the diagonal here would work fine, since with an idempotent monad, any order in which you join actions results in the same action. This is quite a strong constraint however, and it would be interesting if there is a weaker one.
 

@@ -1,12 +1,8 @@
 \section{Conclusions}
 
-\begin{ccomment} 
-	A bit more discussion of related literature and maybe one more open problem is needed
-\end{ccomment}
+At this point in the project, a few new problems have come to light, some related to implementation details of the library, and some to the theory behind monadic streams and corresponding data structures. \\
 
-
-
-One glaring open problem is to prove that monadic streams are themselves monads when the underlying functor is an indempotent monad. This seems evident from how the counter-example is constructed, and it seems to be the case experimentally, but a convincing proof showing that all of the monad laws hold has yet to be developed. \\
+One glaring open problem is to prove that monadic streams are themselves monads when the underlying functor is an idempotent monad. This seems evident from how the counter-example is constructed, and it seems to be the case experimentally, but a convincing proof showing that all of the monad laws hold has yet to be developed. \\
 
 Future work on this library will include a review of the efficiency of many functions we defined - this project was initially an exercise to see what could be done with monadic streams, but if this library could be used for larger applications then efficiency would be an issue. Also, whether all of the functions work exactly as intended is still uncertain. The functions that are analogous to those in \verb+Data.List+ have been tested, but we have not yet defined some concrete semantics to interpret all of the other functions with, meaning we can only be sure that their actions on monadic streams are approximately the intended ones. \\
 
@@ -20,8 +16,14 @@ Since the type of monadic stream functions is isomorphic to monadic streams with
 \begin{haskell}
 data MSFDual w e a = MonLst (EnvT e w) a
 \end{haskell}
-which is essentially a nested tuple, with each layer after the first guarded with a comonad. Evaluating the comonad with \verb+extract+ or a co-Kleisli arrow will either result in a final tuple of type \verb+(e, a)+, or another layer of type \verb+(e, MonLst (EnvT e w) a)+. 
+which is essentially a nested tuple, with each layer after the first guarded with a comonadic action. 
+
+\begin{haskell}
+data EnvT e w a = EnvT e (w a)
+\end{haskell}
+
+Evaluating the comonad with \verb+extract+ or a co-Kleisli arrow will either result in a final tuple of type \verb+(e, a)+, or another layer of type \verb+(e, MonLst (EnvT e w) a)+.
 
 This is like an environment from which new values can be repeatedly extracted from, but at some point the environment will become exhausted, returning a single \verb+a+ instead of a new environment.
 
-The purpose of investigating this is to see whether a monad-comonad interaction law \cite{uustalu:2019} between the monad in a MSF and the comonad in the \verb+MSFDual+ type could be used to define a functor-functor interaction law between these two types, and whether this would have any novel uses or implications in the contexts we have discussed.
+The purpose of investigating this is to see whether a monad-comonad interaction law \cite{uustalu:2019} between the underlying monad in a MSF and the underlying comonad in a \verb+MSFDual+ instance could be used to define a functor-functor interaction law between these two types, and whether this would have any novel uses or implications in the contexts we have discussed.

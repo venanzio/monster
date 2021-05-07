@@ -58,6 +58,9 @@ Comonadic streams (monadic streams where the underlying functor is a comonad) ca
 
 This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. \\
 
-One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this is unsafe, as the name suggests). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside the program.
+One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this is unsafe, as the name suggests). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside of the program.
 
 
+\subsection{Dataflow programming}
+
+Another thing comonadic streams could be used for is extending the comonadic approach to dataflow programming, developed in \cite{essence_of_dataflow}, with the context of other comonads. The idea is that any comonad \verb+w+ can be extended with the notion of past, present, and future values with \verb+MonStr w+. Functions out of the type \verb+MonStr m a+ are context-sensitive computations that are dependent on arbitrary numbers of future environments of type \verb+w a+.

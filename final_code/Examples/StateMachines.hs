@@ -12,11 +12,21 @@ import Prelude hiding (head, tail)
 -- | Type of state machines, using the Reader monad
 type SMStr i o = MonStr ((->) i) o
 
-
 -- | Convenient Show instance for masking Reader-monsters when
 -- printed on the command line
 instance Show (SMStr i o) where
   show _ = "[ A Mealy machine ]"
+  
+-- | Passes an input to the state machine, returning the output
+-- and the next state
+runSMStr :: SMStr i o -> i -> (o, SMStr i o)
+runSMStr = uncons
+
+-- | Passes a list of inputs, one at a time, to the state machine,
+-- collecting the outputs and returning the final state
+runSMStrList :: SMStr i o -> [i] -> ([o], SMStr i o)
+runSMStrList sm         []     = ([], sm)
+runSMStrList (MCons sm) (i:is) = let (o, sm') = sm i in (\(os, smf) -> (o:os, smf)) $ runSMStrList sm' is
 
 
 -- | The usual type of Mealy machines
@@ -63,19 +73,7 @@ composeSM :: SMStr a b -> SMStr b c -> SMStr a c
 composeSM (MCons f) (MCons g) = MCons $ \a -> let (b, f') = f a 
                                                   (c, g') = g b
                                                   in (c, composeSM f' g')
-
--- | Passes an input to the state machine, returning the output
--- and the next state
-runSMStr :: SMStr i o -> i -> (o, SMStr i o)
-runSMStr = uncons
-
--- | Passes a list of inputs, one at a time, to the state machine,
--- collecting the outputs and returning the final state
-runSMStrList :: SMStr i o -> [i] -> ([o], SMStr i o)
-runSMStrList sm         []     = ([], sm)
-runSMStrList (MCons sm) (i:is) = let (o, sm') = sm i in (\(os, smf) -> (o:os, smf)) $ runSMStrList sm' is
-                          
-                          
+           
                                                    
 -- | Example Mealy machines
 
