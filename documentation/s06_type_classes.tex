@@ -1,4 +1,3 @@
-
 \section{Instances of Functor, Applicative, Monad}
 
 Show that monadic streams are an instance of these three classes, under some assumptions about the underlying monad.
@@ -42,15 +41,35 @@ instance Functor m => Functor (MonStr m) where
    fmap f = transformMS (\a s -> (f a, fmap f s))
 \end{haskell}
 
-We can now prove that the functor laws are satisfied by $\stream{M}$.
+We can now prove that the functor laws are satisfied by $\stream{M}$: it's functorial mapping preserves identities and composition.
+The proof are straightforward applications of definitions and the functoriality of $M$ and $\times$, except for the use of coinduction:
+We are allowed to invoke the laws themselves in their proofs, as long as we use them only in the direct recursive subterms of the $\mcons$ constructor, that is, in the {\em positions} for the container $M\,(A\times -)$.
+
 \begin{lemma}\label{lemma:functor_id}
 The identity functor law holds for monadic streams:
 $$
 \stream{M}\,\id_A = \id_{\stream{M,A}}
 $$
 \end{lemma}
+\begin{proof}
+We apply the left-hand side function to an $M$-monster in constructor form:
+$$
+\begin{array}{ll}
+\stream{M}\,\id_A\,(\mcons\,m)\\
+{}= \mcons\,(M\,(\id_A\times \stream{M}\,\id_A)\,m)
+  & \mbox{by definition}\\
+{}= \mcons\,(M\,(\id_A\times \id_{\stream{M,A}})\,m)
+  & \mbox{by coinduction hypothesis}\\
+{}= \mcons\,(M\,(\id_{A\times \stream{M,A}})\,m)
+  & \mbox{by functoriality of }\times\\
+{}= \mcons\,(\id_{M\,(A\times \stream{M,A})}\,m)
+  & \mbox{by functoriality of }M\\
+{}= \mcons\,m
+\end{array}
+$$
+\end{proof}
 
-\begin{lemma}\label{lemma:functor_id}
+\begin{lemma}\label{lemma:functor_comp}
 The composition functor law holds for monadic streams:
 
 If $f:A\rightarrow B$ and $g:B\rightarrow C$, then
@@ -58,82 +77,162 @@ $$
 \stream{M}\,(g\comp f) = (\stream{M}\,g) \comp (\stream{M}\,f)
 $$
 \end{lemma}
+\begin{proof}
+Let's again apply the left-hand side function to an $M$-monster in constructor form:
+$$
+\begin{array}{ll}
+\stream{M}\,(g\comp f)\,(\mcons\,m)\\
+{}= \mcons\,(M\,((g\comp f)\times \stream{M}\,(g\comp f))\,m)
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\
+{}= \mcons\,(M\,((g\comp f)\times (\stream{M}\,g) \comp (\stream{M}\,f))\,m)
+  & \mbox{by coinduction hypothesis}\\ 
+{}= \mcons\,(M\,((g\times \stream{M}\,g) \comp (f\times \stream{M}\,f))\,m)
+  & \mbox{by functoriality of }\times\\ 
+{}= \mcons\,((M\,(g\times \stream{M}\,g) \comp M\,(f\times \stream{M}\,f))\,m)
+  & \mbox{by functoriality of }M\\ 
+{}= \mcons\,(M\,(g\times \stream{M}\,g)\, (M\,(f\times \stream{M}\,f)\,m))
+  & \mbox{by definition of composition}\\ 
+{}= \stream{M}\,g\, (\mcons\,(M\,(f\times \stream{M}\,f)\,m))
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
+{}= \stream{M}\,g\, (\stream{M}\,f\,m)
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
+{}= ((\stream{M}\,g) \comp (\stream{M}\,f))\,m
+  & \mbox{by definition of composition}
+\end{array}
+$$
+\end{proof}
 
+We can sum up these results by stating that the monster operator is a functor if the underlying ``monad'' is (remember that we are not actually assuming that $M$ is a monad yet, but just a type operator).
 
-\subsubsection{Functor proof}
+\begin{theorem}
+If $M$ is a functor, $\stream{M}$ is also a functor.
+\end{theorem}
 
-Proof that \hcode{fmap id == id}
+\subsection{Applicative instance}
 
+Applicative functors \cite{mcbride/paterson:2008}
+extend the mapping operation by allowing function sequencing under the functor.
+It has two methods: $\apure$, that inject single values into the functor, and $\appl$, that applies functions under the functor.
+
+We assume that the type operator $M$ is an applicative functor, that is, it has methods:
+$$
+\begin{array}{l}
+\apure : A \rightarrow M\,A\\
+(\appl): M\,(A\rightarrow B) \rightarrow M\,A \rightarrow M\,B
+\end{array}
+$$
+satisfying the applicative laws.
+
+A typical use of applicative functors is to apply a function of many arguments to several applicative values.
+If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $a_0:M\,a_0, a_1:M\,a_1, \ldots, a_n:M\,a_n$, then:
+$$
+(\apure\,g) \appl a_0 \appl a_1 \appl \cdots \appl a_n : M\,B
+$$
+
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
+$$
+a \alift{\oplus} b = (\apure\,(\oplus)) \appl a \appl b
+$$
+
+We will show that $\stream{M}$ is also applicative.
+In order to define the methods, we need some auxiliary functions on applicative monsters.
+First of all, a simplified version of $\mcons$ that appends a single value in front of a monster.
+This in turn uses a similar operator for functors, which appends an $M$-action in from of a monster
+$$
+\begin{array}{l}
+(\fcons): M\,A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
+m \fcons \sigma = \mcons\, (M\,(\lambda a. \langle a, \sigma\rangle)\,m)\\
+\,\\
+(\acons): A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
+a \acons \sigma = (\apure\, a) \fcons \sigma
+\end{array}
+$$
+
+In Haskell:
 \begin{haskell}
-fmap id = transformMS (\a s -> id a, fmap id s)
--- definition of `transformMS`
-= \s -> MCons $ fmap (\(h,t) -> (\a s -> (id a, fmap id s)) h t) (unwrapMS s)
--- application of `(\a s -> (id a, fmap id s))` to `h t`
-= \s -> MCons $ fmap (\(h,t) -> (id h, fmap id t)) (unwrapMS s)
--- take as assumption that `fmap id t == id t` - coinductive hypothesis?
-= \s -> MCons $ fmap (\(h,t) -> (id h, id t)) (unwrapMS s)
--- definition of `id`
-= \s -> MCons $ fmap (\(h,t) -> (h,t)) (unwrapMS s)
--- definition of `id`
-= \s -> MCons $ fmap id (unwrapMS s)
--- `unwrapMS` returns an element in a functor, so `fmap id == id` in this case
-= \s -> MCons $ id (unwrapMS s)
--- application of `id`
-= \s -> MCons $ (unwrapMS s)
--- MCons and unwrapMS are inverses
-= \s -> id s 
-= id
+(<::) :: Functor m => m a -> MonStr m a -> MonStr m a
+ma <:: s = MCons (fmap (\a -> (a,s)) ma)
+
+(<:) :: Applicative m => a -> MonStr m a -> MonStr m a
+a <: s = pure a <:: s
 \end{haskell}
 
-Proof that \verb+fmap (f . g) == (fmap f) . (fmap g)+
+The pure method for monsters then consists in iterating the same element forever:
+$$
+\begin{array}{l}
+\apure : A \rightarrow \stream{M}\,A\\
+\apure\,a = a \acons \apure\,a
+\end{array}
+$$
 
-To simplify notation in the proof, we introduce the notation \verb+tr(f)+ for the expression \verb+\(h,t) -> (f h, fmap f t)+.
+In order to define the function application method, we need several binary operations applying functions to arguments inside products, $M$-actions, $M$-monsters.
+They are mutually recursive:
+$$
+\begin{array}{l}
+(\appl) : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
+(\mcons\,m_f) \appl (\mcons\,m_a)
+= \mcons\,(m_f \alift{\pappl} m_a)\\
+\qquad \where\;
+\langle f,\phi\rangle \pappl \langle a,\sigma\rangle 
+= \langle f\,a, \phi \appl \sigma \rangle
+\end{array}
+$$
 
-We're going to use the fact that the underlying operator \verb+m+ is a functor and so satisfies the functor laws, and also that the pairing operator \verb+(,)+ is functorial in both arguments.
+This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
+This is lifted to $\alift{\pappl}$, which distributes down throgh the components of the applicative values $\phi$ and $\sigma$, and finally guarded by the constructor $\mcons$.
+This guarantees the soundnes of the definition according to the {\em guardedness by constructors} criterion.
 
-By definition of \verb+fmap+ for monsters, we have that
+Here is the definition of the Applicative instance for monsters in Haskell:
 \begin{haskell}
-fmap f s = transformMS (\ a s -> (f a, fmap f s)) s
-         = MCons $ fmap (\ (h,t) -> (\a s -> (f a, fmap f s) h t)) (unwrapMS s)
-         = MCons $ fmap (\ (h,t) -> (f h, fmap f t)) (unwrapMS s)
-         = MCons $ fmap tr(f) (unwrapMS s)
+transformA :: Applicative m =>
+               (a -> MonStr m a -> b -> MonStr m b -> (c, MonStr m c)) ->
+               MonStr m a -> MonStr m b -> MonStr m c
+transformA f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
+                               <$> uncons as <*> uncons bs
+
+instance Applicative m => Applicative (MonStr m) where
+  pure a = a <: pure a
+  (<*>) = transformA (\f fs a as -> (f a, fs <*> as))  
 \end{haskell}
 
-We also use the fact that the monster constructor \verb+MCons+ and the function \verb+unwrapMS+ that removes it are inverse of each other.
+An applicative instance must satisfy four general laws regulating the interaction of sequencing and pure values and requiring associativity of application.
 
-\begin{haskell}
-fmap (f . g) = transformMS (\a s -> (f . g) a, fmap (f . g) s)
--- definition of `transformMS`
-= \s -> MCons $ fmap (\(h,t) -> (\a s -> ((f . g) a, fmap (f . g) s)) h t) (unwrapMS s)
--- application of `(\a s -> ((f . g) a, fmap (f . g) s))` to `h t`
-= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, fmap (f . g) t)) (unwrapMS s)`
--- take as assumption that `fmap (f . g) t == (fmap f . fmap g) t` - coinductive hypothesis?
-= \s -> MCons $ fmap (\(h,t) -> ((f . g) h, (fmap f . fmap g) t)) (unwrapMS s)
--- By fuctoriality of pairing in both components
-= \s -> MCons $ fmap (tr(f) . tr(g)) (unwrapMS s)
--- By functoriality of the underlying operator m
-= \s -> MCons $ (fmap tr(f)) . (fmap tr(g)) (unwrapMS s)
--- MCons and unwrapMS are inverses
-= \s -> MCons $ fmap tr(f)) $ unwrapMS $ MCons $ fmap tr(g) (unwrapMS s)
-= \s -> MCons $ fmap tr(f)) $ unwrapMS $ fmap g s
-= \s -> fmap f $ fmap g s
-= fmap f . fmap g
-\end{haskell}
+\begin{lemma}\label{lemma:appl_pure_id}
+$$
+(\apure\,\id) \appl m_a = m_a
+$$
+\end{lemma}
 
-\subsection{Applicative instance in Haskell}
+\begin{lemma}\label{lemma:appl_pure_app}
+$$
+\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
+$$
+\end{lemma}
 
-\begin{haskell}
-unwrapMS :: MonStr m a -> m (a, MonStr m a)
-unwrapMS (MCons m) = m
+\begin{lemma}\label{lemma:appl_app_pure}
+$$
+m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
+$$
+\end{lemma}
 
-transformMS :: Functor m => (a -> MonStr m a -> (b, MonStr m b)) ->
-                                  MonStr m a -> MonStr m b
-transformMS f s = MCons $ fmap (\(h,t) -> f h t) (unwrapMS s)
+\begin{lemma}\label{lemma:appl_assoc}
+$$
+m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a 
+$$
+\end{lemma}
 
-instance Functor m => Functor (MonStr m) where
-   -- fmap :: (a -> b) -> MonStr m a -> MonStr m b
-   fmap f = transformMS (\a s -> (f a, fmap f s))
-\end{haskell}
+In summary, the monster operator is applicative when the underlying ``monad'' is.
+\begin{theorem}
+If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
+\end{theorem}
+
+
+
+
+
+
+
+
 
 \subsection{Comonad instance in Haskell}
 
