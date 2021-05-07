@@ -123,6 +123,17 @@ $$
 $$
 satisfying the applicative laws.
 
+A typical use of applicative functors is to apply a function of many arguments to several applicative values.
+If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $a_0:M\,a_0, a_1:M\,a_1, \ldots, a_n:M\,a_n$, then:
+$$
+(\apure\,g) \appl a_0 \appl a_1 \appl \cdots \appl a_n : M\,B
+$$
+
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
+$$
+a \alift{\oplus} b = (\apure\,(\oplus)) \appl a \appl b
+$$
+
 We will show that $\stream{M}$ is also applicative.
 In order to define the methods, we need some auxiliary functions on applicative monsters.
 First of all, a simplified version of $\mcons$ that appends a single value in front of a monster.
@@ -159,25 +170,16 @@ They are mutually recursive:
 $$
 \begin{array}{l}
 \appl : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
-\pappl: (A\rightarrow B)\times (\stream{M}\,(A\rightarrow B)) \rightarrow A\times (\stream{M}\,A) \rightarrow B\times (\stream{M}\,B)\\
-\mappl: M\,((A\rightarrow B)\times (\stream{M}\,(A\rightarrow B))) \rightarrow M\,(A\times (\stream{M}\,A)) \rightarrow M\,(B\times (\stream{M}\,B))\\
-\,\\
 (\mcons\,\phi) \appl (\mcons\,\sigma)
-= \mcons\,(\phi \mappl \sigma)\\
-\,\\
+= \mcons\,(\phi \alift{\pappl} \sigma)\\
+\qquad \where\;
 \langle f,\phi\rangle \pappl \langle a,\sigma\rangle 
-= \langle f\,a, \phi \appl \sigma \rangle\\
-\,\\
-m_f \mappl m_a = (\pappl) \aseq m_f \appl m_a
+= \langle f\,a, \phi \appl \sigma \rangle
 \end{array}
 $$
 
-
-
-
-
+In Haskell:
 \begin{haskell}
--- | Version of transform for applicative monsters
 transformA :: Applicative m =>
                (a -> MonStr m a -> b -> MonStr m b -> (c, MonStr m c)) ->
                MonStr m a -> MonStr m b -> MonStr m c
