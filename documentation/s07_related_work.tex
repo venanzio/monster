@@ -26,9 +26,9 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
 
-Additionally, combinators defined in our library work similarly to combinators in Yampa. For example, the (internal) signal function composition combinator \verb+compPrim+ is conceptually the same as our function \verb+interleaveReadM+, which was covered in the IO monad examples section.
+Additionally, combinators defined in our library work similarly to combinators in Yampa. For example, their (internal) signal function composition combinator \verb+compPrim+ is conceptually the same as our function \verb+interleaveReadM+, which was covered in the IO monad examples section.
 
-Yampas concept of signal functions is generalised further in Dunai, a library with more direct relationship to monadic streams.
+Yampa's concept of signal functions is generalised further in Dunai, a library with more direct relationship to monadic streams.
 
 \subsection{Relation to Dunai}
 
@@ -48,7 +48,7 @@ Here, \verb+Env+ is just a type representing some environment the signal functio
 
 On the other hand, there are many interesting concepts in Dunai which could be incorporated into new functions in this library, such as their concept of FRP constructs. 
 
-These encapsulate the idea of changing \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, into \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. If the monad transformer were \verb+ListT+ for example, it would give rise to the concept of parallelism with broadcasting. 
+These encapsulate the idea of changing \verb+MonStr (ReaderT a (t m)) r+ where the underlying monad \verb+m+ is lifted with some monad transformer \verb+t+, into \newline \verb+MonStr (ReaderT a m) r+ where the monad transformer \verb+t+ was 'run' in some way, leaving only the monad \verb+m+. If the monad transformer were \verb+ListT+ for example, it would give rise to the concept of parallelism with broadcasting. 
 
 Monad transformers were only briefly explored in the library, but this indicates that there may be many more constructs we can form when taking them into account. \\
 
@@ -64,3 +64,9 @@ One possible barrier to using this concept concretely, is that often inputs into
 \subsection{Dataflow programming}
 
 Another thing comonadic streams could be used for is extending the comonadic approach to dataflow programming, developed in \cite{essence_of_dataflow}, with the context of other comonads. The idea is that any comonad \verb+w+ can be extended with the notion of past, present, and future values with \verb+MonStr w+. Functions out of the type \verb+MonStr m a+ are context-sensitive computations that are dependent on arbitrary numbers of future environments of type \verb+w a+.
+
+\subsection{Properties of monadic streams}
+
+Many properties of monadic stream functions have been proven in the appendix \cite{msf_properties} to Bärenz, Perez, and Nilsson's 2016 paper MSF based FRP \cite{frp_refactored}. Depending on their formulation, these proofs may also show that the same properties are true for monadic streams, because monadic streams are just MSFs that ignore their inputs. 
+
+One of our goals is to investigate further how this work can be applied to the context of monadic streams. \ccomm{This might need rewording, but I'm not sure how}

@@ -4,11 +4,15 @@ At this point in the project, a few new problems have come to light, some relate
 
 Future work on this library will include a review of the efficiency of many functions we defined - this project was initially an exercise to see what could be done with monadic streams, but if this library could be used for larger applications then efficiency would be an issue. Also, whether all of the functions work exactly as intended is still uncertain. The functions that are analogous to those in \verb+Data.List+ have been tested, but we have not yet defined some concrete semantics to interpret all of the other functions with, meaning we can only be sure that their actions on monadic streams are approximately the intended ones. \\
 
-One glaring open problem is to prove that monadic streams are themselves monads when the underlying functor is an idempotent monad. This seems evident from how the counter-example is constructed, and it seems to be the case experimentally, but a convincing proof showing that all of the monad laws hold has yet to be developed. \\
+One glaring open problem is to prove that monadic streams are themselves monads when the underlying functor is an idempotent monad \cite{idempotent_monads}. This seems evident from how the counter-example is constructed, and it seems to be the case experimentally, but a convincing proof showing that all of the monad laws hold has yet to be developed. 
 
-Another angle of interest is to look further into exactly how monadic streams are different operationally from the cofree comonad over a functor. The difference is only that there is no first 'unguarded' element in a monadic stream, but this is enough make them function quite differently when instantiated with the same monads. \\
+Additionally, our proofs of the applicative and comonad laws need to be developed further, and the comonad proofs formalised. \\
 
-Finally, whether comonadic streams could have a role in functional reactive programming is still an open problem. It may also be interesting to look at a dual of Dunai's monadic stream functions \cite{dunai}. The dual of (co)monadic streams are monadic lists:
+Another angle of interest is to look further into exactly how monadic streams are different operationally from the cofree comonad over a functor. This is defined as the final coalgebra of $F_M\,X = A \times M\,X$, where $M$ is a functor, which is very similar to the definition of monadic streams in section 2.
+
+The difference is only that there is no first 'unguarded' element in a monadic stream \ccomm{Is there a better way of putting this?}, but this is enough make them function quite differently when instantiated with the same monads. \\
+
+Finally, whether comonadic streams could have a good role in functional reactive programming is still an open problem. It may also be interesting to look at a dual of Dunai's monadic stream functions \cite{dunai}. The dual of (co)monadic streams are monadic lists:
 \begin{haskell}
 data MonLst m a = m (Either a (MonLst m a)) 
 \end{haskell}
@@ -27,3 +31,5 @@ Evaluating the comonad with \verb+extract+ or a co-Kleisli arrow will either res
 This is like an environment from which new values can be repeatedly extracted from, but at some point the environment will become exhausted, returning a single \verb+a+ instead of a new environment.
 
 The purpose of investigating this is to see whether a monad-comonad interaction law \cite{uustalu:2019} between the underlying monad in a MSF and the underlying comonad in a \verb+MSFDual+ instance could be used to define a functor-functor interaction law between these two types, and whether this would have any novel uses or implications in the contexts we have discussed.
+
+\ccomm{Should we leave it there, or does there need to be one more paragraph to tie things up - personally I feel like what needs to be said has already been said}
