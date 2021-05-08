@@ -122,11 +122,7 @@ The $\lstsym$ monad embodies computations that can return any number of values; 
 
 One important feature of monads is that consecutive effects can be `flattened' or `joined' into a single one: a list of lists can be concatenated into a single list. 
 
-
-
-
-
-Some other types of monsters include \emph{IO-monsters}, which represent interactive processes, and \emph{Reader-monsters} which represent finite state automata. All of these variations of monadic stream we have introduced are explained and expanded on in section 4.
+Some other types of monsters include \emph{$\io$-monsters}, which represent interactive processes, and \emph{$\reader$-monsters} which represent finite state automata. All of these variations of monadic stream we have introduced are explained and expanded on in section 4.
 
 All of our examples will be written in Haskell, and sometimes pseudo-Haskell. In section 6, where we prove various properties of monsters, we will use Haskell for equational reasoning, alongside more type theoretic notation for the same purpose. These two notations are interwoven throughout the article, but the distinction between them should be clear: all Haskell code is surrounded with a black bounding box, and displayed in monospace font. \\
 
