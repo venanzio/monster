@@ -116,16 +116,15 @@ node [ 5 <: leaf
 
 This is a finite tree, but the trees are allowed to be infinite, in both the width of the tree (the number of branches at one level), and the depth of the tree (the length of the longest path from the root to a leaf). \\
 
-In these two examples, we have used the $\maybe$ and $\lstsym$ monads to construct monsters. 
+In these two examples, we have used the $\maybe$ and $\lstsym$ monads to construct monsters.
+The $\maybe$ monad gives the effect of a computation that might return $\nothing$; in the case of a $\maybe$-monster, returning $\nothing$ terminates the stream. 
+The $\lstsym$ monad embodies computations that can return any number of values; in the case of $\lstsym$-monsters this gives us our arbitrary number of branches at each level.
+
+One important feature of monads is that consecutive effects can be `flattened' or `joined' into a single one: a list of lists can be concatenated into a single list. 
 
 
 
 
-The Maybe monad gives the effect of a computation that might return nothing; in the case of a Maybe-monster, returning nothing terminates the stream. 
-
-The List monad embodies computations that can return any number of values; in the case of List-monsters this gives us our arbitrary number of branches at each level.
-
-One important thing about monads is that subsequent effects can be 'flattened' or 'joined' into a single one: a list of lists can be concatenated into a single list. 
 
 Some other types of monsters include \emph{IO-monsters}, which represent interactive processes, and \emph{Reader-monsters} which represent finite state automata. All of these variations of monadic stream we have introduced are explained and expanded on in section 4.
 
