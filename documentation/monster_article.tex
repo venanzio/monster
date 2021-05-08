@@ -30,23 +30,23 @@
 \maketitle
 
 \begin{abstract}
-A monadic stream is a potentially infinite sequence of values in which a monadic action is triggered at each step before the generation of the next element.
-A monadic action consists of some functional {\em container} inside which the unfolding of the stream takes place.
+A monadic stream is a potentially infinite sequence of values in which a {\em monadic action} is triggered at each step before the generation of the next element.
+Monadic actions are a wide class of side effects, modes of execution, evaluation paradigms; they are realized as functional {\em containers} inside which the unfolding of the stream takes place.
 Examples of monadic actions are: executing some input/output interactions, cloning the process into several parallel computations, executing transformations on an underlying state, terminating the sequence.
 
 We develop a library of definitions and universal combinators to program with monadic streams and we prove several mathematical results about their behaviour.
 
-We define the type of Monadic Streams (MonStr), dependent on two arguments: the underlying monad and the type of elements of the sequence.
-We use the following terminology: a monadic stream with underlying monad $m$ is called an $m$-monster.
+We define the type of Monadic Streams (MonStr), dependent on two arguments: the underlying monad (the kind of possible actions) and the type of elements of the sequence.
+We use the following terminology: a monadic stream with underlying monad $M$ is called an $M$-monster.
 The definition itself doesn't depend on the fact that the underlying operator is a monad.
 We define it generally: some of the operators can be defined without any assumptions, some others only need the operator to be a Functor or Applicative Functor.
 A different set of important combinators and theoretical results follow from the assumption that the operator is a Comonad rather than a Monad.
 
-We instantiate the abstract MonStr type with several common monads (Maybe, List, Reader, State, IO) and show that we obtain well-known data structures.
-Maybe-monsters are lazy lists, List-monsters are non-well-founded finitely branching trees, Reader-monsters are finite state machines, IO-monsters are interactive processes.
+We instantiate the abstract MonStr type with several common monads ($\maybe$, $\lstsym$, $\reader$, $\state$, $\io$) and show that we obtain well-known data structures.
+$\maybe$-monsters are lazy lists, $\lstsym$-monsters are non-well-founded finitely branching trees, $\reader$-monsters are finite state machines, $\io$-monsters are interactive processes.
 We prove equivalences between the traditional data types and their MonStr versions: the MonStr combinators instantiate to traditional operations.
 
-Under some assumptions on the underlying functor/monad, we can prove that the MonStr type is also a Functor, and Applicative, or a Monad, giving us access to the special methods and notations of those type classes.
+Under some assumptions on the underlying functor/monad, we can prove that the MonStr type is also a Functor, an Applicative, or a Monad, giving us access to the special methods and notations of those type classes.
 \end{abstract}
 
 \include{s01_introduction}
