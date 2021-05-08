@@ -102,10 +102,10 @@
 \newcommand{\tailfun}{\mathsf{tail}}
 \newcommand{\headsymbol}{\mathfrak{h}}
 \newcommand{\tailsymbol}{\mathfrak{t}}
-\newcommand{\hd}[1]{{}^{\headsymbol}\!{#1}}
-\newcommand{\heads}[2]{{}^{\headsymbol#2}{#1}}
-\newcommand{\tl}[1]{{}^{\tailsymbol}\!{#1}}
-\newcommand{\tails}[2]{{}^{#2\tailsymbol}{#1}}
+
+\newcommand{\hd}[1]{{\head\,#1}}
+\newcommand{\tl}[1]{{\tail\,#1}}
+\newcommand{\heads}[2]{{\head\,(\tail^n\,#1)}}
 
 % functors
 
