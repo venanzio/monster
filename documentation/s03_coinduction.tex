@@ -1,16 +1,15 @@
 \section{The Coinduction Principle}
 
-As inductive types come together with an {\em induction principle}, stating that we can prove statements about them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down recursion on their structure.
+As inductive types come together with an {\em induction principle}, stating that we can prove statements about them by bottom-up recursion on their structure, coinductive types come with a {\em coinduction principle}, stating that we can prove equalities of their elements by top-down \ccomm{co?}recursion on their structure.
 
 Let us illustrate the idea with the example of pure streams:
-Suppose that we want to prove that two stream $\sigma_0$ and $\sigma_1$ are equal.
+Suppose that we want to prove that two streams $\sigma_0$ and $\sigma_1$ are equal.
 Since streams are infinite sequences of elements, that will require proving equality of their entries in corresponding positions: if $\sigma_0 = a_0\scons a_1\scons a_2\scons \cdots$ and  $\sigma_1 = b_0\scons b_1\scons b_2\scons \cdots$, we must prove $a_0 = b_0$, $a_1 = b_1$, $a_2=b_2$, and so on (we assume equality on streams is extensional).
-This is an infinite sequence of equalities to prove.
-Clearly we cannot produce all the proofs explicitely.
-However, the proof of equality can be seen itself as a stream of proofs of equalities of their elements.
-We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitely the equality of the heads.
+This requires an infinite sequence of equalities to prove, and clearly we cannot produce all of these explicitly.
+However, the proof of equality can be seen itself as a stream of proofs of equalities of each pair of elements in the same positions.
+We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitly the equality of the heads.
 
-More specifically, we often need to prove that two functions produce equal streams.
+More specifically, we often need to prove that two \emph{functions} produce equal streams.
 Suppose $f,g:X \rightarrow \stream{A}$ are the two functions, and they are both defined by guarded recursion (that is, defined by coalgebras):
 $$
 f\,x = h_f(x) \scons f\,(t_f(x)) \qquad g\,x = h_g(x) \scons f\,(t_g(x)).
