@@ -5,15 +5,21 @@
 
 \section{Introduction}
 
-Monadic streams present an interesting way of programming with effects. 
+Monadic streams are interesting and powerful way of programming computational processes that generate effects. 
 
-They encapsulate the notion of a stream of values, where traversing the stream from one element to the next can result in, for example, more than one element, or maybe no elements at all. Traversing the stream could also require extra inputs, or cause I/O events, such as printing to the screen or asking for user interaction. These extra computations, among others, come under the umbrella term \emph{computational effects} or simply \emph{effects}. 
+They encapsulate the notion of a (potentially infinite) stream of values,
+where traversing the stream from one element to the next 
+can trigger, for example,
+the splitting of the process into several streams
+or the termination of the stream.
 
-We will also call these effects \emph{monadic actions} or just \emph{actions}, referring to monads; these encapsulate the concept of effectful computations. \\
+ Traversing the stream could also require extra inputs, or cause I/O events, such as printing to the screen or asking for user interaction. These extra computations, among others, come under the umbrella term \emph{computational effects} or simply \emph{effects}. 
+
+We will also call these effects \emph{monadic actions} or just \emph{actions}, referring to monads; these, in functional programming, are type constructors whose elements encapsulate the concept of effectful computations. \\
 
 To understand monadic streams, we must first look at pure streams.
 
-A \emph{pure stream} is an infinite sequence of values, for example
+A \emph{pure stream} is an infinite sequence of values, for example (using the Haskell notation that we will introduce later), the stream of all natural numbers:
 \begin{haskell}
   nats = 0 <: 1 <: 2 <: 3 <: 4 <: (*...*)
 \end{haskell}
@@ -30,17 +36,26 @@ The list of natural numbers can be defined as
     where fromNat n = n <: fromNat (n+1)
 \end{haskell}
 
-This kind of recursion is called \emph{corecursion}, the distinction being that there is no base case. For this to work in practice, corecursive structures (like our stream of natural numbers above) must be evaluated \emph{lazily}, meaning 'only as needed'. The lazy evaluation strategy allows definitions like this in Haskell and other similar programming languages. \\
-  
-A \emph{monadic stream} (which we call a \emph{monster} for short) is a sequence of values in which every constructor \verb+(<:)+ is guarded by a monadic action: to obtain the head (first element) and tail (continuation) of the stream, we must execute the monadic action. \\
+This kind of self-referential definition is called \emph{corecursion}.
+It differentiates from the standard inductive recursion in three ways:
+first, the recursive calls are not required the be applied to a smaller argument (in the example we apply \hcode{fromNat} to $n+1$, which is larger than $n$);
+second, there is no need for a base case where the recursion will terminate;
+third, the recursive calls must be {\em guarded}, that is, we must ensure that at least part of the result is produced before the recursive call (here \hcode{n <: }).
 
-For example a \emph{Maybe-monster} is a sequence of elements that is either nothing (meaning the sequence is finished) or some head element followed by a tail. This allows us to define both finite and infinite sequences. The definitions of \verb+ones+ and \verb+nats+ are still valid Maybe-monsters. In addition, we can now define finite sequences:
+For this to work in practice, corecursive structures (like our stream of natural numbers above) must be evaluated \emph{lazily}, meaning `only as needed'. 
+The program will not try to generate the whole stream, but will only produce one element at a time when required.
+The lazy evaluation strategy allows definitions like this in Haskell and other similar programming languages. \\
+  
+A \emph{monadic stream} is a sequence of values in which every constructor \verb+(<:)+ is enclosed in a monadic action: to obtain the head (first element) and tail (continuation) of the stream, we must execute the monadic action. \\
+Their type constructor is called \hcode{MonStr}, so we call them \emph{monsters} for short.
+
+For example a \emph{$\maybe$-monster} is a sequence of elements that is either nothing (meaning the sequence is finished) or some head element followed by a tail. This allows us to define both finite and infinite sequences. The definitions of \verb+ones+ and \verb+nats+ are still valid $\maybe$-monsters. In addition, we can now define finite sequences:
 \begin{haskell}
   1 <: 2 <: 3 <: empty
 \end{haskell}
-where \verb+empty+ is the Maybe-monster given by the 'nothing' action. 
+where \verb+empty+ is the $\maybe$-monster given by the `nothing' action. 
 
-Another example is \emph{List-monsters}, where the effect is to produce a list of values, which can be thought of as a non-deterministic computation. An element consists of a list of heads and tails: there may be many (zero or more) branches, each with its own head and tail.
+Another example is \emph{$\lstsym$-monsters}, where the effect is to produce a list of values, which can be thought of as a non-deterministic computation. An element consists of a list of heads and tails: there may be many (zero or more) branches, each with its own head and tail.
 List-monsters are actually arbitrarily branching trees, with labels (elements) on the branches instead of the nodes:
 \begin{haskell}
 node [ 5 <: leaf
@@ -53,7 +68,7 @@ node [ 5 <: leaf
                  ]
      ]
 \end{haskell}
-\verb+leaf+ is a tree with no branches (\verb+leaf = node []+). This example is the List-monster that corresponds to the tree below. Each branch has its own tail, or collection of subtrees in this case. \\
+\verb+leaf+ is a tree with no branches (\verb+leaf = node []+). This example is the $\lstsym$-monster that corresponds to the tree below. Each branch has its own tail, or collection of subtrees in this case. \\
 
 \begin{tikzpicture}[grow=right, sloped]
 \node[sty] {node}
@@ -101,7 +116,10 @@ node [ 5 <: leaf
 
 This is a finite tree, but the trees are allowed to be infinite, in both the width of the tree (the number of branches at one level), and the depth of the tree (the length of the longest path from the root to a leaf). \\
 
-In these two examples, we have used the Maybe and List \emph{monads} to construct the monsters. 
+In these two examples, we have used the $\maybe$ and $\lstsym$ monads to construct monsters. 
+
+
+
 
 The Maybe monad gives the effect of a computation that might return nothing; in the case of a Maybe-monster, returning nothing terminates the stream. 
 
