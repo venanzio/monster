@@ -1,6 +1,6 @@
 \section{General functions and operations}
 
-In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in all of some of the contexts presented. \\
+In light of the interpretations of various types of monadic stream, some of the general operations defined have interesting uses in all or some of the contexts presented. \\
 
 Consider the \verb+dropM+ function. 
 
@@ -28,13 +28,13 @@ scanM :: Monad m => (a -> a -> a) -> MonStr m a -> MonStr m a
 scanM f s = absorbM $ (\(a, s') -> scanA f a s') <$> uncons s
 \end{haskell}
 
-It combines each pair of elements in the stream together with a given function, resulting in a stream of the intermediate values. \verb+scanA+ also does this, but leaves an extra monadic action at the beginning of the stream, which \verb+scanM+ deals with by essentially removing it.
+It combines each pair of elements in the stream together with a given function, resulting in a stream of the intermediate values. \verb+scanA+ also does this, but leaves an extra monadic action at the beginning of the stream, which \verb+scanM+ joins with the next action in the monster to remove it. \verb+scanA+ can also generate a monster with a different type to the input, which can be seen from the definitions: this is useful when you want to scan using a function who's return type differs from that of its arguments.
 
 In the context of List-monads used as probability trees, \verb+scanM (*)+ will (when applied to a tree), return the tree of sequential probabilities. That is, given two consecutive branches of the tree $l_1$ and $l_2$ (which represent probabilities), this scan instance calculates $l_1 * l_2$, the probability of traversing the first branch \emph{and then} the second. The scan carries this result forward, so over three sequential branches $l_1$, $l_2$ and $l_3$, the function would produce the probability $l_1 * l_2 * l_3$ at the third branch in the new tree. 
 
 In the same way, \verb=scanM (+)= calculates the disjoint unions of probabilities across each combination of branches in the tree. \\
 
-A final interesting function is \verb+interleave+. This lets you interleave the actions of two monadic streams. 
+A final interesting function is \verb+interleave+. This (unsurprisingly) lets you interleave the actions of two monadic streams.
 
 \begin{haskell}
 interleave :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
@@ -43,8 +43,17 @@ interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
 
 In the context of List-monsters again, this function lets you interleave choices - for two List-monsters $L_0$ and $L_1$, representing decision trees, interleaving them results in a tree $L_{0,1}$ where the first decision in $L_{0,1}$ is the first in $L_0$, the second decision is the first in $L_1$, and so on. This can describe situations where different kinds of choices need to be made cyclically. 
 
-In IO-monsters, this function lets you interleave the actions of two process, effectively implementing a naïve kind of user-level multithreading. 
+In IO-monsters, this function lets you interleave the actions of two process, effectively implementing a naïve kind of user-level multithreading.
 
-In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state of the second depends on the outputs of the first. This could be extended so that both state machines are dependent on each other, which is left as an exercise to the reader. \\
+In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state and outputs of one depend on the outputs of the other. 
+\begin{haskell}
+interleaveReadM :: Monad m => MonStr m a -> MonStr (ReaderT a m) b 
+											-> MonStr m b
+interleaveReadM (MCons ma) (MCons f) = 
+	MCons $ do (a, ma') <- ma
+						 (b, f')  <- runReaderT f a 
+						 return (b, interleaveReadM ma' f')
+\end{haskell}
+This could be extended so that both monsters are dependent on each other, which is left as an exercise to the reader. \\
 
-The main aim of this library was to define general functions that operate on generic data structures (defined as monadic streams), such that the functions have interesting, or even novel, uses in the contexts presented by different monads or functors. We hope that the functions presented above, alongside the example in section 4, give readers a general sense of this.
+The main aim of this library was to define general functions that operate on generic data structures (defined using monadic streams), such that the functions have interesting, or even novel, uses in the contexts presented by different monads or functors. We hope that the functions presented above, alongside the example in section 4, give readers a general sense of this.
