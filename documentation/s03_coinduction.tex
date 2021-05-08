@@ -28,6 +28,8 @@ H: \forall x y:X, x\bisim y \rightarrow f\,x = g\,x.
 $$
 If $\bisim$ is reflexive, this will imply our original goal.
 
+\ccomm{I don't exactly understand this - shouldn't $f\,x = g\,x$ be $f\,x = g\,y$? Shouldn't this also be the case in all of the equations like  '$x\bisim y$, then $h_f(x) = h_g(x)$' =>  '$x\bisim y$, then $h_f(x) = h_g(y)$' in the next paragraph?}
+
 Two other properties are necessary to make things work.
 First, we need the equality of the heads of the output: if $x\bisim y$, then $h_f(x) = h_g(x)$.
 Second, we need that $\bisim$ is preseved under taking the tail functions for $f$ and $g$: if $x\bisim y$, then $t_f(x) \bisim t_g(x)$; so that we can now apply $H$ to obtain that $f(t_f(x)) = g(t_g(x))$.
@@ -36,10 +38,10 @@ A relation $\bisim$ satisfying these two properties is called a {\em bisimulatio
 The principle of coinduction states that bisimilar elements generate equal streams.
 
 This notion can be generalized to coalgebras of any functor $F$.
-To formulated it we need a notion of {\em lifting} of a relation by the functor $F$: if $\bisim$ is a relation on a type $X$, we want to lift it to a relation $\bslift{F}$ on $F\,X$.
+To formulate it we need a notion of the {\em lifting} of a relation by the functor $F$: if $\bisim$ is a relation on a type $X$, we want to lift it to a relation $\bslift{F}$ on $F\,X$.
 A simple way to do it is to apply $F$ to the set-theoretic characterization of the relation: the set of all pairs that satisfy it: $R = \{ \langle x, y \rangle \mid x \bisim y\}$.
 We can then use the functorial lift of the projections $\pi_0, \pi_1:R \rightarrow X$ to say that two elements $u,w:F\,X$ are related if there exists an element $s:F\,R$ such that $F\,\pi_0\,s = u$ and $F\,\pi_1\,s = w$.
-This can be further generalized by allowing $R$ to be any type: a collection of {\em receipts} that certify that pairs of elements are related. 
+This can be further generalized by allowing $R$ to be any type: a collection of {\em receipts} that certify that pairs of elements are related.
 In category theory, this notion is called a {\em span}.
 
 \begin{definition}\label{def:span}
@@ -79,7 +81,9 @@ This notion of bisimulation was first introduced by Park \cite{park:1981} and Mi
 Similar concepts were developed earlier in other fields and substantial previous work prepared the background for its appearance.
 The survey article by Sangiorgi \cite{sangiorgi:2009} tells the history of the idea.  
 Aczel \cite{aczel:1988} adopted it as the appropriate notion of equality for non-well-founded sets.
-There are subtle differences between several notions of bisimulation that are not equivalent in full generality: recent work by Staton \cite{staton:2009} investigates their correlations.
+There are subtle differences between several notions of bisimulation that are not equivalent in full generality: recent work by Staton \cite{staton:2009} investigates their correlations. \\
+
+\ccomm{The introduction of the new notation in the next bit is a little abrupt - it is fairly self-explanatory but clarification might be needed}
 
 On $\stream{A}$ a bisimulation is a binary relation $\bisim$ such that
 $$
@@ -88,7 +92,7 @@ $$
 \tl{s_1}\bisim \tl{s_2}.
 $$
 Notice that $s_1\bisim s_2$ guarantees that corresponding elements in the infinite sequences defined by $s_1$ and $s_2$ are equal, that is, $s_1$ and $s_2$ are extensionally equal.
-In fact, by repeatedly applying the above property, we have that $\heads{s_1}{n} = \heads{s_2}{n}$ for every $n$.
+In fact, by repeatedly applying the above property, we have that $\heads{s_1}{n} = \heads{s_2}{n}$ for every $n$. 
 
 \begin{definition}\label{def:coinduction}
 A coalgebra $\langle A,\alpha\rangle$ is said to satisfy the {\em coinduction principle} if every bisimulation $\langle R,r_1,r_2\rangle$ on it has $r_1=r_2$.
@@ -101,10 +105,10 @@ There is a well-known connection between finality of a coalgebra and the coinduc
 Final coalgebras satisfy the coinduction principle.
 \end{theorem}
 
-In practice the coinduction principle is applied by recursively invoking the statement that we want to prove as {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is deployed to prove the statement on the components of the initial terms.
+In practice the coinduction principle is applied by recursively invoking the statement that we want to prove as our {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is deployed  to prove the statement on the components of the initial \ccomm{maybe non-recursive instead?} terms.
 
 As an example, let us use the coinduction principle to prove that the two versions of the function $\sfr$ defined in Section \ref{sec:mstreams} are equal,
-that is, $\sf\,n = \sfp\,n$ for all natural numbers $n$.
+that is, $\sfr\,n = \sfp\,n$ for all natural numbers $n$.
 We will first need a lemma about $\sfp$, basically saying that it satisfies the tail equaltion of $\sfr$, which we also prove by coinduction.
 \begin{lemma}\label{lemma:sfp}
 For all natural numbers $n$, $\tail\,(\sfp\,n) = \sfp\,(n+1)$.
@@ -152,5 +156,5 @@ The last step is justified because $n = \head\,(\sfp\,n)$ by definition and triv
 When working with monadic streams, we can similarly use proof by coinduction by invoking as coinductive hypothesis the statement we are proving.
 Uses of the coinductive hypothesis are justified if they are applied to the {\em sub-components} of the stream.
 
-We will illustrate this when we prove statements about some of the instantiations monadic streams.
-For example, when using list-monsters (monadic streams where the underlying monad $M$ is $\lstsym$), we are allowed to apply the coinductive hypothesis to the tails of all elements in the list.
+We will illustrate this when we prove statements about some of the instantiations of monadic streams.
+For example, when using List-monsters (monadic streams where the underlying monad $M$ is $\lstsym$), we are allowed to apply the coinductive hypothesis to the tails of all elements in the list.
