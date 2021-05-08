@@ -4,16 +4,22 @@ A monadic stream is a sequence of values in which every subsequent element is ob
 If $\sigma$ is such a stream, it will consist of an action for a certain monad $M$ that, when executed, will return a head (first element) and a tail (continuation of the stream).
 This process can be continued in a non-well-founded way: streams constitute a coinductive type.
 
-Formally the type of streams over a monad $M$ (let's call them $M$-monsters) is defined as:
+Formally the type of streams over a monad $M$ (let's call them {\em $M$-monsters}) with elements of type $A$ is defined as:
 $$
 \begin{array}[t]{l}
 \codata\;
 \stream{M,A}:\set\\
-\quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}.
+\quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}
 \end{array}
 $$
-Categorically, we can see this type as the final coalgebra of the functor $F_M\,X = M\,(A\times X)$. (This final coalgebra does not necessarily exists for every $M$, we will discuss this issue below.)
+Categorically, we can see this type as the {\em final coalgebra} of the functor $F_M\,X = M\,(A\times X)$.
+We give definitions of (final) coalgebras and a summary of their properties below.
+The final coalgebra does not necessarily exist for every $M$, 
+but it does for most of the commonly used monads;
+we discuss this issue below.
 
+The monadic streams definition is a type operator that maps a type $A$ to the type of $M$-monsters with elements of type $A$; we may indicate the operator by $\stream{M}$ and the type by the slightly different notation $(\stream{M}\,A)$.
+This notation will be useful when we prove properties of the operator, for example that it is a functor, applicative functor, monad, or comonad, which we do in Section \ref{sec:type_classes}.
 
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
 
@@ -30,7 +36,10 @@ $$
 An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
 
 If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe,A}$, equivalent to the type of lazy lists $\lst{A}$.
-The $\maybe$ monad is a functor that adds an extra element to the argument type: $\maybe\,X \cong X+1$, so the single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+The $\maybe$ monad is a functor that adds an extra element to the argument type:
+$\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
+So $\maybe\,X \cong X+1$.
+The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -43,34 +52,29 @@ This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a 
 Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
 Therefore $\lst{A}$ is the type of finite and infinite sequences. \\
 
-\begin{vcomment}
-Add example with $M = \lstsym $ (maybe introduce different notations for lazy and strict lists) and give some simple example of functions on monsters. \ccomm{I don't think we need this here, just because we gloss over the distinction between well-founded and non-well-founded everywhere else, and also there are a few example of trees in other sections.}
-\end{vcomment}
+Another example is when the underlying monad is $M = \lstsym $ itself.
+In this case each entry in the stream is a list of pairs of heads and tails.
+This is equivalent trees of arbitrary branching degrees (finitely branching if we use only finite lists, but also countably infinite branches if we use lazy lists).
+Since the type is coinductive, the trees can be non-well-founded, that is, they may be infinitely deep.
 
 
-
-
-It is important to make two \ccomm{three, if the extra idea is kept} observations about $M$.
+It is important to make two observations about $M$.
 
 First, $M$ does not need to be a monad for the definition to make sense. 
 In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being just a functor.
 So we will take $M$ to be any type operator (but see second observation) and we will explicitly state what properties we assume about it.
 The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
 
-\ccomm{Maybe we need something along the lines of: "Secondly, we will not distinguish much between well-founded or non-well-founded instances of monadic streams, except for specifying that monadic streams are generally defined as the greatest fixed point of the functor $F_M\,X = M\,(A\times X)$. Apart from this, the well-foundeness of the underlying functor $M$ is not considered, as it does not affect our reasoning"}
-
-The second \ccomm{third, if above point is kept} observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
-Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F_M\,X = M\,(A\times X)$ has a final coalgebra.
-
-
+The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
+Haskell will accept the definition when $M$ is any operator, but mathematically the type is well defined only when $F_M\,X = M\,(A\times X)$ is a functor with a final coalgebra.
 
 \begin{definition}\label{def:fincoal}
 For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
 
 We say that $\langle A,\alpha\rangle$ is a {\em final $F$-coalgebra} if, 
-for every coalgebra $\langle X,\xi:X\rightarrow FX\rangle$, 
+for every coalgebra $\langle X,\xi:X\rightarrow F X\rangle$, 
 there is a unique coalgebra morphism between the the two coalgebras:
-$\sfr:\langle X,\xi\rangle \to \langle A,\alpha\rangle$.
+$\ana{\xi}:\langle X,\xi\rangle \to \langle A,\alpha\rangle$.
 Such a morphism is a function between the types that commutes with the coalgebra functions:
 $$
 \setlength\arraycolsep{30pt}
@@ -81,10 +85,11 @@ $$
 \psset{nodesep=5pt,arrows=->}
 \ncline{a}{fa} \taput{\alpha}
 \ncline{x}{fx} \tbput{\xi}
-\ncline[linestyle=dotted]{x}{a}  \tlput{\sfr}
-\ncline{fx}{fa} \trput{F\,\sfr}
-\qquad \alpha \circ \sfr = F\,\sfr \circ \xi.
+\ncline[linestyle=dotted]{x}{a}  \tlput{\ana{\xi}}
+\ncline{fx}{fa} \trput{F\,\ana{\xi}}
+\qquad \alpha \circ \ana{\xi} = F\,\ana{\xi} \circ \xi.
 $$
+The function is called $\ana{\xi}$ because it is sometimes called the {\em anamorphism} for the coalgebra $\xi$.
 \end{definition}
 
 This definition means that we can define a function into a coinductive type by giving a coalgebra.
@@ -92,7 +97,7 @@ For example, consider the data type of a pure stream of natural numbers:
 The type $\stream{A}$ is the final coalgebra of the functor $F(X) = A\times X$.
 
 We can define a function into $\stream{A}$ by defining a coalgebra on the domain type $A$, which in this case is $\nat$.
-For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by the following coalgebra on $\nat$:
+For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by using a coalgebra on $\nat$:
 $$
 \begin{array}{l}
 \xi : \nat \rightarrow \nat\times \nat\\
@@ -100,17 +105,19 @@ $$
 \end{array}
 $$
 (Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.)
+The anamorphism $\sfr = \ana{\xi}:\nat \rightarrow \stream{\nat}$ maps $n$ to the stream starting at $n$.
 
-In practical programming, we often let the coalgebra $\xi$ be implicit by directly defining the function $\sfr$ (the coalgebra morphism) recursively.
-For example, the function above would be defined as:
+In practical programming, we often let the coalgebra $\xi$ be implicit by directly defining the function $\ana{\xi}$ recursively.
+For example, the function above can be defined as:
 $$
 \begin{array}{l}
 \sfr: \nat \rightarrow \stream{\nat}\\
 \sfr\,n = n \scons \sfr\,(n+1)
 \end{array}
 $$
-Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitely give the coalgebra $n \mapsto \langle n, n+1\rangle$.
-This is a general programming pattern: we specify a function by equations that directly give the head of the resulting stream, and to define the tail we recursively apply the function at the top of the second argument of the constructor ${\scons}$.
+Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitly give the coalgebra $n \mapsto \langle n, n+1\rangle$.
+This is a general programming pattern: we specify a function by equations that directly give the head of the resulting stream, and indirectly determine the tail
+ by applying recursively the function at the top of the second argument of the constructor ${\scons}$.
 We say that the recursive call is {\em guarded by the constructor}.
 When this happens we can always find a coalgebra that justifies the definition.
 
@@ -130,17 +137,17 @@ $$
 \end{array}
 \quad
 \begin{array}{l}
-\bar{ }: A \rightarrow \stream{A}\\
+\bar{\cdot}: A \rightarrow \stream{A}\\
 \bar{x} = x \scons \bar{x}
 \end{array}
 $$
-Notice that, while the definitions of $\oplus$ and $\bar{ }$ are correctly guarded by constructors, the definition of $\sfp$ is not strictly guarded: the recursive call doesn't occur immediately at the top of the second argument of the constructor $\scons$, but instead as an argument of the $\oplus$ operator.
+Notice that, while the definitions of $\oplus$ and $\bar{\cdot}$ are correctly guarded by constructors, the definition of $\sfp$ is not strictly guarded: the recursive call doesn't occur immediately at the top of the second argument of the constructor $\scons$, but instead as an argument of the $\oplus$ operator.
 However, it is relatively easy to modify the definition to make it comply with the strict guardedness condition \cite{capretta:2011}.
 We will allow ourselves to use this more lax definition style. \\
 
 A class of functors for which the existence of a final coalgebra is guaranteed is that of {\em containers} \cite{AAG:2005}: they are a generalization of tree constructors in which any type can be used for branching; this leads to generalized types of non-well-founded trees.
 
-A common good criterion for the acceptability of recursive definition with a final coalgebra as its codomain is {\em guardedness by constructors}: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as direct arguments of that constructor.
+{\em Guardedness by constructors} is common good criterion for the acceptability of recursive definitions with a final coalgebra as its codomain: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as direct arguments of that constructor.
 
 See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
 
@@ -173,3 +180,38 @@ The coinductive types we use are always final coalgebras of containers.
 From now on we silently assume that $M$ is a container and that the final coalgebra exists.
 Cofinality means that we can define functions into the coalgebra by {\em corecursion} and we can prove properties of its elements by {\em coinduction}.
 This means that we can define a function by equations that recursively apply the function itself to the elements in the positions of the shapes, and we can prove properties of elements by invoking the statement we want to prove on the elements in the positions.
+
+
+One final observation is about the distinction between {\em inductive} and {\em coinductive} types.
+We have defined pure streams, lazy lists, monadic streams as coinductive types, using the keyword $\codata$.
+Every container functor also has an inductive type, defined similarly but with the keyword $\data$.
+For example, if we change the keyword in the definition of lazy lists, we obtain the type of finite lists:
+$$
+\begin{array}[t]{l}
+\data\;
+\flst{A}:\set\\
+\quad (\scons): A\times \flst{A}\rightarrow\flst{A}\\
+\quad \nil: \flst{A}.
+\end{array}
+$$
+This change requires every element of $\flst{A}$ to be well-founded, that is, to hit the base case $\nil$ after a finite number of steps.
+Inductive types are much more well known that the coinductive ones, and have been a staple of computer science for decades.
+The field of coinductive types is instead much younger and still under development.
+
+Inductive types can be characterized dually to coinductive ones as initial algebras of functors.
+The pattern of definition of function on them is different: we use the common {\em inductive recursion} style, rather than guardedness.
+
+An inductive type is always a subset of the coinductive type for the same functor (finite lists are contained in lazy lists), but the coinductive type contains extra infinite elements.
+
+It is strictly inadmissible to confuse inductive and coinductive types: they have different and inconsistent ways of defining functions and of reasoning about them (see the next section on {\em coinduction}).
+However, Haskell doesn't distinguish between the two: it has no $\codata$ keyword and the \hcode{data} definitions define types with potentially infinite elements.
+So \hcode{data} in Haskell really means $\codata$.
+However, Haskell allows us to define functions on this types by inductive recursion (or by using folds), which would strictly be allowed only for well-founded data.
+
+This liberality works well for programming, but may create inconsistencies when we want to prove properties of our programs.
+Monsters are defined in Haskell as:
+\begin{haskell}
+data MonStr m a = MCons (m (a , MonStr m a))
+\end{haskell}
+We will treat this as a coinductive definition and only define functions on them using the guardedness-by-constructors paradigm.
+

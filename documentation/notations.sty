@@ -74,9 +74,12 @@
 
 % lists
 \newcommand{\lstsym}{\mathsf{List}}
-\newcommand{\lst}[1]{\lstsym(#1)}
+\newcommand{\lst}[1]{\lstsym(#1)}  % lazy lists
+\newcommand{\flstsym}{\mathsf{FList}}
+\newcommand{\flst}[1]{\flstsym(#1)}  % finite lists
 \newcommand{\nil}{\mathsf{nil}}
 \newcommand{\cons}{\mathbin{:\hspace{-0.1em}:}}
+
 
 % streams
 \newcommand{\stream}[1]{\mathbb{S}_{#1}}
@@ -85,6 +88,8 @@
 \newcommand{\head}{\mathsf{head}}
 \newcommand{\tail}{\mathsf{tail}}
 
+% coalgebras
+\newcommand{\ana}[1]{\mathsf{ana}_{#1}}
 \newcommand{\sfr}{\mathsf{fr}}
 \newcommand{\sfp}{\mathsf{fr'}}
 
