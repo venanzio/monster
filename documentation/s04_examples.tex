@@ -35,8 +35,13 @@ $$
 \end{array}
 $$
 
-This type is isomorphic to lazy lists, with every operation possible on lists also possible on Maybe-monsters. This isomorphism is witnessed by the two functions:
+In Haskell, this type is implemented as the standard list type \hcode{[a]} for any type \hcode{a}. The $\nil$ constructor is just the empty list \hcode{[]}, and the $\scons$ constructor is represented by the operator \hcode{(:)}.
+So the list $a_0\scons a_1\scons a_2\scons \nil$ is written in Haskell as either \hcode{a0:a1:a2:[]} or, with the nicer list notation, as \hcode{[a0,a1,a2]}.
 
+The type $\stream{\maybe,A}$ of $\maybe$-monsters is isomorphic to the type $\lst{A}$ of lazy lists, with every operation possible on lists also possible on $\maybe$-monsters.
+And indeed most operations can be generalized to polymorphic functions independent of the monad.
+
+This isomorphism is witnessed by the two functions:
 \begin{haskell}
 fromL :: [a] -> MonStr Maybe a
 fromL [] = Nothing
@@ -49,7 +54,7 @@ toList (MCons Just (x, xs)) = x : (toList xs)
 
 It is clear from the definitions that these functions are the exact inverse of one another. 
 
-This isomorphism has provided a useful benchmark to test monad-polymorphic functions in our library against. For each function in \verb+Data.List+ (a collection of list operations included in Haskells standard library) that has been generalised to monadic streams, we can test this generalised function with a Maybe-monster, and compare the output to that of the corresponding function in \verb+Data.List+. For this, we use the QuickCheck \cite{quickcheck} library:
+This isomorphism has provided a useful benchmark  against which to test monad-polymorphic functions in our library. For each function in \verb+Data.List+ (a collection of list operations included in Haskells standard library) that has been generalised to monadic streams, we can test this generalised function with a $\maybe$-monster, and compare the output to that of the corresponding function in \verb+Data.List+. For this, we use the QuickCheck \cite{quickcheck} library:
 
 \begin{haskell}
 prop_drop :: Property
@@ -57,26 +62,25 @@ prop_drop = forAll (genListMonStr >*< chooseInt (0,1000)) $
                \((l, ms), n) -> drop n l === toList (dropM n ms)
 \end{haskell}
 
-This function builds a QuickCheck property, which validates whether the drop function (removal of the first $n$ elements) on lists and Maybe-monsters are (extensionally) equivalent. This makes use of the isomorphism, allowing these types to be freely converted between in order to check for equality.
+This function builds a QuickCheck property, which validates whether the drop function (removal of the first $n$ elements) on lists and $\maybe$-monsters are (extensionally) equivalent. This makes use of the isomorphism, allowing us to freely convert between these types in order to check for equality.
 
-Included with the library is a whole suite of tests in this style, showing the correspondence between functions on Maybe-monsters and functions on lazy lists defined in the Haskell standard library.
+Included with the library is a whole suite of tests in this style, showing the correspondence between functions on $\maybe$-monsters and functions on lazy lists defined in the Haskell standard library.
 
 All standard (and many non-standard) operations on lists are implemented for generic monads, sometimes with the requirement that the functor is an instance of \verb+Foldable+ or \verb+Alternative+.
 
 \subsection{List monad}
 
-When instantiating monsters with the list monad, we get the type of branch-labelled trees. These are a variation on the usual type of Rose trees, where in this case the \emph{edges} of the trees contain values, not the nodes or leaves.
-
+When instantiating monsters with the list monad, we get the type of branch-labelled trees. These are a variation on the usual type of Rose trees, where in this case the \emph{edges}, rather than the nodes, of the trees are labelled by values.
 $$
 \begin{array}[t]{l}
 \codata\;
 \mathsf{BLTree}(A):\set\\
-\quad \mathsf{node} : \lst{A \times \mathsf{BLTree}(A)} \rightarrow \mathsf{BLTree}(A)\\
-\quad \mathsf{leaf} : \mathsf{BLTree}(A)
+\quad \mathsf{node} : \lst{A \times \mathsf{BLTree}(A)} \rightarrow \mathsf{BLTree}(A)
 \end{array}
 $$
+(Note that this type has an empty element $\mathsf{leaf} : \mathsf{BLTree}(A)$, obtained by using the empty list, $\mathsf{leaf} = \mathsf{node}\,\nil$.)
 
-Branch-labelled trees with one extra 'root' element are isomorphic to Rose trees, as shown below - this corresponds to the idea that every node in a tree has a unique branch from its parent, with the exception of the root node.
+Branch-labelled trees with one extra `root' element are isomorphic to Rose trees, as shown below - this corresponds to the idea that every node in a tree has a unique branch from its parent, with the exception of the root node.
 
 \begin{haskell}
 data RoseTree a = RNode a [RoseTree a]
@@ -90,15 +94,22 @@ psi (RNode a ts) = (a , MCons (fmap psi ts))
 
 Branch-labelled trees in general are more useful for applications where you care only about \emph{paths} down a tree, or \emph{transitions} between states rather than the states themselves. 
 
-As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a List-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree (there is always an initial game state, even if no moves have been yet made).
+As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a $\lstsym$-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree (there is always an initial game state, even if no move has been made yet).
 
-Another example is probability trees - the branches represent choices, and the labels the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. Included in the demonstration code are some operations on and examples of List-monsters, with this concept in mind. \\
+Another example is probability trees - the branches represent choices, and the labels are the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. Included in the demonstration code are some operations on and examples of $\lstsym$-monsters, with this concept in mind. \\
 
 Some standard operations on trees don't work for this variation, but traversal operations return the branch labels in the expected order, with the convention of traversing left-to-right. 
 
 \subsection{Reader monad}
 
-Yet another interesting type is that of Reader-monsters, which weakly correspond to the type of Mealy machines. 
+Yet another interesting type is that of $\reader$-monsters.
+The reader monad is simply an operator that generates the function type from a fixed input type $I$:
+$$
+\reader_I\,A = I \rightarrow A
+$$
+We can see $\reader_I$-monsters, elements of $\stream{\reader_I}\,A$, as trees with edges labelled by elements of $I$ and internal nodes labelled by elements of $A$.
+
+$\reader$-monsters correspond to the type of Mealy machines. 
 
 These are a type of finite state transducer, with a set of states $S$, input alphabet $\Sigma$, output alphabet $\Delta$, an initial state $s_0 \in S$, and a transition function $\delta : S \times \Sigma \to S \times \Delta$. They are typically used to model computations where the outputs depend on both the internal state and an input.
 
@@ -111,8 +122,21 @@ $$
 \end{array}
 $$
 
-There is a close correspondence \ccomm{maybe an equivalence?} between these two types, indicated by these natural transformations:
+There are mutual transformations between these two types.
+These form an equivalence: when transforming a Mealy machine to a $\reader$-monad and then back to a Mealy machine, we don't get the same machine (the type of states has changed), but we get a Mealy machine with the same dynamic behaviour.
+
+The direction from $\reader$-monsters to Mealy machines requires us to define the state type as a hyerarchical recursive type from input to output.
+
+\vcomm{It looks to me that \hcode{StateFunc i o} is essentially the same as \hcode{SMStr i o}, so can't we use just this?}
+
+
 \begin{haskell}
+type SMStr i o = MonStr ((->) i) o
+
+data Mealy st inA outA = Mealy { initState :: st
+                               , transf :: (st , inA) -> (st , outA)
+                               }
+   
 data StateFunc i o = SF { getSF :: i -> (StateFunc i o, o) }
 
 mealyToMonStr :: Mealy s i o -> SMStr i o
@@ -126,15 +150,15 @@ monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (getSF g) e)
 		aux f = SF (\e -> let (a, g) = f e in (aux (uncons g), a))
 \end{haskell}
 
-The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. A Reader-monster can be thought of as a Mealy machine where each state \emph{is} the transition function, more specifically the transition functions partially applied to each state of the implied Mealy machine. From now on we talk about Reader-monsters, finite state machines (FSM) and Mealy machines, all referring to the same data structure. \\
+The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. A $\reader$-monster can be thought of as a Mealy machine where each state \emph{is} the transition function, more specifically the transition functions partially applied to each state of the implied Mealy machine. From now on we talk about $\reader$-monsters, finite state machines (FSM) and Mealy machines, all referring to the same data structure. \\
 
-One function that works well with Reader-monsters is \verb+zipWithA+. This uses a binary operation to combine the elements of two monsters, producing a new monster with these combined elements. In the case of state machines, this amounts to having a pair of state machines where the same inputs are fed to both, and then the outputs are combined with some arbitrary function. Each FSM still changes state independently.
+One function that works well with $\reader$-monsters is \verb+zipWithA+. This uses a binary operation to combine the elements of two monsters, producing a new monster with these combined elements. In the case of state machines, this amounts to having a pair of state machines where the same inputs are fed to both, and then the outputs are combined with some arbitrary function. Each FSM still changes state independently.
 
 As a trivial example, you could have a FSM that outputs the maximum of the last $3$ inputs (where the set of inputs is ordered), and another that outputs the minimum. If you zip these together with a function that checks for equality, then you have a FSM that outputs 'true' when the last $3$ inputs were identical, and 'false' otherwise. This particular example is included in \verb+Examples.StateMachines+.
 
 This function, and others such as \verb+interleaveReadM+ (discussed in section 5), give useful ways of building complex FSMs out of smaller ones. \\
 
-Another type that Reader-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
+Another type that $\reader$-monsters correspond to, when the domain of the reader arrows are pairs of time values and another input type, is the type of signal functions as presented in \cite{frp_refactored}. Perez et al. discuss this correspondence, and in-fact show that monadic streams in general can play a useful role in Functional Reactive Programming (FRP), by modelling streams of inputs into reactive systems. This role, and other applications, are discussed further in section 7.
                              
 \subsection{State monad}
 
@@ -165,7 +189,7 @@ unfold f s0 = h <: (unfold f s1)
 
 The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives a richer language by which to calculate outputs, where each function defines what the next function should be, depending on an input state. This makes them analogous to state machines, where $S$ is the set of functions the monster contains, and $\Sigma$ is the state values given as inputs.
 
-Most of what can be said about State-monsters was said in the reader monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$. The main difference is in how the stream is traversed - the state monad's join operation threads the state though each nested computation, whereas a Reader-monster can't do this with the reader monad operations alone.
+Most of what can be said about State-monsters was said in the reader monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$. The main difference is in how the stream is traversed - the state monad's join operation threads the state though each nested computation, whereas a $\reader$-monster can't do this with the reader monad operations alone.
 
 \subsection{IO monad}
 
