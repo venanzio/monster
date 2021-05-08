@@ -196,35 +196,22 @@ instance Applicative m => Applicative (MonStr m) where
 \end{haskell}
 
 An applicative instance must satisfy four general laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+Preliminary investigation and analysis of specifical instances suggests that this is the case for the monster instance.
+A full proof is one of the goals of future work.
 
-\begin{lemma}\label{lemma:appl_pure_id}
-$$
-(\apure\,\id) \appl m_a = m_a
-$$
-\end{lemma}
-
-\begin{lemma}\label{lemma:appl_pure_app}
-$$
-\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
-$$
-\end{lemma}
-
-\begin{lemma}\label{lemma:appl_app_pure}
-$$
-m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
-$$
-\end{lemma}
-
-\begin{lemma}\label{lemma:appl_assoc}
-$$
-m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a 
-$$
-\end{lemma}
-
-In summary, the monster operator is applicative when the underlying ``monad'' is.
-\begin{theorem}
+\begin{conjecture}\label{lemma:appl_laws}
 If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
-\end{theorem}
+That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
+$$
+\begin{array}{l}
+(\apure\,\id) \appl \sigma_a = \sigma_a \\
+\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a) \\
+\sigma_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl \sigma_f \\
+\sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
+\end{array}
+$$
+\end{conjecture}
+
 
 
 
