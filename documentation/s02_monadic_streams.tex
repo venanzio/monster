@@ -1,6 +1,6 @@
 \section{Monadic Streams}\label{sec:mstreams}
 
-A monadic stream is a sequence of values in which every stage is obtained by triggering a monadic action.
+A monadic stream is a sequence of values in which every subsequent element is obtained by triggering a monadic action.
 If $\sigma$ is such a stream, it will consist of an action for a certain monad $M$ that, when executed, will return a head (first element) and a tail (continuation of the stream).
 This process can be continued in a non-well-founded way: streams constitute a coinductive type.
 
@@ -41,23 +41,28 @@ $$
 $$
 This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\lst{A}$.
 Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
-Therefore $\lst{A}$ is the type of finite and infinite sequences.
-
+Therefore $\lst{A}$ is the type of finite and infinite sequences. \\
 
 \begin{vcomment}
-Add example with $M = \lstsym $ (maybe introduce different notations for lazy and strict lists) and give some simple example of functions on monsters.
+Add example with $M = \lstsym $ (maybe introduce different notations for lazy and strict lists) and give some simple example of functions on monsters. \ccomm{I don't think we need this here, just because we gloss over the distinction between well-founded and non-well-founded everywhere else, and also there are a few example of trees in other sections.}
 \end{vcomment}
 
 
-It is important to make two observations about $M$.
 
-First, $M$ does not need to be a monad for the definition to make sense.
+
+It is important to make two \ccomm{three, if the extra idea is kept} observations about $M$.
+
+First, $M$ does not need to be a monad for the definition to make sense. 
 In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being just a functor.
 So we will take $M$ to be any type operator (but see second observation) and we will explicitly state what properties we assume about it.
 The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
 
-The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
+\ccomm{Maybe we need something along the lines of: "Secondly, we will not distinguish much between well-founded or non-well-founded instances of monadic streams, except for specifying that monadic streams are generally defined as the greatest fixed point of the functor $F_M\,X = M\,(A\times X)$. Apart from this, the well-foundeness of the underlying functor $M$ is not considered, as it does not affect our reasoning"}
+
+The second \ccomm{third, if above point is kept} observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
 Haskell will accept the definition when $M$ is any functor, but mathematically the type is well defined only when the functor $F_M\,X = M\,(A\times X)$ has a final coalgebra.
+
+
 
 \begin{definition}\label{def:fincoal}
 For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
@@ -78,15 +83,15 @@ $$
 \ncline{x}{fx} \tbput{\xi}
 \ncline[linestyle=dotted]{x}{a}  \tlput{\sfr}
 \ncline{fx}{fa} \trput{F\,\sfr}
-\qquad \alpha \circ f = F\,\sfr \circ \xi.
+\qquad \alpha \circ \sfr = F\,\sfr \circ \xi.
 $$
 \end{definition}
 
-This definition means that we can define function into a coinductive type by giving a coalgebra.
-For example, consider the data type of pure streams of natural numbers:
+This definition means that we can define a function into a coinductive type by giving a coalgebra.
+For example, consider the data type of a pure stream of natural numbers:
 The type $\stream{A}$ is the final coalgebra of the functor $F(X) = A\times X$.
 
-We can define a function into $\stream{A}$ by defining a coalgebra on the domain type.
+We can define a function into $\stream{A}$ by defining a coalgebra on the domain type $A$, which in this case is $\nat$.
 For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by the following coalgebra on $\nat$:
 $$
 \begin{array}{l}
@@ -96,7 +101,7 @@ $$
 $$
 (Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.)
 
-In practical programming, we often let the coalgebra $\xi$ be implicit by directly defining the function $f$ recursively.
+In practical programming, we often let the coalgebra \ccomm{should this just be 'the morphism'? or could just remove 'the coalgebra' and leave it as 'we often let $\xi$ be implicit'} $\xi$ be implicit by directly defining the function $\sfr$ (the coalgebra morphism) recursively.
 For example, the function above would be defined as:
 $$
 \begin{array}{l}
@@ -105,12 +110,12 @@ $$
 \end{array}
 $$
 Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitely give the coalgebra $n \mapsto \langle n, n+1\rangle$.
-This is a general programming pattern: we specify a function by equations that directly give the head of the resulting stream and recursively apply the function itself only at the top of of the argument of the constructor ${\scons}$.
-We way that the recursive call is {\em guarded by the constructor}.
+This is a general programming pattern: we specify a function by equations that directly give the head of the resulting stream, and to define the tail we recursively apply the function at the top of the second argument of the constructor ${\scons}$.
+We say that the recursive call is {\em guarded by the constructor}.
 When this happens we can always find a coalgebra that justifies the definition.
 
-In practical programming we can use a more liberal methodology, coding programs by equations that are not strictly guarded by constructors, but can be reduced in that form (or directly in coalgebra form) by some standard transformation.
-For example, a different way of definition the function $\sfr$ is:
+In practical programming we can use a more liberal methodology, coding programs by equations that are not strictly guarded by constructors, but can be reduced to that form (or directly to coalgebra form) by some standard transformation.
+For example, a different way of defining the function $\sfr$ is:
 $$
 \begin{array}{l}
 \sfp: \nat \rightarrow \stream{\nat}\\
@@ -129,13 +134,13 @@ $$
 \bar{x} = x \scons \bar{x}
 \end{array}
 $$
-Notice that, while the definitions of $\oplus$ and $\bar{ }$ are correctly guarded by constructors, the definition of $\sfp$ is not strictly guarded: the recursive call doesn't occur immediately at the top of the argument of the constructor $\scons$, but as argument of the $\oplus$ operator.
+Notice that, while the definitions of $\oplus$ and $\bar{ }$ are correctly guarded by constructors, the definition of $\sfp$ is not strictly guarded: the recursive call doesn't occur immediately at the top of the second argument of the constructor $\scons$, but instead as an argument of the $\oplus$ operator.
 However, it is relatively easy to modify the definition to make it comply with the strict guardedness condition \cite{capretta:2011}.
-We will allow ourselves to use this more lax definition style.
+We will allow ourselves to use this more lax definition style. \\
 
 A class of functors for which the existence of a final coalgebra is guaranteed is that of {\em containers} \cite{AAG:2005}: they are a generalization of tree constructors in which any type can be used for branching; this leads to generalized types of non-well-founded trees.
 
-A common good criterion for the acceptability of recursive definition with a final coalgebra as codomain is {\em guardedness by constructors}: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as dierect arguments of that constructor.
+A common good criterion for the acceptability of recursive definition with a final coalgebra as its codomain is {\em guardedness by constructors}: it accepts any recursive equations in which the right-hand side is a term with a constructor on top and recursive calls occurring only as direct arguments of that constructor.
 
 See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
 
