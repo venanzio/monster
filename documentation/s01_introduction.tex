@@ -41,7 +41,7 @@ For example a \emph{Maybe-monster} is a sequence of elements that is either noth
 where \verb+empty+ is the Maybe-monster given by the 'nothing' action. 
 
 Another example is \emph{List-monsters}, where the effect is to produce a list of values, which can be thought of as a non-deterministic computation. An element consists of a list of heads and tails: there may be many (zero or more) branches, each with its own head and tail.
-List-monsters are actually arbitrarily branching trees:
+List-monsters are actually arbitrarily branching trees, with labels (elements) on the branches instead of the nodes:
 \begin{haskell}
 node [ 5 <: leaf
      , 9 <: node [ 1 <: leaf
@@ -101,13 +101,21 @@ node [ 5 <: leaf
 
 This is a finite tree, but the trees are allowed to be infinite, in both the width of the tree (the number of branches at one level), and the depth of the tree (the length of the longest path from the root to a leaf). \\
 
+In these two examples, we have used the Maybe and List \emph{monads} to construct the monsters. 
+
+The Maybe monad gives the effect of a computation that might return nothing; in the case of a Maybe-monster, returning nothing terminates the stream. 
+
+The List monad embodies computations that can return any number of values; in the case of List-monsters this gives us our arbitrary number of branches at each level.
+
+One important thing about monads is that subsequent effects can be 'flattened' or 'joined' into a single one: a list of lists can be concatenated into a single list. 
+
 Some other types of monsters include \emph{IO-monsters}, which represent interactive processes, and \emph{Reader-monsters} which represent finite state automata. All of these variations of monadic stream we have introduced are explained and expanded on in section 4.
 
 All of our examples will be written in Haskell, and sometimes pseudo-Haskell. In section 6, where we prove various properties of monsters, we will use Haskell for equational reasoning, alongside more type theoretic notation for the same purpose. These two notations are interwoven throughout the article, but the distinction between them should be clear: all Haskell code is surrounded with a black bounding box, and displayed in monospace font. \\
 
 The primary purpose of this paper is to motivate the library we have developed: an extensive set of combinators and operations on monadic streams, along with some concrete examples, written in Haskell. This library is envisaged as motivation for the potential of monadic streams as a general model of intensional effectful computations. \\
 
-To briefly explain the layout of the paper: the next two sections precisely define monadic streams, and the coindunction principle, the means by which we can prove properties of monadic streams (and, more generally, corecursive structures). 
+To briefly explain the layout of the paper: the next two sections precisely define monadic streams, and the coindunction principle, the means by which we can prove properties of monadic streams (and, more generally, corecursive structures).
 
 Section 4 and 5 focus on developing concrete examples, and how specific functions from our library specialise in the different contexts presented by various kinds of monsters. 
 
