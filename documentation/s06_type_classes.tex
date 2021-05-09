@@ -16,7 +16,7 @@ This definition complies with the {\em guarded-by-constructors} discipline: the 
 That is: $(\stream{M}\,f)$ will be recursively applied only at the recursive positions inside the shape of $m$.
 There are also applications of $f$ to the first element (of type $A$) of the pairs in the $M$-position: this is non-recursive, and therefore not problematic.
 
-The Haskell version of the functorial mapping uses a general stream transformer at the top level: \hcode{uncons} maps between \hcode{MonStr m a} and \hcode{MonStr m b} by mapping through $m$ a function on the components:
+The Haskell version of the functorial mapping uses a general stream transformer at the top level: \hcode{transformM} maps between \hcode{MonStr m a} and \hcode{MonStr m b} by mapping through \hcode{m} a function on the components:
 
 \begin{haskell}
 uncons :: MonStr m a -> m (a, MonStr m a)
@@ -74,7 +74,7 @@ $$
 \stream{M}\,(g\comp f)\,(\mcons\,m)\\
 {}= \mcons\,(M\,((g\comp f)\times \stream{M}\,(g\comp f))\,m)
   & \mbox{by definition of }\stream{M}\mbox{ mapping}\\
-{}= \mcons\,(M\,((g\comp f)\times (\stream{M}\,g) \comp (\stream{M}\,f))\,m)
+{}= \mcons\,(M\,((g\comp f)\times ((\stream{M}\,g) \comp (\stream{M}\,f)))\,m)
   & \mbox{by coinduction hypothesis}\\ 
 {}= \mcons\,(M\,((g\times \stream{M}\,g) \comp (f\times \stream{M}\,f))\,m)
   & \mbox{by functoriality of }\times\\ 
@@ -84,9 +84,9 @@ $$
   & \mbox{by definition of composition}\\ 
 {}= \stream{M}\,g\, (\mcons\,(M\,(f\times \stream{M}\,f)\,m))
   & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
-{}= \stream{M}\,g\, (\stream{M}\,f\,m)
+{}= \stream{M}\,g\, (\stream{M}\,f\,(\mcons\,m))
   & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
-{}= ((\stream{M}\,g) \comp (\stream{M}\,f))\,m
+{}= ((\stream{M}\,g) \comp (\stream{M}\,f))\,(\mcons\,m)
   & \mbox{by definition of composition}
 \end{array}
 $$
@@ -102,7 +102,7 @@ If $M$ is a functor, $\stream{M}$ is also a functor.
 
 Applicative functors \cite{mcbride/paterson:2008}
 extend the mapping operation by allowing function sequencing under the functor.
-It has two methods: $\apure$, that injects single values into the functor, and $\appl$, that applies functions under the functor.
+The Applicative class has two methods: $\apure$, that injects single values into the functor, and $\appl$, that applies functions under the functor.
 
 We assume that the type operator $M$ is an applicative functor, that is, it has methods:
 $$
@@ -114,14 +114,14 @@ $$
 satisfying the applicative laws.
 
 A typical use of applicative functors is to apply a function of many arguments to several applicative values.
-If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $a_0:M\,A_0, a_1:M\,A_1, \ldots, a_n:M\,A_n$ \ccomm{I changed $a_n:M\,a_n$ to $a_n:M\,A_n$, and did the same for the others}, then:
+If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
 $$
-(\apure\,g) \appl a_0 \appl a_1 \appl \cdots \appl a_n : M\,B
+(\apure\,g) \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
 $$
 
 In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
 $$
-a \alift{\oplus} b = (\apure\,(\oplus)) \appl a \appl b
+m_a \alift{\oplus} m_b = (\apure\,(\oplus)) \appl m_a \appl m_b
 $$
 
 We will show that $\stream{M}$ is also applicative.
@@ -155,8 +155,7 @@ $$
 \end{array}
 $$
 
-In order to define the function application method, we need several binary operations applying functions to arguments inside products, $M$-actions, and $M$-monsters.
-They are mutually recursive:
+We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
 $$
 \begin{array}{l}
 (\appl) : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
@@ -169,7 +168,7 @@ $$
 $$
 
 This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
-This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $\phi$ and $\sigma$, and finally guarded by the constructor $\mcons$.
+This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
 This guarantees the soundnes of the definition according to the {\em guardedness by constructors} criterion.
 
 Here is the definition of the Applicative instance for monsters in Haskell:
