@@ -54,7 +54,7 @@ toList (MCons Just (x, xs)) = x : (toList xs)
 
 It is clear from the definitions that these functions are the exact inverse of one another. 
 
-This isomorphism has provided a useful benchmark  against which to test monad-polymorphic functions in our library. For each function in \verb+Data.List+ (a collection of list operations included in Haskells standard library) that has been generalised to monadic streams, we can test this generalised function with a $\maybe$-monster, and compare the output to that of the corresponding function in \verb+Data.List+. For this, we use the QuickCheck \cite{quickcheck} library:
+This isomorphism has provided a useful benchmark  against which to test monad-polymorphic functions in our library. For each function in \verb+Data.List+ (a collection of list operations included in Haskell's standard library) that has been generalized to monadic streams, we can test this generalized function with a $\maybe$-monster, and compare the output to that of the corresponding function in \verb+Data.List+. For this, we use the QuickCheck \cite{quickcheck} library:
 
 \begin{haskell}
 prop_drop :: Property
@@ -125,7 +125,7 @@ $$
 There are mutual transformations between these two types.
 These form an equivalence: when transforming a Mealy machine to a $\reader$-monad and then back to a Mealy machine, we don't get the same machine (the type of states has changed), but we get a Mealy machine with the same dynamic behaviour.
 
-The direction from $\reader$-monsters to Mealy machines requires us to define the state type as a hyerarchical recursive type from input to output.
+The direction from $\reader$-monsters to Mealy machines requires us to define the state type as a hierarchical recursive type from input to output.
 
 \vcomm{It looks to me that \hcode{StateFunc i o} is essentially the same as \hcode{SMStr i o}, so can't we use just this?}
 
@@ -322,4 +322,4 @@ A Store-comonster, a monadic stream using the store comonad, is a stream where e
 
 The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a Store-comonster already `contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
 
-To show this, there is an implementation of Conways game of life included in the demonstration code. This demo uses a kind of Zipper comonad instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.
+To show this, there is an implementation of Conway's game of life included in the demonstration code. This demo uses a kind of Zipper comonad instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.

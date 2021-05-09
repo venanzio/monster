@@ -12,9 +12,11 @@ dropM n ms
   | otherwise = error "MonadicStreams.dropM: negative argument."
 \end{haskell}
 
-This drops the first $n$ elements of a monster. Doing so requires the joining of the first $n$ monadic actions, which in the case of State-monsters for example will keep the first $n$ state modifications. This is equivalent to ignoring the output of the feedback machine for its first $n$ feedbacks, so this operation could be seen as moving forwards in time $n$ steps. 
+This drops the first $n$ elements of a monster. Doing so requires the joining of the first $n$ monadic actions, which in the case of $\state$-monsters for example will keep the first $n$ state modifications.
+The {\em monadic tail function} \hcode{tailM} automatically joins the first monadic action into the rest of the monster.
+ This is equivalent to ignoring the output of the feedback machine for its first $n$ feedbacks, so this operation could be seen as moving forwards in time $n$ steps. 
 
-This 'moving forwards' interpretation is similar in every kind of monadic stream - in a List-monster, you get the list of choices after $n$ previous choices were made. In an IO-monster you get the output after the first $n$ computations. In a Reader-monster (state machine) you get the output and next state after giving the same input $n$ times. In a Maybe-monster (lazy list), you drop the first $n$ items from the list. \\
+This `moving forwards' interpretation is similar in every kind of monadic stream - in a $\lstsym$-monster, you get the list of choices after $n$ previous choices were made. In an $\io$-monster you get the output after the first $n$ computations. In a $\reader$-monster (state machine) you get the output and next state after giving the same input $n$ times. In a $\maybe$-monster (lazy list), you drop the first $n$ items from the list. \\
 
 Another interesting function is \verb+scanM+. 
 
@@ -30,7 +32,7 @@ scanM f s = absorbM $ (\(a, s') -> scanA f a s') <$> uncons s
 
 It combines each pair of elements in the stream together with a given function, resulting in a stream of the intermediate values. \verb+scanA+ also does this, but leaves an extra monadic action at the beginning of the stream, which \verb+scanM+ joins with the next action in the monster to remove it. \verb+scanA+ can also generate a monster with a different type to the input, which can be seen from the definitions: this is useful when you want to scan using a function who's return type differs from that of its arguments.
 
-In the context of List-monads used as probability trees, \verb+scanM (*)+ will (when applied to a tree), return the tree of sequential probabilities. That is, given two consecutive branches of the tree $l_1$ and $l_2$ (which represent probabilities), this scan instance calculates $l_1 * l_2$, the probability of traversing the first branch \emph{and then} the second. The scan carries this result forward, so over three sequential branches $l_1$, $l_2$ and $l_3$, the function would produce the probability $l_1 * l_2 * l_3$ at the third branch in the new tree. 
+In the context of $\lstsym$-monads used as probability trees, \verb+scanM (*)+ will (when applied to a tree), return the tree of sequential probabilities. That is, given two consecutive branches of the tree $l_1$ and $l_2$ (which represent probabilities), this scan instance calculates $l_1 * l_2$, the probability of traversing the first branch \emph{and then} the second. The scan carries this result forward, so over three sequential branches $l_1$, $l_2$ and $l_3$, the function would produce the probability $l_1 * l_2 * l_3$ at the third branch in the new tree. 
 
 In the same way, \verb=scanM (+)= calculates the disjoint unions of probabilities across each combination of branches in the tree. \\
 
@@ -41,11 +43,11 @@ interleave :: Functor m =>  MonStr m a -> MonStr m a -> MonStr m a
 interleave mas mbs = transform (\h t -> (h, interleave mbs t)) mas
 \end{haskell}
 
-In the context of List-monsters again, this function lets you interleave choices - for two List-monsters $L_0$ and $L_1$, representing decision trees, interleaving them results in a tree $L_{0,1}$ where the first decision in $L_{0,1}$ is the first in $L_0$, the second decision is the first in $L_1$, and so on. This can describe situations where different kinds of choices need to be made cyclically. 
+In the context of $\lstsym$-monsters again, this function lets you interleave choices - for two $\lstsym$-monsters $L_0$ and $L_1$, representing decision trees, interleaving them results in a tree $L_{0,1}$ where the first decision in $L_{0,1}$ is the first in $L_0$, the second decision is the first in $L_1$, and so on. This can describe situations where different kinds of choices need to be made cyclically. 
 
-In IO-monsters, this function lets you interleave the actions of two process, effectively implementing a naïve kind of user-level multithreading.
+In $\io$-monsters, this function lets you interleave the actions of two process, effectively implementing a naïve kind of user-level multithreading.
 
-In Reader-monsters and State-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the IO monad portion of section 4). Here, this function lets you combine two state machines such that the state and outputs of one depend on the outputs of the other. 
+In $\reader$-monsters and $\state$-monsters, a variation of this function, \newline \verb+interleaveReadM+ is better in the context of state machines (this function is discussed in the $\io$ monad portion of section 4). Here, this function lets you combine two state machines such that the state and outputs of one depend on the outputs of the other. 
 \begin{haskell}
 interleaveReadM :: Monad m => MonStr m a -> MonStr (ReaderT a m) b 
 											-> MonStr m b
