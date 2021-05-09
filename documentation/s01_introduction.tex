@@ -5,10 +5,10 @@
 
 \section{Introduction}
 
-Monadic streams are interesting and powerful way of programming computational processes that generate effects. 
+Monadic streams are interesting and powerful ways of programming computational processes that generate effects. 
 
-They encapsulate the notion of a (potentially infinite) stream of values,
-where traversing the stream from one element to the next 
+They encapsulate the notion of (potentially infinite) streams of values,
+where traversing a stream from one element to the next 
 can trigger, for example,
 the splitting of the process into several streams
 or the termination of the stream.
@@ -120,7 +120,7 @@ In these two examples, we have used the $\maybe$ and $\lstsym$ monads to constru
 The $\maybe$ monad gives the effect of a computation that might return $\nothing$; in the case of a $\maybe$-monster, returning $\nothing$ terminates the stream. 
 The $\lstsym$ monad embodies computations that can return any number of values; in the case of $\lstsym$-monsters this gives us our arbitrary number of branches at each level.
 
-One important feature of monads is that consecutive effects can be `flattened' or `joined' into a single one: a list of lists can be concatenated into a single list. 
+One important feature of monads is that consecutive effects can be `flattened', `joined' or `sequenced' into a single one: a list of lists can be concatenated into a single list.
 
 Some other types of monsters include \emph{$\io$-monsters}, which represent interactive processes, and \emph{$\reader$-monsters} which represent finite state automata. All of these variations of monadic stream we have introduced are explained and expanded on in section 4.
 
@@ -128,10 +128,14 @@ All of our examples will be written in Haskell, and sometimes pseudo-Haskell. In
 
 The primary purpose of this paper is to motivate the library we have developed: an extensive set of combinators and operations on monadic streams, along with some concrete examples, written in Haskell. This library is envisaged as motivation for the potential of monadic streams as a general model of intensional effectful computations. \\
 
-To briefly explain the layout of the paper: the next two sections precisely define monadic streams, and the coindunction principle, the means by which we can prove properties of monadic streams (and, more generally, corecursive structures).
+
+This paper acts as a first draft to two separate papers that we are looking to publish: one addressing the mathematical properties of monadic streams, and another on how monsters can be used in practice, utilising our Haskell library. Once finalised and properly documented, the library will be released on Hackage.
+
+To briefly explain the layout: the next two sections precisely define monadic streams, and the coindunction principle, the means by which we can prove properties of monadic streams (and, more generally, corecursive structures).
 
 Section 4 and 5 focus on developing concrete examples, and how specific functions from our library specialise in the different contexts presented by various kinds of monsters. 
 
 In section 6 we begin to prove categorical properties of monadic streams. 
 
-In the final two sections we talk about related work, specifically in Functional Reactive Programming (FRP), and conclude with open problems and general reflections.
+In the final two sections we talk about related work, specifically in Functional Reactive Programming (FRP), and conclude with open problems and general reflections. \\
+

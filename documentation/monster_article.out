@@ -15,10 +15,10 @@
 \BOOKMARK [2][-]{subsection.6.2}{Applicative\040instance}{section.6}% 15
 \BOOKMARK [2][-]{subsection.6.3}{Comonad\040instance\040in\040Haskell}{section.6}% 16
 \BOOKMARK [3][-]{subsubsection.6.3.1}{Comonad\040law\040proof\040sketches}{subsection.6.3}% 17
-\BOOKMARK [2][-]{subsection.6.4}{Monad\040Counter-example}{section.6}% 18
-\BOOKMARK [2][-]{subsection.6.5}{Case\0401}{section.6}% 19
-\BOOKMARK [2][-]{subsection.6.6}{Case\0402}{section.6}% 20
-\BOOKMARK [2][-]{subsection.6.7}{Case\0403}{section.6}% 21
+\BOOKMARK [2][-]{subsection.6.4}{Monad\040Counter-examples}{section.6}% 18
+\BOOKMARK [3][-]{subsubsection.6.4.1}{Case\0401}{subsection.6.4}% 19
+\BOOKMARK [3][-]{subsubsection.6.4.2}{Case\0402}{subsection.6.4}% 20
+\BOOKMARK [3][-]{subsubsection.6.4.3}{Case\0403}{subsection.6.4}% 21
 \BOOKMARK [1][-]{section.7}{Related\040work\040and\040applications}{}% 22
 \BOOKMARK [2][-]{subsection.7.1}{FRP\040application}{section.7}% 23
 \BOOKMARK [2][-]{subsection.7.2}{Relation\040to\040Dunai}{section.7}% 24

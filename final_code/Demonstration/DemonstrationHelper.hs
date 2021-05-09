@@ -13,7 +13,14 @@ import Data.List hiding ((!!), (++), head, tail, insert)
 import qualified Data.List as DL (iterate)
 import Control.Monad
 
--- Helper function to add together probabilities with the same label
+{-
+ | This is an auxillary file for Demonstration.hs - it 
+ isn't well documented, and is just to reduce clutter, 
+ in order to focus on the demo rather than the code
+ it consists of
+-}
+
+-- | Helper function to add together probabilities with the same label
 collectLikeTerms :: Num a => [LabelledNum a] -> [LabelledNum a]
 collectLikeTerms = foldr (\(LN (s, a)) acc -> case findIndex (\(LN (s', _)) -> s == s') acc of
                                                  Nothing -> (LN (s, a)):acc
@@ -45,9 +52,9 @@ divFrac :: LabelledNum Fraction -> LabelledNum Fraction -> LabelledNum Fraction
 divFrac (LN (s, (a, b))) (LN (s', (c, d))) = LN ("(" P.++ s P.++ ")/(" P.++ s' P.++ ")", (a * d, b * c))
 
 
--- Bayes rule final functions
+-- | Bayes rule final functions
 
--- Prob of 1st given 2nd
+-- | Prob of 1st given 2nd
 bayes :: String -> String -> BLTree (LabelledNum Fraction) -> LabelledNum Fraction
 bayes s s' ms = relabel s . reduceFrac $ divFrac (pagb s s' ms) ((pagb s s' ms) + (pagbn s s' ms))
 

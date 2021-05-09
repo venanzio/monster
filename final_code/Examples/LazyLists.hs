@@ -1,9 +1,14 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Examples.LazyLists where
   
 import MonadicStreams
 import Data.Foldable
 
 type LList a = MonStr Maybe a
+
+instance Show a => Show (LList a) where
+  show (MCons s) = show s
 
 nil :: LList a
 nil = MCons Nothing

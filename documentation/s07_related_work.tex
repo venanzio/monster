@@ -63,10 +63,10 @@ One possible barrier to using this in practice is that often inputs into a progr
 
 \subsection{Dataflow programming}
 
-Another purpuse comonadic streams could be used for is extending the comonadic approach to dataflow programming, developed in \cite{essence_of_dataflow}, with the context of other comonads. The idea is that any comonad \verb+w+ can be extended with the notion of past, present, and future values with \verb+MonStr w+. Functions out of the type \verb+MonStr m a+ are context-sensitive computations that are dependent on arbitrary numbers of future environments of type \verb+w a+.
+Another purpuse monadic streams with comonads could be used for is extending the comonadic approach to dataflow programming, developed in \cite{essence_of_dataflow}, with the context of other comonads. The idea is that any comonad \verb+w+ can be extended with the notion of past, present, and future values with \verb+MonStr w+. Functions out of the type \verb+MonStr m a+ are context-sensitive computations that are dependent on arbitrary numbers of future environments of type \verb+w a+.
 
 \subsection{Properties of monadic streams}
 
-Many properties of monadic stream functions have been proven in the appendix \cite{msf_properties} to Bärenz, Perez, and Nilsson's 2016 paper MSF based FRP \cite{frp_refactored}. Depending on their formulation, these proofs may also show that the same properties are true for monadic streams, because monadic streams are just MSFs that ignore their inputs. 
+Many properties of monadic stream functions have been proven in the appendix \cite{msf_properties} to Bärenz, Perez, and Nilsson's 2016 paper on MSF based FRP \cite{frp_refactored}. Depending on their formulation, these proofs may also show that the same properties are true for monadic streams, because monadic streams are just MSFs that ignore their inputs. 
 
 One of our goals is to investigate further how this work can be applied to the context of monadic streams.

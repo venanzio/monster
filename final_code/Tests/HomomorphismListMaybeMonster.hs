@@ -1,10 +1,3 @@
-{- 
-   Functions to show that operations on lists 
-   and maybe monsters produce isomorphic objects
-
-   Venanzio Capretta & Christopher Purdy, 2020
--}
-
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -46,9 +39,6 @@ instance Eq a => Eq (MonStr Maybe a) where
    (MCons Nothing)      == (MCons Nothing)        = True
    (MCons _)            == (MCons Nothing)        = False
    (MCons Nothing)      == (MCons _)              = False
-   
-instance Show a => Show (MonStr Maybe a) where
-   show (MCons m) = show m
 
 -- | Tests for isomorphism between list and maybe monster, with llist and toList 
 -- being the morphisms between the types, whose composition has to equal id

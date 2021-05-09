@@ -9,8 +9,26 @@ import Control.Concurrent
 import Examples.GenericStreams
 import Examples.Processes 
 
+{-
+ | This file contains a demonstration of Conway's game of
+ life implemented using comonads and monadic streams.
+
+ Most of the 'demo' code along with explanations is at the 
+ bottom of the file.
+
+ Comments prefixed with !!! indicate instructions to run the
+ demonstrations given. 
+ Beware: most of them don't terminate, and begin to slow down 
+ quite quickly (after ~50 iterations) due to Haskells lazy
+ evaluation - making evaluation of the Grid-monster stricter is
+ a future goal.
+-}
+
+-- | The type of 2-dimensional grids with a focus on a
+-- single cell, used as a stage for life
 data Grid a = Grid ([([a],a,[a])], ([a],a,[a]), [([a],a,[a])])
 
+-- | The type of infinitely nested 2-dimensional grids
 type LifeStream a = MonStr Grid a
  
 -- | Map grid tuple
@@ -157,6 +175,8 @@ lifeShowProc ls = MCons $ let (a, nxt) = extract (uncons ls)
 
 -- | This can be combined with the above process to add delays and
 -- screen clearing between each iteration
+--
+-- !!! Run the proccess using: "runVoidProcess betterDisplayProc"
 betterDisplayProc :: Process ()
 betterDisplayProc = MS.repeat (do threadDelay 250000; putStr "\ESC[2J")
 
@@ -177,6 +197,7 @@ interactiveLifeStream = fmap (iterateC rule) (MS.iterate newCell glider1)
 
 -- | Turns each of the inner streams into processes which prints the evolution after a
 -- particular number of cell additions by a user
+--
 interactiveLifeStreamShow :: Process (Process ())
 interactiveLifeStreamShow = fmap (lifeShowProc . evalMap (gridToString 50 50)) interactiveLifeStream
 
@@ -184,6 +205,8 @@ interactiveLifeStreamShow = fmap (lifeShowProc . evalMap (gridToString 50 50)) i
 -- of setting cells along the way
 --
 -- Setting cells (5, 4) (5, 5) (5, 6), with n as 2 gives interesting behaviour
+--
+-- !!! Run the process using: "runVoidProcess (interactiveDemo {number >= 0})"
 interactiveDemo :: Int -> Process ()
 interactiveDemo n = interleaveActM betterDisplayProc (takeInnerM n interactiveLifeStreamShow)
 
@@ -191,6 +214,8 @@ interactiveDemo n = interleaveActM betterDisplayProc (takeInnerM n interactiveLi
 --
 -- Uses zipA to zip together the process with a monad-polymorphic stream of
 -- natural numbers
+-- 
+-- !!! Run using: "interactiveDemoStop {number >= 0}"
 interactiveDemoStop :: Int -> IO ()
 interactiveDemoStop n = do stopAtPred (\(a,b) -> b == 20) $ zipA (interactiveDemo n) nats
                            putStrLn "Finished!"

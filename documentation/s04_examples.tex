@@ -96,7 +96,7 @@ Branch-labelled trees in general are more useful for applications where you care
 
 As an example, we could either model a game of noughts and crosses as a Rose tree where each node stores a game state, or with a $\lstsym$-monster where each branch stores the move taken. It is clear from this that you can have an empty branch-labelled tree (a single node with no branches/moves), but not an empty Rose tree (there is always an initial game state, even if no move has been made yet).
 
-Another example is probability trees - the branches represent choices, and the labels are the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. Included in the demonstration code are some operations on and examples of $\lstsym$-monsters, with this concept in mind. \\
+Another example is probability trees - the branches represent choices, and the labels are the probabilities of those choices occurring. This corresponds nicely to the non-determinism semantics of the list monad. Included in the attached code are some operations on and examples of $\lstsym$-monsters, with this concept in mind. \\
 
 Some standard operations on trees don't work for this variation, but traversal operations return the branch labels in the expected order, with the convention of traversing left-to-right. 
 
@@ -126,8 +126,6 @@ There are mutual transformations between these two types.
 These form an equivalence: when transforming a Mealy machine to a $\reader$-monad and then back to a Mealy machine, we don't get the same machine (the type of states has changed), but we get a Mealy machine with the same dynamic behaviour.
 
 The direction from $\reader$-monsters to Mealy machines requires us to define the state type as a hierarchical recursive type from input to output.
-
-\vcomm{It looks to me that \hcode{StateFunc i o} is essentially the same as \hcode{SMStr i o}, so can't we use just this?}
 
 \begin{haskell}
 type SMStr i o = MonStr ((->) i) o
@@ -229,7 +227,7 @@ consumeOne' p = join $ do a <- fmap head p
                           return (fmap tail p)
 \end{haskell}
 
-The first line of the \verb+do+ statement won't return if the $\io$ action \verb+p+ is infinite and strict. \\
+The first line of the \verb+do+ statement won't return if the $\io$ action \verb+p+ is non-terminating and strict. \\
 
 The following is a technical worked example, presenting alternative ways of running an $\io$-monster in different contexts: 
 
@@ -341,4 +339,4 @@ The concept of cellular automata \cite{cellular_automata} fits this type of mona
 
 The comonadic interpretation of cellular automata \cite{dan_piponi_CA} is a good introduction to the motivation behind and uses of comonads. The difference when using monadic streams is that a Store-monster already `contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
 
-To show this, there is an implementation of Conway's game of life included in the demonstration code. This demo uses a kind of Zipper comonad \cite{huet_zipper} instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.
+To show this, there is an implementation of Conway's game of life included in the attached code. This demo uses a kind of Zipper comonad \cite{huet_zipper} instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.

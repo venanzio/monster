@@ -1,11 +1,20 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Examples.PureStreams where
  
-import Prelude hiding (head, tail)
+import Prelude hiding (head, tail, (++))
+import qualified Prelude as P ((++))
   
 import MonadicStreams
 import Control.Monad.Identity
 
 type Stream = MonStr Identity
+
+-- | Show instance for pure streams just displays the first
+-- 5 elements, since any pure stream is infinite. This is 
+-- mostly for demonstration and debugging purposes
+instance Show a => Show (Stream a) where
+  show s = foldr (\a b -> (show a) P.++ " <: " P.++ b) "..." (takeS 5 s)
 
 headS :: Stream a -> a
 headS = runIdentity . head
@@ -36,6 +45,8 @@ s !| n = (tailS s) !| (n - 1)
 
 -- | Examples of pure streams
 
+fromN :: Int -> Stream Int
+fromN n = n <: fromN (n+1)
+
 nats :: Stream Int
-nats = fromNat 0
-       where fromNat n = n <: fromNat (n+1)
+nats = fromN 0

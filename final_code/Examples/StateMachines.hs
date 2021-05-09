@@ -256,8 +256,8 @@ minFin3 :: SMStr Fin3 Fin3
 minFin3 = buildSMStr (SF mna)
 
 
--- | Zipping the two togther
-
+-- | Zipping the two togther, to make a FSM that checks for
+-- equality of the last 3 inputs
 zipMinMaxFin3 :: SMStr Fin3 Bool
 zipMinMaxFin3 = zipWithA (==) minFin3 maxFin3
 
@@ -267,18 +267,26 @@ zipMinMaxFin3 = zipWithA (==) minFin3 maxFin3
 fibCalc :: SMStr (Int, Int) Int
 fibCalc = MCons $ \(n, m) -> (m, MCons $ (uncons fibCalc) . const (m, n+m))
 
+
 ------------------------------------------------------------------------
+
 
 -- | Type of state machines with 'feedback loops'
 type FBMachine i o = MonStr (State i) o
 
-compileST :: Monad m => MonStr (StateT s m) a -> s -> MonStr m a
-compileST (MCons sts) s = MCons $ do ((a, sts'), s') <- runStateT sts s
-                                     return (a, compileST sts' s')
-
+-- | Runs a feedback machine with an initial state, returning the
+-- stream resulting from repeatedly 'feeding back' the new state
+-- returned
 runFBStr :: FBMachine s a -> s -> Stream a
 runFBStr (MCons sts) s = let ((a, sts'), s') = runState sts s
                        in a <: (runFBStr sts' s')
+
+-- | A runner for a StateT monster - executes the stateful computations,
+-- leaving behind a monster whos underlying monad is the one directly
+-- beneath the StateT transformer
+compileST :: Monad m => MonStr (StateT s m) a -> s -> MonStr m a
+compileST (MCons sts) s = MCons $ do ((a, sts'), s') <- runStateT sts s
+                                     return (a, compileST sts' s')
                        
 -- | Generates a stream flipping between 1 and 0
 flipper :: FBMachine Int Int
@@ -288,6 +296,8 @@ flipper = MCons (state (\n -> ((n, flipper), (n+1) `mod` 2)))
 modCounter :: Int -> FBMachine Int Int
 modCounter n = MCons (state (\x -> ((x, modCounter n), (x+1) `mod` n)))
 
+-- | Generates a stream of numbers, where concecutive numbers
+-- differ by incrementally larger amounts (+1 each time)
 fromStep :: Int -> FBMachine Int Int
 fromStep n = MCons (state (\x -> ((x, fromStep (n+1)), x+n)))
 
