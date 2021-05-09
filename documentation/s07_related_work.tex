@@ -3,7 +3,7 @@
 
 The general application of this library is hinted at in the examples section: data structures that can be represented as monadic streams (with the underlying functor being a monad) give meaningful semantics to the general operations we have developed.
 
-Perhaps the most interesting correspondence is that of Reader-monsters and finite state transducers. In this context, the functions in our library provide a set of useful combinators to work with and define state machines. A few of these have been mentioned in sections 4 and 5, and some more uses are demonstrated in the attached example code.
+Perhaps the most interesting correspondence is that of $\reader$-monsters and finite state transducers. In this context, the functions in our library provide a set of useful combinators to work with and define state machines. A few of these have been mentioned in sections 4 and 5, and some more uses are demonstrated in the attached example code.
 
 \subsection{FRP application}
 
@@ -63,10 +63,10 @@ One possible barrier to using this concept concretely, is that often inputs into
 
 \subsection{Dataflow programming}
 
-Another thing comonadic streams could be used for is extending the comonadic approach to dataflow programming, developed in \cite{essence_of_dataflow}, with the context of other comonads. The idea is that any comonad \verb+w+ can be extended with the notion of past, present, and future values with \verb+MonStr w+. Functions out of the type \verb+MonStr m a+ are context-sensitive computations that are dependent on arbitrary numbers of future environments of type \verb+w a+.
+Another purpuse comonadic streams could be used for is extending the comonadic approach to dataflow programming, developed in \cite{essence_of_dataflow}, with the context of other comonads. The idea is that any comonad \verb+w+ can be extended with the notion of past, present, and future values with \verb+MonStr w+. Functions out of the type \verb+MonStr m a+ are context-sensitive computations that are dependent on arbitrary numbers of future environments of type \verb+w a+.
 
 \subsection{Properties of monadic streams}
 
 Many properties of monadic stream functions have been proven in the appendix \cite{msf_properties} to Bärenz, Perez, and Nilsson's 2016 paper MSF based FRP \cite{frp_refactored}. Depending on their formulation, these proofs may also show that the same properties are true for monadic streams, because monadic streams are just MSFs that ignore their inputs. 
 
-One of our goals is to investigate further how this work can be applied to the context of monadic streams. \ccomm{This might need rewording, but I'm not sure how}
+One of our goals is to investigate further how this work can be applied to the context of monadic streams.
