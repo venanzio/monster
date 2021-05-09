@@ -61,21 +61,30 @@ sumProc n = MCons $ do
     return (n', sumProc n')
     
     
+------------
 -- | Example of benefits of processes as opposed to non-terminating
 -- IO actions
+
 consumeOne :: Show a => Process a -> Process a
 consumeOne p = absorbM $ do (a, cont) <- uncons p
                             putStrLn (show a)
                             return cont
 
+-- | This is similar to what the above function does, but using
+-- IO actions - taking the fst of the output won't work unless
+-- the IO actions are lazy, or the whole list gets evaluated.
 consumeOne' :: Show a => IO [a] -> IO (a, [a])
 consumeOne' p = join $ do a <- fmap P.head p
                           putStrLn (show a)
                           return $ fmap (\l -> (a, P.tail l)) p
-
+                          
+-- | Example IO "process", with using monsters to demonstrate the above 
+-- point
 fromIO :: Int -> IO [Int]
 fromIO n = (fmap (n:) (fromIO (n+1)))
+------------
 
+------------ 
 -- | An example of combining two processes with interleaveReadM
 
 inputProc :: Process Char
@@ -93,7 +102,7 @@ outputProc = MCons $ do a <- ask
 -- | Showing how the input and output processes can be interleaved
 testProc0 :: IO ()
 testProc0 = runVoidProcess (interleaveReadM inputProc outputProc)
-
+------------ 
 
 
 -- | A set of examples demonstrating the differences between lazy

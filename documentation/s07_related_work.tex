@@ -26,7 +26,7 @@ integralAuxF (_, a) = (0 , integralAux 0 a)
       where igrl' dt' = igrl + (dt' * a_prev)
 \end{haskell}
 
-Additionally, combinators defined in our library work similarly to combinators in Yampa. For example, their (internal) signal function composition combinator \verb+compPrim+ is conceptually the same as our function \verb+interleaveReadM+, which was covered in the IO monad examples section.
+Additionally, combinators defined in our library work similarly to combinators in Yampa. For example, their (internal) signal function composition combinator \verb+compPrim+ is conceptually the same as our function \verb+interleaveReadM+, which was covered in the $\io$ monad examples section.
 
 Yampa's concept of signal functions is generalised further in Dunai, a library with more direct relationship to monadic streams.
 
@@ -52,13 +52,13 @@ These encapsulate the idea of changing \verb+MonStr (ReaderT a (t m)) r+ where t
 
 Monad transformers were only briefly explored in the library, but this indicates that there may be many more constructs we can form when taking them into account. \\
 
-Additionally, comonadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using comonadic streams, you could model input streams where the value of the input (and the rest of the stream) depends on some environment. 
+Additionally, monadic streams could be a useful extension to MSF based FRP - as shown in \cite{frp_refactored}, monadic streams can already model an input stream of data into a reactive program. Using monadic streams instantiated with comonads, you could model input streams where the value of the input (and the rest of the stream) depends on some environment. 
 
-Comonadic streams (monadic streams where the underlying functor is a comonad) can be seen as the progressing timeline of an environment under some iterated operation. The comonad provides the notion of environment, and the stream imbues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
+Monadic streams where the underlying functor is a comonad can be seen as the progressing timeline of an environment under some iterated operation. The comonad provides the notion of environment, and the stream imbues it with a notion of its progression in time. This idea only encapsulates current and future values of the environment, with past states being discarded.
 
 This could be useful to model systems which have some kind of self referential data store, or environments that can be used to modify themselves. \\
 
-One possible barrier to using this concept concretely, is that often inputs into a program, especially in FRP applications, are wrapped in some kind of IO action. IO is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this is unsafe, as the name suggests). In that sense, comonadic streams seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside of the program.
+One possible barrier to using this in practice is that often inputs into a program, especially in FRP applications, are wrapped in some kind of $\io$ action. $\io$ is not comonadic, as there is no way to extract a pure value from it (without the use of \verb+unsafePerformIO+, but this is unsafe, as the name suggests). In that sense, monadic streams with comonads seem to have limited applicability when it comes to streams of context-dependent inputs, when those inputs come from outside of the program.
 
 
 \subsection{Dataflow programming}

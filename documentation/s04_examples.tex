@@ -212,7 +212,7 @@ runProcess (MCons s) = do (a,s') <- s
 
 This is because $\io$ actions can continuously interact with the outside world, and call other functions, \emph{without} having to terminate. The $\io$ action produced by collapsing an $\io$-monster is the (possibly infinite) sequence of all $\io$ operations in the stream. \\
 
-In this sense, it is better not to 'run' a process ($\io$-monster) at all, and instead just unfold each $\io$ action one at a time. This allows you pass it around, taking of layers of computation as needed:
+However in this sense, it is better not to 'run' a process ($\io$-monster) at all, and instead just unfold each $\io$ action one at a time. This allows you pass it around, taking of layers of computation as needed:
 \begin{haskell}
 consumeOne :: Show a => Process a -> Process a
 consumeOne p = absorbM $ do (a, cont) <- uncons p
