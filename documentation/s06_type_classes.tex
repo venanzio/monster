@@ -225,17 +225,23 @@ We believe that monadic streams are comonads, when the underlying functor is a c
 
 In the following Haskell equations, the function \verb+head+ returns the first element of the first pair in the monster, wrapped in the underlying functor. We require the underlying functor to be a comonad, so that we can use \hcode{extract} to remove the functor wrapping.
 
-\begin{vcomment}
-The following is too sketchy. Definitely not enough to understand how the duplicate instance works.
-\end{vcomment}
+The proposed \hcode{Comonad} instance for monadic streams is as follows.
+\begin{haskell}
+instance Comonad w => Comonad (MonStr w) where
+  -- extract :: w a -> a
+  extract = extract . head
+  -- duplicate :: MonStr w a -> MonStr w (MonStr w a)
+  duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (uncons ms)
+\end{haskell}
 
-We introduce \verb+mm(s)+ for the `monster matrix' formed by a monadic stream \verb+s+ - this is defined as a monster where the first element is \verb+s+, the second is the tail of \verb+s+, the third is the tail of the tail of \verb+s+, and so on.
+The \verb+duplicate+ function for monadic streams forms a "monster matrix". This is a monadic stream where each element is a monadic stream. In the following proof sketches, we represent this as \hcode{mm(ms)} where \verb+mm(ms) = duplicate ms+.
 
-The \verb+duplicate+ instance for comonadic streams forms this "monster matrix": \verb+duplicate s = mm(s)+
+Intuitively, \verb+mm(ms)+ is a monster where the first element is \verb+ms+, the second is the tail of \verb+ms+, the third is the tail of the tail of \verb+ms+, and so on.
+
 
 \subsubsection{Comonad law proof sketches}
 
-Proof that \verb+extract . duplicate == id+
+Sketch of proof that \verb+extract . duplicate == id+
 
 \begin{haskell}
 extract . duplicate 
@@ -268,7 +274,7 @@ fmap extract . duplicate = \ms -> fmap extract (MCons $ fmap (\(h,t) ->
 = id
 \end{haskell}
  
-Proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
+Sketch of proof that \verb+duplicate . duplicate == fmap duplicate . duplicate+
 
 \begin{haskell}
 duplicate . duplicate = \ms -> duplicate (duplicate ms)
@@ -293,8 +299,6 @@ fmap duplicate . duplicate = \ms -> fmap duplicate (MCons $ fmap (\(h,t) ->
 	(duplicate ms, duplicate (duplicate t))) (uncons ms)
 = duplicate . duplicate
 \end{haskell}
-
-The first proof definitely holds, and the third is very convincing. The second needs some work, as there may be assumptions made that aren't consistent with the underlying functor being a comonad. 
 
 As with the applicative functor laws, we are looking to improve these proofs, and also to formulate them in more categorical terms.
 

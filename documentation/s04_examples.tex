@@ -20,7 +20,7 @@ $$
 $$
 All standard operations on streams can be implemented for this type.
 
-Interestingly, pure streams are also comonads, and this is true in general for any monadic stream where the underlying functor has a comonad structure. This is discussed at the end of this section, where we look at an example of a comonadic stream.
+Interestingly, pure streams are also comonads, and this is true in general for any monadic stream where the underlying functor has a comonad structure. This is discussed at the end of this section, where we look at the example of a $\mathsf{Store}$-monster.
 
 \subsection{Maybe monad}
 
@@ -129,7 +129,6 @@ The direction from $\reader$-monsters to Mealy machines requires us to define th
 
 \vcomm{It looks to me that \hcode{StateFunc i o} is essentially the same as \hcode{SMStr i o}, so can't we use just this?}
 
-
 \begin{haskell}
 type SMStr i o = MonStr ((->) i) o
 
@@ -150,7 +149,11 @@ monStrToMealy (MCons f) = Mealy (aux f) (\(g, e) -> (getSF g) e)
 		aux f = SF (\e -> let (a, g) = f e in (aux (uncons g), a))
 \end{haskell}
 
-The functions produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. A $\reader$-monster can be thought of as a Mealy machine where each state \emph{is} the transition function, more specifically the transition functions partially applied to each state of the implied Mealy machine. From now on we talk about $\reader$-monsters, finite state machines (FSM) and Mealy machines, all referring to the same data structure. \\
+To clarify, \verb+StateFunc+ is equivalent to \verb+SMStr+ - the distinction is that we use \verb+StateFunc+ when we want to talk in context about the state of the Mealy machine that a \verb+SMStr+ corresponds to, and not just a $\reader$-monster in isolation.
+
+The two functions defined produce extensionally equivalent Mealy machines, which when given the same inputs, produce the same outputs. A $\reader$-monster can be thought of as a Mealy machine where each state \emph{is} the transition function, more specifically the transition functions partially applied to each state of the implied Mealy machine. From now on we talk about $\reader$-monsters, finite state machines (FSM) and Mealy machines, all referring to the same data structure. \\
+
+Interestingly, from Jacobs \cite{jacobs:2016}, the type of Mealy machines is a way of defining a coalgebra: the corresponding monster is then the \emph{behaviour} of this coalgebra. See the coinductive treatment of finite state machines in \cite{jacobs:2016}. This particular work could be very relevant in our continued study on monadic streams and their connection to automata. \\
 
 One function that works well with $\reader$-monsters is \verb+zipWithA+. This uses a binary operation to combine the elements of two monsters, producing a new monster with these combined elements. In the case of state machines, this amounts to having a pair of state machines where the same inputs are fed to both, and then the outputs are combined with some arbitrary function. Each FSM still changes state independently.
 
@@ -167,19 +170,16 @@ $$
 \begin{array}[t]{l}
 \mathbf{record}\;
 \mathsf{FBMachine}(S,\Sigma,\Delta):\set\\
-\quad \delta : S \times \Sigma \to S \times \Sigma \times \Delta \\
+\quad \delta : S \times \Sigma \to S \times (\Sigma \times \Delta) \\
 \quad s_0 : S
 \end{array}
 $$
 
-Another way to think about a State-monster is an intensional unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes a state, and returns a value, a new state, and a continuation function (another State-monster). When the new state is continuously applied to the next continuation, this calculates an infinite stream of values from an initial 'seed' state - quite similar to the unfold function, also called the stream \emph{co-iterator}.
+We represent the data type this way to underline that the type of our 'feedback machines' $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$, that of a special case of $\reader$-monsters.
 
-\begin{vcomment}
-The explanation above is quite unclear.
-It is not clear to me what the role of $\Sigma$ is: isn't this just the same as having $S\times \Sigma$ as state type?
- It needs to be clarified, but we have no time, so let's keep it for now. Below the definition of \hcode{FBMachine} doesn't correspond to the definition above: it is recursive instead of using a type of feedback values $\Sigma$, and doesn't have an initial state.
-In general, both here and for the Mealy machines, we could remark that the machine type is a way of defining a coalgebra; the corresponding monster is then the {\em behaviour} of the coalgebra (see for example the coinductive treatment of finite state machines in Jacobs.
-\end{vcomment}
+In this sense, most of what can be said about State-monsters was said in the $\reader$ monad section above. The main difference is in how the stream is traversed, or executed - the state monad's join operation threads the state though each nested computation, whereas a $\reader$-monster can't do this with the reader monad operations alone. \\
+
+Another way to think about a State-monster, separate from their interpretation as Mealy machines, is as an intensional unfold of a pure stream of values. Defining a State-monster amounts to defining a function that takes a state, and returns a value, a new state, and a continuation function (another State-monster). When the new state is continuously applied to the next continuation, this calculates an infinite stream of values from an initial 'seed' state - quite similar to the unfold function, also called the stream \emph{co-iterator}.
 
 \begin{haskell}
 data FBMachine s a = FBM { runFBM :: s -> ((a, s), FBMachine s a) }
@@ -194,8 +194,6 @@ unfold f s0 = h <: (unfold f s1)
 \end{haskell}
 
 The key difference is that the State-monster can contain many \emph{different} functions that produce new states and outputs. This gives a richer language by which to calculate outputs, where each function defines what the next function should be, depending on an input state. This makes them analogous to state machines, where $S$ is the set of functions the monster contains, and $\Sigma$ is the state values given as inputs.
-
-Most of what can be said about State-monsters was said in the reader monad section, since the type of feedback machines $\mathsf{FBMachine}(S,\Sigma,\Delta)$ is equivalent to $\mathsf{Mealy}(S,\Sigma,\Sigma \times \Delta)$. The main difference is in how the stream is traversed - the state monad's join operation threads the state though each nested computation, whereas a $\reader$-monster can't do this with the reader monad operations alone.
 
 \subsection{$\io$ monad}
 
@@ -213,6 +211,27 @@ runProcess (MCons s) = do (a,s') <- s
 \end{haskell}
 
 This is because $\io$ actions can continuously interact with the outside world, and call other functions, \emph{without} having to terminate. The $\io$ action produced by collapsing an $\io$-monster is the (possibly infinite) sequence of all $\io$ operations in the stream. \\
+
+In this sense, it is better not to 'run' a process ($\io$-monster) at all, and instead just unfold each $\io$ action one at a time. This allows you pass it around, taking of layers of computation as needed:
+\begin{haskell}
+consumeOne :: Show a => Process a -> Process a
+consumeOne p = absorbM $ do (a, cont) <- uncons p
+                            putStrLn (show a)
+                            return cont
+\end{haskell}
+
+This intensional representation of processes gives an advantage over just defining a single repeating action with just the $\io$ monad, because you can take intermediate results from an infinite process as needed, whereas you cannot define a single $\io$ action that does this without using lazy $\io$.
+
+\begin{haskell}
+consumeOne' :: Show a => IO [a] -> IO [a]
+consumeOne' p = join $ do a <- fmap head p
+                          putStrLn (show a)
+                          return (fmap tail p)
+\end{haskell}
+
+The first line of the \verb+do+ statement won't return if the $\io$ action \verb+p+ is infinite and strict. \\
+
+The following is a technical worked example, presenting alternative ways of running an $\io$-monster in different contexts: 
 
 Given a process (an $\io$-monster), you may want to use some of the output values in another computation. To access these values, you need to run the $\io$ actions that the monster consists of. However, since the first action will never return (as all of the subsequent actions are nested inside), this is not immediately possible with strict $\io$. Instead, you have to use lazy $\io$, so that values that are needed outside of the process are only calculated as required. This requires \verb+unsafeInterleaveIO+ \cite{unsafe_io}, which defers execution of $\io$ actions until evaluation of their result is forced by another computation. 
 
@@ -245,10 +264,6 @@ unsafeRunProcess (MCons s) =
 Each of the $\io$ actions in the process are run with \verb+unsafeInterleaveIO+, allowing the process to return `early', and the \verb+putStrLn $ show (as !! 0)+ statement to be reached. This print statement forces the first $\io$ action in the process to run, since the first element of \verb+as+ is needed (\verb+as !! 0+ returns the first element of the accumulated values from running the process).
 
 Using \verb+unsafeInterleaveIO+ introduces concurrency problems into otherwise relatively pure Haskell programs. For some $\io$-monsters, such as those that simply output values to the terminal, this is not a big issue, but more complicated ones may cause problems (for example ones that read and write to a file). \\
-\vcomm{We could then claim that this is an advantage of IO-monsters: using a monster directly without collapsing it into a single IO action will allow us to sequence it lazily without using unsafeInterleaveIO.
-I guess this is what is done below, but I don't fully understand it myself.
-}
-
 
 This problem informed the development of a more general operation on monadic streams, \verb+interleaveReadM+, which allows for interleaving two monsters, where each element in the second depends on elements in the first.
 
@@ -312,14 +327,18 @@ As demonstrated, $\io$-monsters are tricky, but provide an interesting intension
  
 \subsection{Store comonad}
 
-The store comonad is a pair of a state (called the store) and a function to extract a value from that state:
+The store comonad (see section 6.3 for the definition of a comonad) is a pair of a state (called the store) and a function to extract a value from that state:
 
 \begin{haskell}
 data Store s a = Store (s -> a) s
 \end{haskell}
 
-A Store-comonster, a monadic stream using the store comonad, is a stream where extracting from the store gives a value, and a \emph{new store}. This encapsulates the idea of an environment that can be used to modify itself. Cellular automata fit this description perfectly, where the state of the environment is calculated from the previous using a rule. 
+A Store-monster, a monadic stream using the store comonad, is a stream where extracting from the store gives a value, and a \emph{new store}. This encapsulates the idea of an environment that can be used to modify itself. 
 
-The comonadic interpretation of cellular automata is a standard introduction to the motivation behind and uses of comonads. The difference when using (co)monadic streams is that a Store-comonster already `contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
+(We again stress that, contrary to the name, the underlying functor in a monadic stream doesn't have to be a monad, and can in-fact be other types of functor, in this case a comonad) 
 
-To show this, there is an implementation of Conway's game of life included in the demonstration code. This demo uses a kind of Zipper comonad instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.
+The concept of cellular automata \cite{cellular_automata} fits this type of monadic stream perfectly, where the state of the environment is calculated from the previous using a rule. 
+
+The comonadic interpretation of cellular automata \cite{dan_piponi_CA} is a good introduction to the motivation behind and uses of comonads. The difference when using monadic streams is that a Store-monster already `contains' every future state of its environment, so extra functions can be applied lazily to these before they are actually evaluated. By representing the structure intensionally rather than extensionally, you gain an extra level of control.
+
+To show this, there is an implementation of Conway's game of life included in the demonstration code. This demo uses a kind of Zipper comonad \cite{huet_zipper} instead of store for some more efficiency, but the type used is isomorphic to \verb+Store (Int,Int) Bool+.

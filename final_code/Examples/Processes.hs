@@ -1,6 +1,7 @@
 module Examples.Processes where
   
-import Prelude hiding (head, tail, interleave)
+import Prelude hiding (head, tail)
+import qualified Prelude as P (head, tail)
 import MonadicStreams hiding ((++), (!!))
 import System.IO.Unsafe
 import Control.Monad.Trans
@@ -58,7 +59,22 @@ sumProc n = MCons $ do
     s <- getLine
     let n' = n + read s
     return (n', sumProc n')
+    
+    
+-- | Example of benefits of processes as opposed to non-terminating
+-- IO actions
+consumeOne :: Show a => Process a -> Process a
+consumeOne p = absorbM $ do (a, cont) <- uncons p
+                            putStrLn (show a)
+                            return cont
 
+consumeOne' :: Show a => IO [a] -> IO (a, [a])
+consumeOne' p = join $ do a <- fmap P.head p
+                          putStrLn (show a)
+                          return $ fmap (\l -> (a, P.tail l)) p
+
+fromIO :: Int -> IO [Int]
+fromIO n = (fmap (n:) (fromIO (n+1)))
 
 -- | An example of combining two processes with interleaveReadM
 
