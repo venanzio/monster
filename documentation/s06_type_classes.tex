@@ -92,7 +92,7 @@ $$
 $$
 \end{proof}
 
-We can sum up these results by stating that the monster operator is a functor if the underlying ``monad'' is (remember that we are not actually assuming that $M$ is a monad yet, but just a type operator).
+We can sum up these results by stating that the monster operator is a functor if the underlying `monad' is (remember that we are not actually assuming that $M$ is a monad yet, but just a type operator).
 
 \begin{theorem}
 If $M$ is a functor, $\stream{M}$ is also a functor.
@@ -169,7 +169,7 @@ $$
 
 This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
 This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
-This guarantees the soundnes of the definition according to the {\em guardedness by constructors} criterion.
+This guarantees the soundness of the definition according to the {\em guardedness by constructors} criterion.
 
 Here is the definition of the Applicative instance for monsters in Haskell:
 \begin{haskell}
@@ -201,15 +201,9 @@ $$
 $$
 \end{conjecture}
 
-
-
-
-
-
-
 \subsection{Comonad instance in Haskell}
 
-Comonads (in cojoin form) are functors with two additional operations: $\eta$ that extracts an element from the functor, and $\mu$, that 'duplicates' a functor:
+Comonads (in cojoin form) are functors with two additional operations: $\eta$ that extracts an element from the functor, and $\mu$, that `duplicates' a functor:
 $$
 \begin{array}{l}
 \eta : W\,A \to A\\
@@ -231,7 +225,11 @@ We believe that monadic streams are comonads, when the underlying functor is a c
 
 In the following Haskell equations, the function \verb+head+ returns the first element of the first pair in the monster, wrapped in the underlying functor. We require the underlying functor to be a comonad, so that we can use \hcode{extract} to remove the functor wrapping.
 
-We introduce \verb+mm(s)+ for the "monster matrix" formed by a monadic stream \verb+s+ - this is defined as a monster where the first element is \verb+s+, the second is the tail of \verb+s+, the third is the tail of the tail of \verb+s+, and so on.
+\begin{vcomment}
+The following is too sketchy. Definitely not enough to understand how the duplicate instance works.
+\end{vcomment}
+
+We introduce \verb+mm(s)+ for the `monster matrix' formed by a monadic stream \verb+s+ - this is defined as a monster where the first element is \verb+s+, the second is the tail of \verb+s+, the third is the tail of the tail of \verb+s+, and so on.
 
 The \verb+duplicate+ instance for comonadic streams forms this "monster matrix": \verb+duplicate s = mm(s)+
 
@@ -334,14 +332,14 @@ An example of why monadic streams aren't monads in general uses State-monsters. 
 fromStep :: Int -> FBMachine Int Int
 fromStep n = MCons (state (\x -> ((x, fromStep (n+1)), x+n)))
 \end{haskell}
-\verb+FBMachine (Int,Int)+ is shorthand for \verb+MonStr (State (Int, Int))+, standing for 'feedback machine' (this meaning is explained in the examples section).
+\verb+FBMachine (Int,Int)+ is shorthand for \verb+MonStr (State (Int, Int))+, standing for `feedback machine' (this meaning is explained in the examples section).
 
-For monadic streams to be a monad, we have to be able to join, or flatten, a monster of monsters into a single monster, with respect to certain laws - this is done in Haskell using a function \verb+>>=+, pronounced 'bind'. We also need a function \verb+return+ which injects a pure value into a monster.
+For monadic streams to be a monad, we have to be able to join, or flatten, a monster of monsters into a single monster, with respect to certain laws - this is done in Haskell using a function \verb+>>=+, pronounced `bind'. We also need a function \verb+return+ which injects a pure value into a monster.
 
 The only return operation that makes sense is to apply the return of the underlying monad, and then repeatedly nest this inside itself (the same as \verb+pure+ from the Applicative instance):
 \begin{haskell}
 return :: Monad m => a -> MonStr m a
-return a = MCons $ fmap (\a -> (a, return a) (return a)
+return a = MCons $ fmap (\a -> (a, return a) (return a))
 \end{haskell}
 Bear in mind that the rightmost \verb+return a+ is of type \texttt{a $\to$ m a}, and the one nested inside the tuple is of type \texttt{Monad m $\Rightarrow$ a $\to$ MonStr m a}. \\
 
@@ -372,9 +370,28 @@ Running \verb+fromStep 1+ with \verb+1+ produces the stream:
 runFBStr (fromStep 1) 1 = 1 <: 2 <: 4 <: 7 <: 11 <: (*...*)
 \end{haskell}
 
-This is the stream where, starting at $1$ for example, you add $1$ to get $2$, then add $2$ to get $4$, then add $3$ to get $7$, and so on. The fact that each step in the stream can be thought of as an action of 'adding some number' is pivotal to the upcoming reasoning.\\
+This is the stream where, starting at $1$ for example, you add $1$ to get $2$, then add $2$ to get $4$, then add $3$ to get $7$, and so on. The fact that each step in the stream can be thought of as an action of `adding some number' is pivotal to the upcoming reasoning.\\
 
 \verb+return 1+ produces a monster where every element is $1$, polymorphic in the monad. \verb+return+ is the left and right unit for composition of Kleisli arrows (in any correctly defined monad), so we ignore any actions produced by it as they have no effect. \\
+
+
+
+\begin{vcomment}
+I don't understand what you're doing here.
+The goal is to show that the monad laws are not satisfied.
+But which monad law are you addressing?
+What's the actual counterexample?
+
+Another issue is that we should fix whether we use the join or bind definition of monad and they use the formulation of monad laws for that.
+As it is, we start with the join version, but then formulate the laws on the bind version.
+
+Proving that it is impossible to give an instance of Monad, whatever function we use for join (or bind) is going to be very difficult and has to be general.
+It is not enough to just consider some possible choices.
+
+A more feasible thing to do is to define a version of join that seems reasonable and then prove that it doesn't satisfy the laws.
+This of course still leaves it open whether there could be a different definition that works.
+\end{vcomment}
+
 
 Since \verb+>>=+ is defined in terms of \verb+fmap+ and \verb+join+, we can start by looking just at \verb+fmap fromStep (return 1)+, and come back to joining the monster of monsters later.
 \begin{haskell}
@@ -384,10 +401,10 @@ fmap fromStep (return 1) = (fromStep 1) <: (fromStep 1) <: (*...*)
 Now, to join (flatten) this into a single stream, we need to somehow reconstruct \verb+fromStep 1+. There are three ways to do this, WLOG:
 
 \subsection{Case 1}
-We cannot take just the head of each stream, because the first action in each is 'adding $1$' - we would end up with a stream where $1$ is added to the previous element to get the next, which wasn't the definition of \verb+fromStep 1+. This could be thought of as taking the 'horizontal'. 
+We cannot take just the head of each stream, because the first action in each is `adding $1$' - we would end up with a stream where $1$ is added to the previous element to get the next, which wasn't the definition of \verb+fromStep 1+. This could be thought of as taking the `horizontal'. 
 
 \subsection{Case 2}
-The other naive method, which would work in this case, is to just take the first element of the stream, which \emph{is} \verb+fromStep 1+. We call this taking the 'vertical', which doesn't work in general as shown by another example:
+The other naive method, which would work in this case, is to just take the first element of the stream, which \emph{is} \verb+fromStep 1+. We call this taking the `vertical', which doesn't work in general as shown by another example:
 
 Consider the pure stream \verb+from n+, defined as
 \begin{haskell}
@@ -415,11 +432,11 @@ fmap fromStep (return 1) = (fromStep 1) <: (fromStep 1) <: (*...*)
 \end{haskell}
 we need the first action of the first stream (adding $1$), the second action of the second stream (adding $2$), and so on, to recreate  \verb+fromStep 1+.
 
-However, to get the second action of the second stream (an 'adding $2$' action), we also need to traverse the \emph {first} action of the second stream (another 'adding $1$' action), since each element in a monadic stream is guarded by the previous. This would result in the net effect of 'adding $3$', which isn't what we need to reconstruct the second action of \verb+fromStep 1+. \\
+However, to get the second action of the second stream (an `adding $2$' action), we also need to traverse the \emph {first} action of the second stream (another `adding $1$' action), since each element in a monadic stream is guarded by the previous. This would result in the net effect of `adding $3$', which isn't what we need to reconstruct the second action of \verb+fromStep 1+. \\
 
-Any other, more convoluted way of trying to get the action of 'adding $2$' falls under either, or a combination of, these three cases, which can be seen by reasoning with the examples given. This shows that you cannot make monadic streams a monad, with the assumption that the underlying functor is a monad.
+Any other, more convoluted way of trying to get the action of `adding $2$' falls under either, or a combination of, these three cases, which can be seen by reasoning with the examples given. This shows that you cannot make monadic streams a monad, with the assumption that the underlying functor is a monad.
 
-One solution to this is to only allow the underlying monad to be idempotent \cite{idempotent_monads}. This is a monad that 'squares to itself' - the join operation is a natural isomorphism. This isn't the case for the state monad for example: joining two 'add 3' actions results in an 'add 6' action.
+One solution to this is to only allow the underlying monad to be idempotent \cite{idempotent_monads}. This is a monad that `squares to itself' - the join operation is a natural isomorphism. This isn't the case for the state monad for example: joining two `add 3' actions results in an `add 6' action.
 
 Taking the diagonal would then work as a join operation for monadic streams, since with an idempotent monad, any order in which you join actions results in the same action. However, this is quite a strong constraint, and it would be better if there exists a weaker one.
 
