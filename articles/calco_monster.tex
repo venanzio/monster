@@ -138,8 +138,10 @@ We won't distinguish the occurrences of $\appl$ for $M$ and $\stream{M}$ with su
 \begin{lemma}
 Monsters satisfy the applicative identity law:
 $$
-(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a \\
+(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a
 $$
+We will assume that the $\sigma_a$ has the canonical form:
+$\sigma_a = \mcons\,m$ where $m:M\,(A\times \stream{M}A).$
 \end{lemma}
 \begin{proof}
 $$
@@ -150,7 +152,27 @@ $$
 {}= ((\apure_M\,\id_A) \fcons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
   & \mbox{by definition of }\acons \\
 {}= (\mcons\,(M\,(\lambda f. \langle f, (\apure_{\stream{M}}\,\id_A)\rangle)\,(\apure_M\,\id_A))) \appl \sigma_a
-  & \mbox{by definition of }\fcons
+  & \mbox{by definition of }\fcons \\
+{}= (\mcons\,(\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle)) \appl \sigma_a
+  & \mbox{by the interchange law} \\
+{}= (\mcons\,(\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle)) \appl (\mcons\,m)
+  & \mbox{canonical form of }\sigma_a\\
+{}= \mcons\,(\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle)) \alift{\pappl}  m)
+  & \mbox{by definition of }\appl \\
+{}= \mcons\,((\apure_{M}\,\pappl) \appl (\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle) \appl  m)
+  & \mbox{by definition of }\alift{-} \\
+{}= \mcons\,(\apure_M\,((\pappl)\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle) \appl  m)
+  & \mbox{by the homomorphism law}\\
+{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle \pappl \langle a,\sigma_a\rangle) \appl m)
+  & \mbox{expansion of the section}\\
+{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A\,a, (\apure_{\stream{M}}\,\id_A) \appl \sigma_a\rangle) \appl m)
+  & \mbox{definition of }\pappl\\
+{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle a, \sigma_a\rangle) \appl m)
+  & \mbox{coinduction hypothesis}\\
+{}= \mcons\,(\apure_M\,\id_{A\times\stream{M}A} \appl m)
+  & \mbox{trivial}\\
+{}= \mcons\,m = \sigma_a
+  & \mbox{by the identity law for }M
 \end{array}
 $$
 \end{proof}
