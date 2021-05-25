@@ -84,10 +84,37 @@ This definition recursively applies $\appl$ indirectly in the second components 
 This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
 This guarantees the soundness of the definition according to the {\em guardedness by constructors} criterion.
 
-An applicative instance must satisfy four general laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+An applicative instance must satisfy four general equational laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+We assume that these laws are satisfied by the base functor and we aim to prove them for the monster functor.
+For the base functor $M$, the laws take the following form, where
+ $a:A$, $f:A\rightarrow B$,
+$m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
+$$
+\begin{array}{l@{\qquad}l}
+(\apure\,\id) \appl m_a = m_a
+  & \mbox{Identity} \\
+\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
+  & \mbox{Homomorphism} \\
+m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
+  & \mbox{Interchange} \\
+m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a
+  & \mbox{Composition}
+\end{array}
+$$
+
+Functoriality of $M$ follows from these laws, with functorial mapping defined as
+$
+M\,f\,m_a = (\apure\,f) \appl m_a.
+$
+The interchange law implies that
+$
+M\,f\,(\apure\,a) = \apure\,(f\,a).
+$
+
+
+
 Preliminary investigation and analysis of specific instances suggest that this is the case for monsters.
 A full proof is one of the goals of future work.
-
 \begin{conjecture}\label{lemma:appl_laws}
 If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
 That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
