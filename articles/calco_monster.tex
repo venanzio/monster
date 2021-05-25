@@ -1,0 +1,107 @@
+\documentclass{article}
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{pstricks,pst-node}
+
+\title{Programming with Monsters}
+\author{Venanzio Capretta and Christopher Purdy}
+
+\usepackage{notations}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{example}[definition]{Example}
+\newtheorem{conjecture}[definition]{Conjecture}
+
+\begin{document}
+\bibliographystyle{plain}
+
+\maketitle
+
+\section{Applicative instance}
+
+Applicative functors \cite{mcbride/paterson:2008}
+extend the mapping operation by allowing function sequencing under the functor.
+The Applicative class has two methods: $\apure$, that injects single values into the functor, and $\appl$, that applies functions under the functor.
+
+We assume that the type operator $M$ is an applicative functor, that is, it has methods:
+$$
+\begin{array}{l}
+\apure : A \rightarrow M\,A\\
+(\appl): M\,(A\rightarrow B) \rightarrow M\,A \rightarrow M\,B
+\end{array}
+$$
+satisfying the applicative laws.
+
+A typical use of applicative functors is to apply a function of many arguments to several applicative values.
+If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
+$$
+(\apure\,g) \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
+$$
+
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
+$$
+m_a \alift{\oplus} m_b = (\apure\,(\oplus)) \appl m_a \appl m_b
+$$
+
+We will show that $\stream{M}$ is also applicative.
+In order to define the methods, we need some auxiliary functions on applicative monsters.
+First of all, a simplified version of $\mcons$ that appends a single value in front of a monster.
+This in turn uses a similar operator for functors, which appends an $M$-action to the front of a monster
+$$
+\begin{array}{l}
+(\fcons): M\,A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
+m \fcons \sigma = \mcons\, (M\,(\lambda a. \langle a, \sigma\rangle)\,m)\\
+\,\\
+(\acons): A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
+a \acons \sigma = (\apure\, a) \fcons \sigma
+\end{array}
+$$
+
+The $\apure$ method for monsters then consists in repeating the same element forever:
+$$
+\begin{array}{l}
+\apure : A \rightarrow \stream{M}\,A\\
+\apure\,a = a \acons \apure\,a
+\end{array}
+$$
+
+We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
+$$
+\begin{array}{l}
+(\appl) : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
+(\mcons\,m_f) \appl (\mcons\,m_a)
+= \mcons\,(m_f \alift{\pappl} m_a)\\
+\qquad \where\;
+\langle f,\phi\rangle \pappl \langle a,\sigma\rangle 
+= \langle f\,a, \phi \appl \sigma \rangle
+\end{array}
+$$
+
+This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
+This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
+This guarantees the soundness of the definition according to the {\em guardedness by constructors} criterion.
+
+An applicative instance must satisfy four general laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+Preliminary investigation and analysis of specific instances suggest that this is the case for monsters.
+A full proof is one of the goals of future work.
+
+\begin{conjecture}\label{lemma:appl_laws}
+If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
+That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
+$$
+\begin{array}{l}
+(\apure\,\id) \appl \sigma_a = \sigma_a \\
+\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a) \\
+\sigma_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl \sigma_f \\
+\sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
+\end{array}
+$$
+\end{conjecture}
+
+
+\bibliography{monster_biblio.bib}
+
+\end{document}
