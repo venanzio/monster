@@ -128,6 +128,19 @@ $$
 $$
 \end{conjecture}
 
+In the proofs, we need to avoid confusion between the applicative operations for $M$ and those for $\stream{M}$.
+We assume that the laws are valid for $M$ and we want to prove them for $\stream{M}$.
+In the formulas, the two sets of operations will occur in the same terms, potentially leading to confusion.
+It is clear from the type of the arguments which version is intended, but it may be challenging to keep track of the types.
+Therefore we will use a slightly heavier but clearer notation: we use $M$ as subscript for $\apure$ when the $M$ version is intended, $\stream{M}$ when the monster version is intended; we consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions; we explicitely write the argument type of identity functions as subscripts.
+We won't distinguish the occurrences of $\appl$ for $M$ and $\stream{M}$ with subscripts, but they should be clear given the previous notational conventions.
+
+\begin{lemma}
+Monsters satisfy the applicative identity law:
+$$
+(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a \\
+$$
+\end{lemma}
 
 \bibliography{monster_biblio.bib}
 
