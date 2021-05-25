@@ -141,6 +141,20 @@ $$
 (\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a \\
 $$
 \end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure_{\stream{M}}\,\id_A) \appl \sigma_a \\
+{}= (\id_A \acons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
+  & \mbox{by definition of }\apure \\
+{}= ((\apure_M\,\id_A) \fcons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
+  & \mbox{by definition of }\acons \\
+{}= (\mcons\,(M\,(\lambda f. \langle f, (\apure_{\stream{M}}\,\id_A)\rangle)\,(\apure_M\,\id_A))) \appl \sigma_a
+  & \mbox{by definition of }\fcons
+\end{array}
+$$
+\end{proof}
+
 
 \bibliography{monster_biblio.bib}
 
