@@ -33,7 +33,50 @@ $$
 (\appl): M\,(A\rightarrow B) \rightarrow M\,A \rightarrow M\,B
 \end{array}
 $$
-satisfying the applicative laws.
+satisfying the four equational laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+
+For the base functor $M$, the laws take the following form, where
+ $a:A$, $f:A\rightarrow B$,
+$m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
+$$
+\begin{array}{l@{\qquad}l}
+(\apure\,\id) \appl m_a = m_a
+  & \mbox{Identity} \\
+\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
+  & \mbox{Homomorphism} \\
+m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
+  & \mbox{Interchange} \\
+m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a
+  & \mbox{Composition}
+\end{array}
+$$
+
+Functoriality of $M$ follows from these laws, with functorial mapping defined as
+$
+M\,f\,m_a = (\apure\,f) \appl m_a.
+$
+The interchange law implies that
+$
+M\,f\,(\apure\,a) = \apure\,(f\,a).
+$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 A typical use of applicative functors is to apply a function of many arguments to several applicative values.
 If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
@@ -84,34 +127,8 @@ This definition recursively applies $\appl$ indirectly in the second components 
 This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
 This guarantees the soundness of the definition according to the {\em guardedness by constructors} criterion.
 
-An applicative instance must satisfy four general equational laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+We aim to show that these definitions satisfy the applicative laws.
 We assume that these laws are satisfied by the base functor and we aim to prove them for the monster functor.
-For the base functor $M$, the laws take the following form, where
- $a:A$, $f:A\rightarrow B$,
-$m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
-$$
-\begin{array}{l@{\qquad}l}
-(\apure\,\id) \appl m_a = m_a
-  & \mbox{Identity} \\
-\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
-  & \mbox{Homomorphism} \\
-m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
-  & \mbox{Interchange} \\
-m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a
-  & \mbox{Composition}
-\end{array}
-$$
-
-Functoriality of $M$ follows from these laws, with functorial mapping defined as
-$
-M\,f\,m_a = (\apure\,f) \appl m_a.
-$
-The interchange law implies that
-$
-M\,f\,(\apure\,a) = \apure\,(f\,a).
-$
-
-
 
 Preliminary investigation and analysis of specific instances suggest that this is the case for monsters.
 A full proof is one of the goals of future work.
