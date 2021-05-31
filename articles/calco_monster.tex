@@ -42,7 +42,7 @@ $$
 \begin{array}{l@{\qquad}l}
 (\apure\,\id) \appl m_a = m_a
   & \mbox{Identity} \\
-\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a)
+(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a)
   & \mbox{Homomorphism} \\
 m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
   & \mbox{Interchange} \\
@@ -59,24 +59,6 @@ The interchange law implies that
 $
 M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 A typical use of applicative functors is to apply a function of many arguments to several applicative values.
 If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
@@ -111,6 +93,49 @@ $$
 \end{array}
 $$
 
+Using the applicative laws for $M$, we can give a simplified characterization of pure monsters.
+The term we use combine the use of $\apure$ on $M$ and on $\stream{M}$.
+This could be confusing, so we explicitely write the functor as subscript.
+\begin{lemma}\label{leamma:monster_pure}
+$$
+\apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
+$$
+\end{lemma}
+\begin{proof}
+By unfolding definitions and using the identity law for the applicative functor $M$:
+$$
+\begin{array}{ll}
+\apure_{\stream{M}}\,a \\
+{}= a \acons \apure_{\stream{M}}\,a
+  & \mbox{by definition of }\apure_{\stream{M}} \\
+{}= (\apure_M\,a) \fcons (\apure_{\stream{M}}\,a)
+  & \mbox{by definition of }\acons\\
+{}=  \mcons\, (M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)\,(\apure_M\,a))
+  & \mbox{by definition of }\fcons\\
+{}= \mcons\, ((\apure_M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)) \appl (\apure_M\,a))
+  & \mbox{by functoriality of applicatives}\\
+{}= \mcons\, (\apure_M\,((\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)\,a))
+  & \mbox{by the homomorphism law for }M\\
+{}= \mcons\, (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
+  & \mbox{by function application}
+\end{array}
+$$
+\end{proof}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
 $$
 \begin{array}{l}
@@ -138,7 +163,7 @@ That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, 
 $$
 \begin{array}{l}
 (\apure\,\id) \appl \sigma_a = \sigma_a \\
-\apure\,(f\,a) = (\apure\,f) \appl (\apure\,a) \\
+(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a) \\
 \sigma_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl \sigma_f \\
 \sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
 \end{array}
