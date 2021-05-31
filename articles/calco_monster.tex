@@ -144,6 +144,10 @@ We will assume that the $\sigma_a$ has the canonical form:
 $\sigma_a = \mcons\,m$ where $m:M\,(A\times \stream{M}A).$
 \end{lemma}
 \begin{proof}
+Most of the proof is by straightforward equational reasoning, unfolding definitions and using the applicative laws for $M$.
+
+The only unusual step is the application of the {\em coinduction hypothesis}.
+Recall that this means that we can assume that the statement to prove is already true, as long as it is invoked directly on direct arguments of the monster constructor.
 $$
 \begin{array}{ll}
 (\apure_{\stream{M}}\,\id_A) \appl \sigma_a \\
@@ -168,13 +172,18 @@ $$
 {}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A\,a, (\apure_{\stream{M}}\,\id_A) \appl \sigma_a\rangle) \appl m)
   & \mbox{definition of }\pappl\\
 {}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle a, \sigma_a\rangle) \appl m)
-  & \mbox{coinduction hypothesis}\\
+  & \mbox{\bf by coinduction hypothesis}\\
 {}= \mcons\,(\apure_M\,\id_{A\times\stream{M}A} \appl m)
   & \mbox{trivial}\\
 {}= \mcons\,m = \sigma_a
   & \mbox{by the identity law for }M
 \end{array}
 $$
+In the step that makes use of the coinduction hypothesis, we circularly use the lemma's statement that $(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a$.
+The right-hand side occurs under an application of the constructor $\mcons$, inside an application of a pure value. 
+This stuctural positioning of the term ensure that the application of the coinductive hypothesis is sound.
+
+\vcomm{This is intuitively OK, but it may be worth exploring it further and making it more rigorous by studying how application of pure functions generate the structure of the result.}
 \end{proof}
 
 
