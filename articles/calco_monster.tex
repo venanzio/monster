@@ -96,7 +96,7 @@ $$
 Using the applicative laws for $M$, we can give a simplified characterization of pure monsters.
 The term we use combine the use of $\apure$ on $M$ and on $\stream{M}$.
 This could be confusing, so we explicitely write the functor as subscript.
-\begin{lemma}\label{leamma:monster_pure}
+\begin{lemma}\label{lemma:monster_pure}
 $$
 \apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
 $$
@@ -158,7 +158,7 @@ $$
 \end{conjecture}
 
 The new operator $\alift{\pappl}$ has a direct simplification on pure values, which will be very useful in the proofs of the laws.
-\begin{lemma}
+\begin{lemma}\label{lemma:pappl}
 If $f:A\rightarrow B$, $m_f:\stream{M}\,(A\rightarrow B)$, $a:A$, $m_a:\stream{M}\,A$, then:
 $$
 (\apure_M\,\langle f, m_f\rangle) \alift{\pappl} (\apure_M\,\langle a, m_a\rangle) = \apure_M \langle f\,a, m_f \appl m_a \rangle
@@ -237,6 +237,31 @@ This stuctural positioning of the term ensure that the application of the coindu
 \vcomm{This is intuitively OK, but it may be worth exploring it further and making it more rigorous by studying how application of pure functions generate the structure of the result.}
 \end{proof}
 
+\begin{lemma}
+Monsters satisfy the applicative homomorphism law:
+$$
+(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a) \\
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure\,f) \appl (\apure\,a)\\
+{}= (\mcons\,(\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle)) \appl
+    (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by Lemma \ref{lemma:monster_pure}}\\
+{}= \mcons\,((\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle) \alift{\pappl}
+             (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by definition of }\appl\\
+{}= \mcons\,(\apure_M\,(\langle f, \apure_{\stream{M}}\,f\rangle \appl \langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by Lemma }\ref{lemma:pappl}\\
+{}= \mcons\,(\apure_M\,\langle f\,a, \apure_{\stream{M}}\,(f\,a)\rangle)
+  & \mbox{by coinduction hypothesis}\\
+{}= \apure_{\stream{M}}\,(f\,a)
+  & \mbox{by lemma }\ref{lemma:monster_pure}
+\end{array}
+$$
+\end{proof}
 
 \bibliography{monster_biblio.bib}
 
