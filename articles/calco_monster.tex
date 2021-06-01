@@ -122,20 +122,6 @@ $$
 $$
 \end{proof}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
 $$
 \begin{array}{l}
@@ -153,8 +139,9 @@ This is lifted to $\alift{\pappl}$, which distributes down through the component
 This guarantees the soundness of the definition according to the {\em guardedness by constructors} criterion.
 
 We aim to show that these definitions satisfy the applicative laws.
-We assume that these laws are satisfied by the base functor and we aim to prove them for the monster functor.
+We assume that the laws are satisfied by the base functor and we aim to prove them for the monster functor.
 
+\vcomm{I leave this year with the conjecture: to be placed at the end as a Theorem when we have the proofs.}
 Preliminary investigation and analysis of specific instances suggest that this is the case for monsters.
 A full proof is one of the goals of future work.
 \begin{conjecture}\label{lemma:appl_laws}
@@ -169,6 +156,28 @@ $$
 \end{array}
 $$
 \end{conjecture}
+
+The new operator $\alift{\pappl}$ has a direct simplification on pure values, which will be very useful in the proofs of the laws.
+\begin{lemma}
+If $f:A\rightarrow B$, $m_f:\stream{M}\,(A\rightarrow B)$, $a:A$, $m_a:\stream{M}\,A$, then:
+$$
+(\apure_M\,\langle f, m_f\rangle) \alift{\pappl} (\apure_M\,\langle a, m_a\rangle) = \apure_M \langle f\,a, m_f \appl m_a \rangle
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure_M\,\langle f, m_f\rangle) \alift{\pappl} (\apure_M\,\langle a, m_a\rangle) \\
+{}= (\apure_M\,(\pappl)) \appl (\apure_M\,\langle f, m_f\rangle) \appl (\apure_M\,\langle a, m_a\rangle)
+  & \mbox{by definition of }\alift{-}\\
+{}= \apure_M\,(\langle f, m_f\rangle \pappl \langle a, m_a\rangle)
+  & \mbox{by the homomorphism law for }M\\
+{}= \apure_M\,\langle f\,a, m_f \appl m_a \rangle
+  & \mbox{by definition of }\pappl
+\end{array}
+$$
+\end{proof}
+
 
 In the proofs, we need to avoid confusion between the applicative operations for $M$ and those for $\stream{M}$.
 We assume that the laws are valid for $M$ and we want to prove them for $\stream{M}$.
