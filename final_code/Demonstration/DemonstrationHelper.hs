@@ -13,6 +13,11 @@ import Data.List hiding ((!!), (++), head, tail, insert)
 import qualified Data.List as DL (iterate)
 import Control.Monad
 
+clearLines :: Int -> IO ()
+clearLines 0 = return ()
+clearLines n = do putStrLn ""
+                  clearLines (n - 1)
+
 {-
  | This is an auxillary file for Demonstration.hs - it 
  isn't well documented, and is just to reduce clutter, 

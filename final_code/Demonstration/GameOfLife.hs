@@ -9,6 +9,8 @@ import Control.Concurrent
 import Examples.GenericStreams
 import Examples.Processes 
 
+import Demonstration.DemonstrationHelper
+
 {-
  | This file contains a demonstration of Conway's game of
  life implemented using comonads and monadic streams.

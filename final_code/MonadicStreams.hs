@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeFamilies #-}
+
 module MonadicStreams
    (
    -- The type of monadic streams
@@ -6,6 +8,8 @@ module MonadicStreams
      module Control.Monad,
      module Control.Comonad,
      
+     NonEmpty(..),
+          
      uncons,
      head,
      tail,
@@ -131,6 +135,13 @@ import Control.Applicative
 import Control.Monad hiding (filterM)
 import Control.Monad.Trans.Reader
 import Control.Comonad
+
+-- import Data.Functor.Rep
+-- import Data.Distributive
+
+infixr 5 :<
+data NonEmpty a = Last a | a :< (NonEmpty a)
+
 
 -- | Type of monadic streams, m is not required 
 -- to be a monad - only a functor. 
@@ -260,6 +271,32 @@ instance (Foldable m, Applicative m, Eq (m a), Eq (m Bool)) => Eq (MonStr m a) w
    ma == mb = (head ma == head mb) && (if null (tail ma) 
                                           then ((fmap (uncurry (==)) (pairA (tail ma) (tail mb))) == pure True)
                                           else True)
+
+
+instance Distributive m => Distributive (MonStr m) where
+  -- distribute :: Functor f => f (MonStr m a) -> MonStr m (f a)
+  distribute fma = MCons $ fmap (\fp -> (fmap fst fp, distribute (fmap snd fp))) 
+                              (distribute (fmap uncons fma))
+
+instance Representable m => Representable (MonStr m) where
+  type Rep (MonStr m) = NonEmpty (Rep m)
+  -- tabulate :: (NonEmpty (Rep m) -> a) -> MonStr m a
+  -- For m : tabulate :: (Rep m -> a) -> m a
+  tabulate f = MCons $ fmap (\a -> (a, tabulate f)) -- I'M CERTAIN THIS DOESN'T YET WORK
+                          (tabulate (\k -> f (Last k)))
+  {-
+  x = (tabulate (\k -> f (Last k))) :: m a
+ 
+  fmap (\a -> (a, tabulate f)) x 
+   
+  (tabulate (\k -> f (Last k))) :: m a
+  
+  -}
+                   
+  -- index :: f a -> Seq (Rep m) -> a
+  index ms k = case k of
+                  Last k  -> index (head ms) k
+                  k :< ks -> index (index (tail ms) k) ks
 
 -- Operations
 -----------------
