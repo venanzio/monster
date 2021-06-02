@@ -240,7 +240,7 @@ This stuctural positioning of the term ensure that the application of the coindu
 \begin{lemma}
 Monsters satisfy the applicative homomorphism law:
 $$
-(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a) \\
+(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a)
 $$
 \end{lemma}
 \begin{proof}
@@ -259,6 +259,28 @@ $$
   & \mbox{by coinduction hypothesis}\\
 {}= \apure_{\stream{M}}\,(f\,a)
   & \mbox{by lemma }\ref{lemma:monster_pure}
+\end{array}
+$$
+\end{proof}
+
+\begin{lemma}
+Monsters satisfy the applicative interchange law:
+$$
+\sigma_f \appl (\apure_{\stream{M}}\,a) = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
+$$
+\end{lemma}
+\begin{proof}
+Assume that $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
+$$
+\begin{array}{ll}
+\sigma_f \appl (\apure_{\stream{M}}\,a) = (\mcons\,m_f) \appl (\apure_{\stream{M}}\,a) \\
+{}= (\mcons\,m_f) \appl (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by Lemma \ref{lemma:monster_pure}}\\
+{}= \mcons\,(m_f \alift{\pappl} (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by definition of }\appl\\
+{}= \mcons\,((\apure_M\,(\pappl)) \appl m_f \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle
+  & \mbox{by definition of }\alift{-}\\
+\mbox{\vcomm{Here I'm stuck}}
 \end{array}
 $$
 \end{proof}
