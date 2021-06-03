@@ -241,6 +241,20 @@ $$
 $$
 \end{proof}
 
+The interchange law is more challenging.
+We have been able to prove it only by assuming extra properties for the base functor $M$.
+Specifically we assume $M$ to be a monad.
+In that case the applicative methods $\apure$ and $\appl$ can be defined in terms of $\return$ and $\bind$ and the applicative laws follow from the monad laws:
+$$
+\apure = \return
+\qquad
+m_f \appl m_a = m_f \bind \lambda f. (m_a \bind \return\,(f\,a))
+$$
+
+We can then prove a couple of useful equations relating applicative expressions with simpler monadic ones.
+
+
+
 \begin{lemma}
 Monsters satisfy the applicative interchange law:
 $$
