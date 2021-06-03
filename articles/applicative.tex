@@ -314,16 +314,18 @@ $$
   & \mbox{by definition of }\appl\\
 {}= \mcons\,((\apure_M\,(\pappl)) \appl m_f \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
   & \mbox{by definition of }\alift{-}\\
-{}= \mcons\,(m_f \bind \return\,\lambda \langle f,\sigma_f\rangle. \return\,(\langle f,\sigma_f\rangle \pappl \langle a, \apure_{\stream{M}}\,a\rangle))
+{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,(\langle f,\sigma_f\rangle \pappl \langle a, \apure_{\stream{M}}\,a\rangle))
   & \mbox{by Lemma \ref{lemma:pure_app_pure_bind}} \\
-{}= \mcons\,(m_f \bind \return\,\lambda \langle f,\sigma_f\rangle. \return\,(\langle f\,a,\sigma_f \appl \apure_{\stream{M}}\,a\rangle))
+{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,(\langle f\,a,\sigma_f \appl \apure_{\stream{M}}\,a\rangle))
   & \mbox{by definition of }\pappl \\
-{}= \mcons\,(m_f \bind \return\,\lambda \langle f,\sigma_f\rangle. \return\,(\langle f\,a,(\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f\rangle))
+{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,(\langle f\,a,(\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f\rangle))
   & \mbox{by coinduction hypothesis} \\
-{}= \mcons\,(m_f \bind \return\,\lambda \langle f,\sigma_f\rangle. \return\,
+{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,
        (\langle \lambda f. f\,a, \apure_{\stream{M}} (\lambda f. f\,a) \rangle \pappl \langle f,\sigma_f \rangle)
   & \mbox{by definition of }\pappl \\
-\mbox{\vcomm{this step must be clarified}}\\
+{}= \mcons\,(m_f \bind \return\comp
+       (\langle \lambda f. f\,a, \apure_{\stream{M}} (\lambda f. f\,a) \rangle \pappl {})
+  & \mbox{by definition of composition}\\
 {}= \mcons\,((\apure_M\,(\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle\pappl{})) \appl m_f)
   & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
 {}= \mcons\,((\apure_M\,(\pappl)) \appl (\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \appl m_f)
