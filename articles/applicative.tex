@@ -248,12 +248,54 @@ In that case the applicative methods $\apure$ and $\appl$ can be defined in term
 $$
 \apure = \return
 \qquad
-m_f \appl m_a = m_f \bind \lambda f. (m_a \bind \return\,(f\,a))
+m_f \appl m_a = m_f \bind \lambda f. (m_a \bind \return\comp f)
 $$
 
 We can then prove a couple of useful equations relating applicative expressions with simpler monadic ones.
 
+\begin{lemma}\label{lemma:pure_app_bind}
+Assuming $M$ is a monad, 
+if $f:A\rightarrow B$ and $m_a:M\,A$, then:
+$$
+(\apure\,f)\appl m_a = m_a \bind \return\comp f
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure\,f)\appl m_a\\
+{}= (\return\,f) \bind \lambda f. (m_a \bind \return\comp f)
+  & \mbox{by definition}\\
+{}= m_a \bind \return\comp f
+  & \mbox{by the left-identity law}
+\end{array}
+$$
+\end{proof}
 
+\begin{lemma}\label{lemma:pure_app_pure_bind}
+Assuming $M$ is a monad, 
+if $g:A\rightarrow B\rightarrow C$, $m_a:M\,A$, and $b:B$ then:
+$$
+(\apure\,g) \appl m_a \appl (\apure\,b) = m_a \bind \lambda a. \return\,(g\,a\,b)
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure\,g) \appl m_a \appl (\apure\,b)\\
+{}= (m_a \bind \return\comp g) \appl (\return\,b)
+  & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
+{}= (m_a \bind \return\comp g) \bind \lambda h. (\return\,b \bind \return \comp h)
+  & \mbox{by definition}\\
+{}= (m_a \bind \return\comp g) \bind \lambda h. \return\,(h\,b))
+  & \mbox{by the left-identity law}\\
+{}= m_a \bind \lambda a. (\return\,(g\,a) \bind \lambda h. \return\,(h\,b))
+  & \mbox{by the associativity law}\\
+{}= m_a \bind \lambda a. \return\,(g\,a\,b))
+  & \mbox{by the left-identity law}
+\end{array}
+$$
+\end{proof}
 
 \begin{lemma}
 Monsters satisfy the applicative interchange law:
