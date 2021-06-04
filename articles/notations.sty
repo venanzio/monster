@@ -42,6 +42,10 @@
 \newcommand{\head}{\mathsf{head}}
 \newcommand{\tail}{\mathsf{tail}}
 
+% concrete streams 
+\newcommand{\fromstr}{\mathsf{from}}
+\newcommand{\fromstepstr}{\mathsf{fromStep}}
+
 % coalgebras
 \newcommand{\ana}[1]{\mathsf{ana}_{#1}}
 \newcommand{\sfr}{\mathsf{fr}}
@@ -60,6 +64,9 @@
 \newcommand{\hd}[1]{{\head\,#1}}
 \newcommand{\tl}[1]{{\tail\,#1}}
 \newcommand{\heads}[2]{{\head\,(\tail^n\,#1)}}
+
+% pairs
+\newcommand{\pair}[2]{\langle #1, #2 \rangle}
 
 % functors
 
@@ -110,6 +117,7 @@
 \newcommand{\ifthenelse}[3]
            {\mathsf{if}\;{#1}\;\mathsf{then}\;{#2}\;\mathsf{else}\;{#3}}
 \newcommand{\return}{\mathsf{return}}
+\newcommand{\join}{\mathsf{join}}
 \newcommand{\mdo}{\mathsf{do}}
 \newcommand{\bind}{\mathbin{\gg\!\!=}}
 

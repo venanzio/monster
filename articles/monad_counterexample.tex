@@ -1,3 +1,45 @@
 \section{Monsters are Not Monads}
 
+
 \vcomm{Counterexample showing that taking the diagonal as join doesn't work}
+
+We show here that the naive and seemingly most natural way of defining monad operations on monsters doesn't satisfy the monad laws. \\
+
+The Monad class has two methods: $\return$ and $\bind$:
+$$
+\begin{array}{l}
+\return : A \rightarrow M\, A \\
+(\bind) : M\, A \rightarrow (A \rightarrow M\, B) \rightarrow M\, B
+\end{array}
+$$
+If a functor is a monad, it is an applicative functor. The correct definition for the $\return$ operation is always the same as that of $\apure$, and visa-versa. \\
+
+A more categorical way of defining a monad is in terms $\join : M\,(M\, A) \rightarrow M\, A$. This operation 'flattens' two layers of a functor into one, and can be thought of as similar to a monoid operation.
+
+$$
+\join : M\,(M\, A) \rightarrow M\, A
+$$
+
+The $\bind$ operation can be defined in terms of $\join$, and visa-versa.
+$$
+\begin{array}{l}
+(\bind\, f) = \join \comp M f \\
+\join = (\bind\,\id)
+\end{array}
+$$
+
+By showing that a natural definition of $\join$ doesn't satisfy the monad laws, we also show that the corresponding definition of $\bind$ doesn't either. 
+
+$$
+\begin{array}{l}
+\fromstr : \nat \rightarrow \stream{\Id}\,\nat \\
+\fromstr n = \mcons (\return \pair{n}{\fromstr (n + 1)})
+\end{array}
+$$
+
+$$
+\begin{array}{l}
+\fromstepstr : \nat \rightarrow \stream{\state}\,\nat \\
+\fromstepstr n = \mcons (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
+\end{array}
+$$
