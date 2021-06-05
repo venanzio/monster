@@ -373,7 +373,7 @@ $$
 {}= \mcons\,((\apure_M\,(\lambda p . p \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
   & \mbox{by homomorphism law for }M\\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
-  & \mbox{by homomorphism law for }M\\
+  & \mbox{observing the required type of }p\\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl (\apure_{\stream{M}}\,a)})) \appl m_f)
   & \mbox{by definition of } \pappl \\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{(\apure_{\stream{M}}\,(\lambda f . f\, a)) \appl \phi})) \appl m_f)
