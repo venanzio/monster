@@ -340,3 +340,58 @@ $$
 \end{array}
 $$
 \end{proof}
+
+
+% Attempt at lemma 8 using only applicative constraint (or variation)
+
+\begin{definition}
+Assuming $M$ is an applicative, with $f : A \rightarrow B$, $m_a : M\, A$ and $m_b : M\, B$, 
+a \emph{flippable} applicative is one such that the following holds:
+$$
+\apure_M\, f \appl m_a \appl m_b = \apure_M\, (\lambda b. \lambda a. f\, a\, b) \appl m_b \appl m_a
+$$
+\end{definition}
+
+\begin{lemma}
+If the base functor $M$ is a flippable applicative, then monsters satisfy the applicative interchange law:
+$$
+\sigma_f \appl (\apure_{\stream{M}}\,a) = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+\sigma_f \appl (\apure_{\stream{M}}\,a) = (\mcons\,m_f) \appl (\apure_{\stream{M}}\,a) \\
+{}= (\mcons\,m_f) \appl (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by Lemma \ref{lemma:monster_pure}}\\
+{}= \mcons\,(m_f \alift{\pappl} (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by definition of }\appl\\
+{}= \mcons\,((\apure_M\,(\pappl)) \appl m_f \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+  & \mbox{by definition of }\alift{-}\\
+{}= \mcons\,((\apure_M\,(\lambda q . \lambda p . p \pappl q)) \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle) \appl m_f)
+  & \mbox{by flippable applicative property}\\
+{}= \mcons\,((\apure_M\,(\lambda p . p \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
+  & \mbox{by homomorphism law for }M\\
+{}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
+  & \mbox{by homomorphism law for }M\\
+{}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl (\apure_{\stream{M}}\,a)})) \appl m_f)
+  & \mbox{by definition of } \pappl \\
+{}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{(\apure_{\stream{M}}\,(\lambda f . f\, a)) \appl \phi})) \appl m_f)
+  & \mbox{by coinduction hypothesis} \\
+{}= \mcons\,((\apure_M\,(\pair{(\lambda f . f\, a)}{\apure_{\stream{M}}\,(\lambda f . f\, a)}\, \pappl )) \appl m_f)
+  & \mbox{by definition of } \pappl \\
+{}= \mcons\,((\apure_M\,(\pappl)) \appl (\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \appl m_f)
+  & \mbox{by the homomorphism law for }M \\
+{}= \mcons\,((\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \alift{\pappl} m_f)
+  & \mbox{by definition of }\alift{-}\\
+{}= (\mcons\,(\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle)) \appl (\mcons\,m_f)
+  & \mbox{by definition of }\appl \\
+{}= (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl (\mcons\,m_f)
+  & \mbox{by Lemma \ref{lemma:monster_pure}} \\
+{} = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
+
+\end{array}
+$$
+\end{proof}
+
+

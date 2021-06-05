@@ -106,7 +106,7 @@ $$
 {}= \mcons\, ((\uncons\, (\apure_{\stream{M}}\, (f\, n)))\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)))
   & \mbox{by definition of } \join \\
 {}= \mcons\,((\apure_{M}\,\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)})\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\, \mathsf{traverse})\, ts})\, (\head\, hs)))
-  & \mbox{by definition of } \uncons \mbox{ and } \apure_{\stream{M}} \\
+  & \mbox{by definition of } \uncons \mbox{ and Lemma \ref{lemma:monster_pure}}\\
 {}= \mcons\, ((\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)) \, \\\qquad (\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)}))
   & \mbox{by left identity law of } M \\
 {}= \mcons\,(M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, (\apure_{\stream{M}}\,(f\, n))})\, \\ \qquad (\head\, (f\, n)))
