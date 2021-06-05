@@ -10,7 +10,7 @@ import Test.QuickCheck.All
 import Prelude hiding (head, tail)
 import qualified Prelude as P ((!!), iterate, head, tail, cycle) 
  
-import MonadicStreams
+import MonadicStreams hiding ((++))
 import Examples.StateMachines
 import Examples.GenericStreams
 import Examples.PureStreams

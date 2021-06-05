@@ -136,8 +136,8 @@ import Control.Monad hiding (filterM)
 import Control.Monad.Trans.Reader
 import Control.Comonad
 
--- import Data.Functor.Rep
--- import Data.Distributive
+import Data.Functor.Rep -- requires adjunctions-4.4 from Hackage
+import Data.Distributive
 
 infixr 5 :<
 data NonEmpty a = Last a | a :< (NonEmpty a)
