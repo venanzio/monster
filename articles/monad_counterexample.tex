@@ -1,8 +1,5 @@
 \section{Monsters are Not Monads}
 
-
-\vcomm{Counterexample showing that taking the diagonal as join doesn't work}
-
 We show here that the naive and seemingly most natural way of defining monad operations on monsters doesn't satisfy the monad laws. \\
 
 The Monad class has two methods: $\return$ and $\bind$:
@@ -42,42 +39,173 @@ m_a\, \bind \, \return = m_a
 \end{array}
 $$
 
-%\begin{haskell}
-%tailM :: MonStr m a -> MonStr m a
-%tailM = absorbM . tail
-%
-%join (MCons mma) = MCons $ do (mas, mma') <- mma
-%                              let (ma, ts) = (head mas, fmap tailM mma')
-%                                 in fmap (\a -> (a, join ts)) ma
-%\end{haskell}
+Our naive implementation of $\join$ takes the `diagonal' to flatten a monster of monsters. This means taking the first element of the first monster, the second element of the second monster, and so on. This is - to us - the most natural way to approach this definition initially, as it is similar to the canonical $\join$ operation of the pure stream monad. \\
 
-Our naive implementation of $\join$ is to take the 'diagonal' to flatten a monadic stream of monsters. This means taking the first element of the first monster, the second element of the second monster, and so on. We first define three auxiliary functions:
+We first define three auxiliary functions:
 $$
 \begin{array}{l}
-\mathsf{uncons} : \stream{M}\,A \rightarrow M\,(A \times \stream{M}\,A)\\
-\mathsf{uncons} (\mcons\, m_a) = m_a \\
+\uncons : \stream{M}\,A \rightarrow M\,(A \times \stream{M}\,A)\\
+\uncons\, (\mcons\, m_a) = m_a \\
 \,\\
 \mathsf{absorb} : M\,(\stream{M}\,A) \rightarrow \stream{M}\,A \\
-\mathsf{absorb} =  \mcons \comp \join \comp M\,\mathsf{uncons} \\
+\mathsf{absorb} =  \mcons \comp \join_{M} \comp M\,\uncons \\
 \,\\
 \mathsf{tailM} : \stream{M}\,A \rightarrow \stream{M}\,A \\
-\mathsf{tailM} = \mathsf{absorb} \comp \tail \comp \mathsf{uncons}
+\mathsf{tailM} = \mathsf{absorb} \comp \tail \comp \uncons
 \end{array}
 $$
 
 The definition of $\join$ is as follows, where $s, ts : \stream{M}\,(\stream{M}\, A)$, 
 $hs : \stream{M}\, A$, $a : M\, A$
 $$
-\join\, s = s \, \bind \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp M\,\mathsf{tailM})\, ts})\, (\head\, hs))
+\join\, s = \mcons\, ((\uncons\, s) \, \bind \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join\, \comp\, \stream{M}\,\mathsf{tailM})\, ts})\, (\head\, hs)))
 $$
-We introduce the type $\state\stream{S} = \stream{\state_S}$, where $\state_S A = S \rightarrow A \times S$, representing the $\state$ functor with states of type $S$, and return values of type $A$. We assume it is equipped with the usual monad operations for the $\state$ monad. We call these types of monsters (those with an underlying $\state$ monad) state machines.
+We introduce the functor $\state\stream{S} = \stream{\state_S}$, where $\state_S A = S \rightarrow A \times S$, representing the $\state$ functor with states of type $S$, and return values of type $A$. We assume it is equipped with the usual monad operations for the $\state$ monad. We call these types of monsters (those with an underlying $\state$ monad) state machines.
 $$
 \begin{array}{l}
 \fromstepstr : \nat \rightarrow \state\stream{\nat}\,\nat \\
-\fromstepstr\, n = \mcons (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
+\fromstepstr\, n = \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
 \end{array}
 $$
+
 This function generates a state machine which, when given a number, generates a stream where the first two numbers differ by $n$, the next two differ by $n + 1$, and so on.
 
+We show that this specific case of the left identity monad law does not hold. 
+$$
+(\join \comp \state\stream{\nat}\, \fromstepstr \comp \return)\, n = \fromstepstr\, n
+$$
+The law is expanded using the definition of $\bind$ in terms of $\join$. 
+To disprove this, the following lemmas are useful to simplify reasoning. Any uses of $\join$ without a subscript refer to the $\join$ operation for monsters, otherwise the subscript will specify the monad in question.
 
+\begin{lemma}\label{lemma:general_bind_law}
+For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
+$$
+(\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{tailM} (f\, n)))})\, (\head\, (f\, n)))
+$$
+\end{lemma}
+
+\begin{proof}
+$$
+\begin{array}{ll}
+(\join \comp  M\, f \comp \return)\, n \\
+{}= (\join \comp  M\, f)\, (\apure_{\stream{M}}\, n)
+  & \mbox{by definition of } \return \mbox{ as } \apure \\
+{}= \join\, (\apure_{\stream{M}}\, (f \,n))
+  & \mbox{by the homomorphism law for } \stream{M}\\
+{}= \mcons\, ((\uncons\, (\apure_{\stream{M}}\, (f\, n)))\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{tailM})\, ts})\, (\head\, hs)))
+  & \mbox{by definition of } \join \\
+{}= \mcons\,((\apure_{M}\,\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)})\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\, \mathsf{tailM})\, ts})\, (\head\, hs)))
+  & \mbox{by definition of } \uncons \mbox{ and } \apure_{\stream{M}} \\
+{}= \mcons\, ((\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{tailM})\, ts})\, (\head\, hs)) \, \\\qquad (\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)}))
+  & \mbox{by left identity law of } M \\
+{}= \mcons\,(M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{tailM})\, (\apure_{\stream{M}}\,(f\, n))})\, \\ \qquad (\head\, (f\, n)))
+ & \mbox{function application} \\
+ {}= \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{tailM}\, (f\, n)))})\, (\head\, (f\, n)))
+ & \mbox{by the homomorphism law for } \stream{M}\\
+
+\end{array} 
+$$
+\end{proof}
+
+
+\begin{lemma}\label{lemma:tailM_fromstepstr}
+$$
+\mathsf{tailM}\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
+$$
+\end{lemma} 
+
+\begin{proof}
+We prove this by expanding definitions
+$$
+\begin{array}{ll}
+\mathsf{tailM}\, (\fromstepstr\, n) \\
+{}= \mathsf{tailM}\, (\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n}))
+	& \mbox{by definition of }\fromstepstr \\
+{}= (\mathsf{absorb} \comp \tail \comp \uncons)\, \\\qquad (\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n}))
+	& \mbox{by definition of }\mathsf{tailM} \\
+{}= (\mathsf{absorb} \comp \tail)\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n})
+	& \mbox{by definition of }\uncons \\
+{}= \mathsf{absorb}\, (\lambda s. \pair{\fromstepstr\, (n + 1)}{s + n})
+	& \mbox{by definition of }\tail \\
+{}= \mathsf{absorb}\, (\lambda s. \pair{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)}))}{s + n})
+	& \mbox{by definition of }\fromstepstr \\
+{}= (\mcons \comp \join_{\state_{\nat}} \comp \state_{\nat}\,\uncons) \\\qquad \, (\lambda s. \pair{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)}))}{s + n})
+	& \mbox{by definition of }\mathsf{absorb} \\
+{}= (\mcons \comp \join_{\state_{\nat}})\, \\\qquad (\lambda s. \pair{(\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)})}{s + n})
+	& \mbox{by functoriality of }\state_{\nat} \\
+{}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{(s + n) + (n + 1)})
+	& \mbox{by definition of } \join_{\state_{\nat}} \\
+{}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{s + 2n + 1})
+	& \mbox{non-trivial arithmetic} \\
+\end{array}
+$$
+\end{proof}
+
+\begin{conjecture}\label{lemma:monad_counterexample}
+Monadic streams equipped with a `diagonal' $\join$ operation are not monads.
+\end{conjecture}
+\begin{proof}
+We use $tts = \join\, (\mathsf{tailM}\, (\mathsf{tailM}\, (\fromstepstr\, n)))$ to simplify the following reasoning, as we only need to unfold the definitions so far in order to demonstrate the conjecture. \\
+
+First we expand $\fromstepstr\, n$:
+$$
+\begin{array}{ll}
+\fromstepstr\, n \\
+{}= \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n})\\
+{}= \mcons\, (\lambda s. \pair{\pair{s}{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + n + 1}))}}{s + n}) \\
+\end{array} 
+$$
+We then compare it to the right-hand-side of the left identity law
+$$
+\begin{array}{ll}
+(\join \comp  \state\stream{\nat}\, \fromstepstr \comp \return)\, n \\
+{}= \mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{\join\, (\apure_{\state\stream{\nat}}\, (\mathsf{tailM}\, (\fromstepstr\, n)))})\, (\head\, (\fromstepstr\, n))) \\
+ \mbox{by Lemma \ref{lemma:general_bind_law}}  \\
+{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{\join\, (\apure_{\state\stream{\nat}}\,(\mathsf{tailM}\, (\fromstepstr\, n)))})\, (\lambda s. \pair{s}{s + n})) \\
+ \mbox{by definition of } \head \mbox{ and } \fromstepstr \\
+{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
+\mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, (\head\, (\mathsf{tailM}\, (\fromstepstr\, n))))
+})\, (\lambda s. \pair{s}{s + n})) \\
+ \mbox{by Lemma \ref{lemma:general_bind_law}}\\
+{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
+\mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, \\\qquad(\head\, (\mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1}))))
+})\, (\lambda s. \pair{s}{s + n})) \\
+ \mbox{by Lemma \ref{lemma:tailM_fromstepstr}}\\
+{}=  \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
+\mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, (\lambda s . \pair{s + n}{s + 2n + 1}))
+})\, (\lambda s. \pair{s}{s + n}))
+\\ \mbox{by definition of } \head \\
+{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
+\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})
+})\, (\lambda s. \pair{s}{s + n})) \\
+\mbox{by functor definition of } \state_{\nat}  \\
+{}= \mcons\, (\lambda s. \pair{\pair{s}{\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})}}{s + n}) \\ 
+\mbox{by functor definition of } \state_{\nat}  \\
+\end{array} 
+$$
+It is clear by inspection that 
+$$
+\begin{array}{l}
+\mcons\, (\lambda s. \pair{\pair{s}{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + n + 1}))}}{s + n}) \neq \\
+\qquad \mcons\, (\lambda s. \pair{\pair{s}{\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})}}{s + n})
+\end{array} 
+$$
+even without expanding $tts$ and $\fromstepstr\, (n + 2)$ any further.
+\end{proof}
+
+
+% Runner function
+%To observe the results of monsters of this type, we need a `runner' function that generates a pure stream:
+%$$
+%\begin{array}{l}
+%\mathsf{run}\state\stream{} :: \state\stream{S}\, A \rightarrow S \rightarrow \stream{\Id}\,A \\
+%\mathsf{run}\state\stream{}\, m_0\, s_0 = n \acons (\mathsf{run}\state\stream{}\, m_1\, %s_1) \\
+%\qquad \where\, \pair{\pair{n}{m_1}}{s_1} = (\uncons\, m_0)\, s_0
+%\end{array}
+%$$
+
+%Using this, we can compare the behaviour of state machines by comparing the pure stream that they produce.
+%$$
+%\mathsf{run}\state\stream{}\,(\fromstepstr\, 1)\, 2 = 2 \acons 3 \acons 5 \acons 8 \acons 12 \acons \dots
+%$$
 
