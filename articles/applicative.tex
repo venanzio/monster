@@ -399,7 +399,7 @@ $$
 
 The final applicative law will also require the base functor $M$ to be a monad.
 The proof is trickier and we need a few preliminary lemmas to establish it.
-\begin{lemma}
+\begin{lemma}\label{lemma:bind_appl}
 Let $M$ be a monad, $m_a:M\,A$, $g:A \rightarrow M\,(B\rightarrow C)$, $m_b:M\,B$; then:
 $$
 (m_a \bind g) \appl m_b = m_a \bind \lambda a. (g\,a) \appl m_b
@@ -422,7 +422,7 @@ $$
 \begin{lemma}
 For any binary operator $(\otimes):A\rightarrow B \rightarrow C$ and actions $m_a:M\,A$, $b_b:B\,B$, we have:
 $$
-m_a \alift{\otimes} m_b = m_a \bind \lambda a. m_b \bind \lambda b. return\,(a \otimes b)
+m_a \alift{\otimes} m_b = m_a \bind \lambda a. m_b \bind \lambda b. \return\,(a \otimes b)
 $$
 \end{lemma}
 \begin{proof}
@@ -431,9 +431,14 @@ $$
 m_a \alift{\otimes} m_b \\
 {}= (\apure\;(\otimes)) \appl m_a \appl m_b
   & \mbox{by definition of }\alift{-}\\
-{}= (m_a \bind \return \comp (\apure\,(\otimes))) \appl m_b
+{}= (m_a \bind \return \comp (\otimes)) \appl m_b
   & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
-\cdots
+{}= m_a \bind \lambda a. \return\,((\otimes)\,a) \appl m_b
+  & \mbox{by Lemma \ref{lemma:bind_appl}}\\
+{}= m_a \bind \lambda a. m_b \bind \return \comp ((\otimes)\,a)
+  & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
+{}= m_a \bind \lambda a. m_b \bind \lambda b. \return (a \otimes b)
+  & \mbox{by definition of composition}
 \end{array}
 $$
 \end{proof}
