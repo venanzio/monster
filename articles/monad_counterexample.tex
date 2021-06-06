@@ -166,7 +166,7 @@ $$
 {}= \mcons\, (\lambda s. \pair{\pair{s}{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + n + 1}))}}{s + n}) \\
 \end{array} 
 $$
-We then compare it to the right-hand-side of the left identity law
+We then compare it to the other side of the left-identity law
 $$
 \begin{array}{ll}
 (\join \comp  \state\stream{\nat}\, \fromstepstr \comp \return)\, n \\
@@ -201,7 +201,7 @@ $$
 \qquad \mcons\, (\lambda s. \pair{\pair{s}{\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})}}{s + n})
 \end{array} 
 $$
-even without expanding $tts$ and $\fromstepstr\, (n + 2)$ any further.
+without expanding $tts$ and $\fromstepstr\, (n + 2)$ any further.
 \end{proof}
 
 The issue is that the first monadic action (that of $\fromstepstr\, n$) is repeated twice in the monster resulting from the $\join$ operation. 

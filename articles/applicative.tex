@@ -241,6 +241,8 @@ $$
 $$
 \end{proof}
 
+% Proof of interchange law with M monad
+
 The interchange law is more challenging.
 We have been able to prove it only by assuming extra properties for the base functor $M$.
 Specifically we assume $M$ to be a monad.
@@ -398,6 +400,7 @@ If the base functor $M$ is an applicative, then monsters with this base functor 
 $$
 \sigma_f \appl (\apure_{\stream{M}}\,a) = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
 $$
+Assume that $a:A$ and $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
 \end{lemma}
 \begin{proof}
 $$
@@ -433,34 +436,141 @@ $$
 
 % Proof of composition law with M applicative
 
+To prove the final applicative law, we first need three lemmas (mostly to make the upcoming reasoning clearer). This law is much trickier than the previous ones, and requires many rewrite steps.
 
+\begin{lemma}
+$$
+\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) = \lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a))
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) \\
+{}= \lambda g . (\lambda x . (\comp) ((\comp) (x\, \pappl)))\, g\, (\pappl)
+ &\mbox{by definition of }\comp\\
+{}= \lambda g . (\comp) ((\comp) (g\, \pappl))\, (\pappl) 
+& \mbox{by function application}\\
+{}= \lambda g . ((\comp) (g\, \pappl)) \comp (\pappl) 
+& \mbox{by function application}\\
+{}= \lambda g . \lambda f . ((\comp) (g\, \pappl)) (f\, \pappl) 
+ &\mbox{by definition of }\comp\\
+{}= \lambda g . \lambda f . (g\, \pappl) \comp (f\, \pappl)
+& \mbox{by function application}\\
+{}= \lambda g . \lambda f . \lambda a . (g\, \pappl) ((f\, \pappl)\, a) ) 
+& \mbox{by definition of }\comp\\
+{}= \lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a))
+& \mbox{by function application(s)}\\
+\end{array}
+$$
+\end{proof}
 
-%\begin{lemma}
-%If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
-%\begin{proof}
-%$$
-%\begin{array}{ll}
-%(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a \\
-%{}= (\apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f) \appl \sigma_a
-%& \mbox{by definition of }\alift{-}\\
-%{}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)
-%& \mbox{by definition of}\appl\mbox{for monsters}\\
-%{}= \mcons\, (((\apure_M\,(\pappl)) \appl (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)
-%& \mbox{by definition of }\alift{-}\\
-%{}= \mcons\, (((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)
-%& \mbox{by homomorphism law of }M\\
-%{}= \mcons\, ((\apure_M\,(\pappl) \appl ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a)
-%& \mbox{by definition of }\alift{-}\\
-%{}= \mcons\, ((((\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)
-%& \mbox{by composition law of }M\\
-%{}= \mcons\, ((((\apure_M\,(\pappl \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)
-%& \mbox{by Lemma \ref{lemma:pure_lift}}\\
-%
-%\end{array}
-%$$
-%\end{proof}
-%\end{lemma}
+\begin{lemma}
+$$
+(((\pappl)\, \comp)\, \comp\, ((\pappl)\, \comp\, (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) = \lambda g. \lambda f. \lambda a. ( ( (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)})\, \pappl\, g )\, \pappl\, f )\, \pappl\, a
+$$
+In the proof, we define $c = \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}$ for readability.
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(((\pappl)\, \comp)\, \comp\, ((\pappl)\, \comp\, (c\, \pappl)))\\
+{}= \lambda g. ((\pappl)\, \comp) ((\lambda g . (\pappl) ((c\, \pappl)\, g))\, g)
+&\mbox{by definition of}\comp\mbox{(used twice)}\\
+{}= \lambda g. ((\pappl)\, \comp) ((\pappl) (c\, \pappl g))
+&\mbox{by function application(s)}\\
+{}= \lambda g. (\pappl) \comp ((c \pappl g)\, \pappl)
+&\mbox{by function application(s)}\\
+{}= \lambda g. \lambda f . (\pappl) (((c \pappl g)\, \pappl)\, f)
+&\mbox{by definition of }\comp\\
+{}= \lambda g. \lambda f . (((c \pappl g) \pappl f)\, \pappl) 
+&\mbox{by function application(s)}\\
+{}= \lambda g. \lambda f . \lambda a . ((c \pappl g)\pappl f) \pappl a
+&\mbox{trivial}\\
+{}= \lambda g. \lambda f . \lambda a . ((\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g)\pappl f) \pappl a
+&\mbox{definition of }c\\
+\end{array}
+$$
+\end{proof}
 
+\begin{lemma}
+$$
+\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) = \lambda g. \lambda f. \lambda a. ( ( (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \pappl g ) \pappl f ) \pappl a
+$$
+\end{lemma}
+\begin{proof}
+\ccomm{Still todo, but should be fairly do-able by observing canonical forms of the inputs considering the functions they're being applied to (namely $(\pappl)$)}
+$$
+$$
+\end{proof}
+
+\begin{lemma}
+If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
+\begin{proof}
+
+We prove this by starting with both the left and right-hand-side of the law, and meeting in the middle.
+$$
+\begin{array}{ll}
+\sigma_g \appl (\sigma_f \appl \sigma_a) \\
+ = (\mcons\,m_g) \appl ((\mcons\,m_f) \appl (\mcons\,m_a))\\
+{}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a)) \\
+\mbox{by definition of}\appl\mbox{for monsters} \\
+{}= \mcons\,((\apure\, (\pappl)) \appl m_g \appl ((\apure\, (\pappl)) \appl m_f \appl m_a)) \\
+ \mbox{by definition of }\alift{-}\\
+{}= \mcons\,( (  ((\apure\, (\pappl)) \appl m_g) \alift{\comp} ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a) \\
+ \mbox{by composition law for }M \\
+{}= \mcons\,( (  (\apure\, (\comp)) \appl  ((\apure\, (\pappl)) \appl m_g) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a) \\
+ \mbox{by definition of }\alift{-}\\
+{}= \mcons\,( (  ( ((\apure\, (\comp)) \alift{\comp}  (\apure\, (\pappl))) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a) \\
+ \mbox{by composition law for }M \\
+{}= \mcons\,( (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a)\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= \mcons\,( (  (( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \alift{\comp} (\apure\, (\pappl))) \appl m_f  ) \appl m_a)\\
+ \mbox{by composition law for }M \\
+{}= \mcons\,( (  ( (\apure\, (\comp)) \appl ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a)\\
+ \mbox{by definition of }\alift{-} \\
+{}= \mcons\,( (  ( (  ((\apure\, (\comp)) \alift{\comp}  (\apure\, ((\comp) \comp (\pappl)) )) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a)\\
+ \mbox{by composition law for }M \\
+{}= \mcons\,( (  ( (  (\apure\, ((\comp) \comp (\comp) \comp (\pappl))) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a)\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= \mcons\,( (  (  \big(\apure\, (\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a)\\
+ \mbox{by Lemma \ref{lemma:applicative_flip}}\\
+\end{array}
+$$
+Now to meet in the middle
+$$
+\begin{array}{ll}
+(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a \\
+{}= (\apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f) \appl \sigma_a \\
+\mbox{by definition of }\alift{-}\\
+{}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
+\mbox{by definition of}\appl\mbox{for monsters}\\
+{}= \mcons\, (((\apure_M\,(\pappl)) \appl (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)\\
+\mbox{by definition of }\alift{-}\\
+{}= \mcons\, (((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)\\
+ \mbox{by homomorphism law of }M\\
+{}= \mcons\, ((\apure_M\,(\pappl) \appl ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a)\\
+\mbox{by definition of }\alift{-}\\
+{}= \mcons\, ((((\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)\\
+\mbox{by composition law of }M\\
+{}= \mcons\, ((((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)\\
+\mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= \mcons\, ( (\apure_M\,(\pappl)) \appl (((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \appl m_a)\\
+\mbox{by definition of }\alift{-}\\
+{}= \mcons\, ( ( ((\apure_M\,(\pappl)) \alift{\comp} ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a) \\
+\mbox{by composition law of }M\\
+{}= \mcons\, ( ( ( (\apure_M\,(\comp)) \appl (\apure_M\,(\pappl)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a) \\
+\mbox{by definition of }\alift{-}\\
+{}= \mcons\, ( ( ( (\apure_M\,((\pappl)\, \comp)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) ) \appl m_f) \appl m_a) \\
+ \mbox{by homomorphism law of }M\\
+ {}= \mcons\, ( ( ( ( (\apure_M\,((\pappl)\, \comp)) \alift{\comp} (\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))  ) \appl m_g ) \appl m_f) \appl m_a) \\
+\mbox{by composition law of }M\\
+ {}= \mcons\, ( ( ( \big(\apure_M\,(((\pappl)\, \comp) \comp ((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))\big) \appl m_g ) \appl m_f) \appl m_a) \\
+\mbox{by Lemma \ref{lemma:pure_lift}}\\
+\end{array}
+$$
+\end{proof}
+\end{lemma}
 
 % Proof of composition law with M monad
 
