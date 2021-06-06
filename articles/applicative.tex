@@ -395,3 +395,45 @@ $$
 \end{proof}
 
 
+
+
+The final applicative law will also require the base functor $M$ to be a monad.
+The proof is trickier and we need a few preliminary lemmas to establish it.
+\begin{lemma}
+Let $M$ be a monad, $m_a:M\,A$, $g:A \rightarrow M\,(B\rightarrow C)$, $m_b:M\,B$; then:
+$$
+(m_a \bind g) \appl m_b = m_a \bind \lambda a. (g\,a) \appl m_b
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(m_a \bind g) \appl m_b \\
+{}= (m_a \bind g) \bind \lambda h. (m_b \bind \return \comp h)
+  & \mbox{by characterization of }\appl\mbox{ for monads}\\
+{}= m_a \bind \lambda a. (g\,a) \bind \lambda h. (m_b \bind \return \comp h)
+  & \mbox{by monadic associativity}\\
+{}= m_a \bind \lambda a. (g\,a) \appl m_b
+  & \mbox{by characterization of }\appl\mbox{ for monads}\\  
+\end{array}
+$$
+\end{proof}
+
+\begin{lemma}
+For any binary operator $(\otimes):A\rightarrow B \rightarrow C$ and actions $m_a:M\,A$, $b_b:B\,B$, we have:
+$$
+m_a \alift{\otimes} m_b = m_a \bind \lambda a. m_b \bind \lambda b. return\,(a \otimes b)
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+m_a \alift{\otimes} m_b \\
+{}= (\apure\;(\otimes)) \appl m_a \appl m_b
+  & \mbox{by definition of }\alift{-}\\
+{}= (m_a \bind \return \comp (\apure\,(\otimes))) \appl m_b
+  & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
+\cdots
+\end{array}
+$$
+\end{proof}
