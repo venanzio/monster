@@ -342,26 +342,43 @@ $$
 \end{proof}
 
 
-% Attempt at lemma 8 using only applicative constraint (or variation)
+\begin{lemma}\label{lemma:applicative_flip}
+Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
+$$
+(\apure_M\, f) \appl m_a \appl (\apure_M\, b) = (\apure_M\, (\lambda a . f\, a\, b)) \appl m_a
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure_M\, f) \appl m_a \appl (\apure_M\, b)
+{} =  (\apure_M\, (\lambda f. f\, b)) \appl ((\apure_M\, f) \appl m_a)
+ & \mbox{by interchange law of }M\\
+{} =  ((\apure_M\, (\lambda f. f\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
+ & \mbox{by composition law of }M\\
+{} =  ((\apure_M (\comp)) \appl (\apure_M\, (\lambda f. f\, b)) \appl (\apure_M\, f)) \appl m_a
+ & \mbox{by definition of }\alift{-}\\
+{} =  ((\apure_M ((\lambda f. f\, b)\, \comp)) \appl (\apure_M\, f)) \appl m_a
+ & \mbox{by homomorphism law of }M\\
+{} =  (\apure_M ( (\lambda f. f\, b) \comp f ) ) \appl m_a
+ & \mbox{by homomorphism law of }M\\
+ {} =  (\apure_M ( (\lambda f. f\, b) \comp (\lambda a . \lambda b . f\, a\, b) )) \appl m_a
+ & \mbox{by extensionality}\\
+{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, ((\lambda a . \lambda b . f\, a\, b)\, a) )) \appl m_a
+ & \mbox{by definition of }\comp\\
+{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, (\lambda b . f\, a\, b) )) \appl m_a
+ & \mbox{by function application}\\
+{} =  (\apure_M (\lambda a. (\lambda b . f\, a\, b) \, b )) \appl m_a
+ & \mbox{by function application}\\
+{} =  (\apure_M (\lambda a. f\, a\, b )) \appl m_a
+ & \mbox{by function application}\\
+\end{array}
+$$
+\end{proof}
 
-\begin{definition}
-Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, 
-a \emph{flippable} applicative is one such that the following holds:
-$$
-(\apure_M\, f) \appl m_a \appl (\apure_M\, b) = \apure_M\, (\lambda b. \lambda a. f\, a\, b) \appl (\apure_M\, b) \appl m_a
-$$
-\end{definition}
-
-\begin{definition}
-Another possible definition: Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, 
-a \emph{flippable} applicative is one such that the following holds:
-$$
-(\apure_M\, f) \appl m_a \appl (\apure_M\, b) = (\apure_M\, (\lambda g . g\, b)) \appl (\apure_M\, (\lambda b. \lambda a. f\, a \, b)) \appl m_a
-$$
-\end{definition}
 
 \begin{lemma}
-If the base functor $M$ is a flippable applicative, then monsters satisfy the applicative interchange law:
+If the base functor $M$ is an applicative, then monsters with this base functor satisfy the applicative interchange law:
 $$
 \sigma_f \appl (\apure_{\stream{M}}\,a) = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
 $$
@@ -376,12 +393,8 @@ $$
   & \mbox{by definition of }\appl\\
 {}= \mcons\,((\apure_M\,(\pappl)) \appl m_f \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
   & \mbox{by definition of }\alift{-}\\
-{}= \mcons\,((\apure_M\,(\lambda q . \lambda p . p \pappl q)) \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle) \appl m_f)
-  & \mbox{by flippable applicative property}\\
-{}= \mcons\,((\apure_M\,(\lambda p . p \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
-  & \mbox{by homomorphism law for }M\\
-{}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
-  & \mbox{observing the required type of }p\\
+{}= \mcons \, ((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
+  & \mbox{by Lemma \ref{lemma:applicative_flip}}\\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl (\apure_{\stream{M}}\,a)})) \appl m_f)
   & \mbox{by definition of } \pappl \\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{(\apure_{\stream{M}}\,(\lambda f . f\, a)) \appl \phi})) \appl m_f)
