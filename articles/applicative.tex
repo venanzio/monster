@@ -345,10 +345,18 @@ $$
 % Attempt at lemma 8 using only applicative constraint (or variation)
 
 \begin{definition}
-Assuming $M$ is an applicative, with $f : A \rightarrow B$, $m_a : M\, A$ and $b : B$, 
+Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, 
 a \emph{flippable} applicative is one such that the following holds:
 $$
-\apure_M\, f \appl m_a \appl (\apure_M\, b) = \apure_M\, (\lambda b. \lambda a. f\, a\, b) \appl (\apure_M\, b) \appl m_a
+(\apure_M\, f) \appl m_a \appl (\apure_M\, b) = \apure_M\, (\lambda b. \lambda a. f\, a\, b) \appl (\apure_M\, b) \appl m_a
+$$
+\end{definition}
+
+\begin{definition}
+Another possible definition: Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, 
+a \emph{flippable} applicative is one such that the following holds:
+$$
+(\apure_M\, f) \appl m_a \appl (\apure_M\, b) = (\apure_M\, (\lambda g . g\, b)) \appl (\apure_M\, (\lambda b. \lambda a. f\, a \, b)) \appl m_a
 $$
 \end{definition}
 
