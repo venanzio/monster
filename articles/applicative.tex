@@ -341,6 +341,27 @@ $$
 $$
 \end{proof}
 
+% Proof of interchange law with M applicative
+
+\begin{lemma}\label{lemma:pure_lift}
+For an applicative functor $M$, with $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$:
+$$
+(\apure_M\, a) \alift{\oplus} (\apure_M\, b) = \apure_M\, (a \oplus b)
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure_M\, a) \alift{\oplus} (\apure_M\, b) \\
+{}= \apure_M\, (\oplus) \appl (\apure_M\, a) \appl (\apure_M\, b)
+  & \mbox{by definition of }\alift{-}\\
+{}= \apure_M\, (a\, \oplus) \appl (\apure_M\, b)
+  & \mbox{by homomorphism law of }M\\
+{}= \apure_M\, (a \oplus b)
+  & \mbox{by homomorphism law of }M\\
+\end{array}
+$$
+\end{proof}
 
 \begin{lemma}\label{lemma:applicative_flip}
 Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
@@ -351,17 +372,13 @@ $$
 \begin{proof}
 $$
 \begin{array}{ll}
-(\apure_M\, f) \appl m_a \appl (\apure_M\, b)
+(\apure_M\, f) \appl m_a \appl (\apure_M\, b) \\
 {} =  (\apure_M\, (\lambda f. f\, b)) \appl ((\apure_M\, f) \appl m_a)
  & \mbox{by interchange law of }M\\
 {} =  ((\apure_M\, (\lambda f. f\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
  & \mbox{by composition law of }M\\
-{} =  ((\apure_M (\comp)) \appl (\apure_M\, (\lambda f. f\, b)) \appl (\apure_M\, f)) \appl m_a
- & \mbox{by definition of }\alift{-}\\
-{} =  ((\apure_M ((\lambda f. f\, b)\, \comp)) \appl (\apure_M\, f)) \appl m_a
- & \mbox{by homomorphism law of }M\\
 {} =  (\apure_M ( (\lambda f. f\, b) \comp f ) ) \appl m_a
- & \mbox{by homomorphism law of }M\\
+ & \mbox{by Lemma \ref{lemma:pure_lift}}\\
  {} =  (\apure_M ( (\lambda f. f\, b) \comp (\lambda a . \lambda b . f\, a\, b) )) \appl m_a
  & \mbox{by extensionality}\\
 {} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, ((\lambda a . \lambda b . f\, a\, b)\, a) )) \appl m_a
@@ -375,7 +392,6 @@ $$
 \end{array}
 $$
 \end{proof}
-
 
 \begin{lemma}
 If the base functor $M$ is an applicative, then monsters with this base functor satisfy the applicative interchange law:
@@ -398,7 +414,7 @@ $$
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl (\apure_{\stream{M}}\,a)})) \appl m_f)
   & \mbox{by definition of } \pappl \\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{(\apure_{\stream{M}}\,(\lambda f . f\, a)) \appl \phi})) \appl m_f)
-  & \mbox{by coinduction hypothesis} \\
+  & \mbox{\bf by coinduction hypothesis} \\
 {}= \mcons\,((\apure_M\,(\pair{(\lambda f . f\, a)}{\apure_{\stream{M}}\,(\lambda f . f\, a)}\, \pappl )) \appl m_f)
   & \mbox{by definition of } \pappl \\
 {}= \mcons\,((\apure_M\,(\pappl)) \appl (\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \appl m_f)
@@ -410,13 +426,43 @@ $$
 {}= (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl (\mcons\,m_f)
   & \mbox{by Lemma \ref{lemma:monster_pure}} \\
 {} = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
-
 \end{array}
 $$
 \end{proof}
 
 
+% Proof of composition law with M applicative
 
+
+
+%\begin{lemma}
+%If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
+%\begin{proof}
+%$$
+%\begin{array}{ll}
+%(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a \\
+%{}= (\apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f) \appl \sigma_a
+%& \mbox{by definition of }\alift{-}\\
+%{}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)
+%& \mbox{by definition of}\appl\mbox{for monsters}\\
+%{}= \mcons\, (((\apure_M\,(\pappl)) \appl (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)
+%& \mbox{by definition of }\alift{-}\\
+%{}= \mcons\, (((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)
+%& \mbox{by homomorphism law of }M\\
+%{}= \mcons\, ((\apure_M\,(\pappl) \appl ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a)
+%& \mbox{by definition of }\alift{-}\\
+%{}= \mcons\, ((((\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)
+%& \mbox{by composition law of }M\\
+%{}= \mcons\, ((((\apure_M\,(\pappl \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)
+%& \mbox{by Lemma \ref{lemma:pure_lift}}\\
+%
+%\end{array}
+%$$
+%\end{proof}
+%\end{lemma}
+
+
+% Proof of composition law with M monad
 
 The final applicative law will also require the base functor $M$ to be a monad.
 The proof is trickier and we need a few preliminary lemmas to establish it.
