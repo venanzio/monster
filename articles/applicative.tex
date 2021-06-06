@@ -442,3 +442,38 @@ m_a \alift{\otimes} m_b \\
 \end{array}
 $$
 \end{proof}
+
+\begin{lemma}
+If the base functor $M$ is a monad, then monsters satisfy the applicative composition law.
+For $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$, we have:
+$$
+\sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
+$$
+\end{lemma}
+\begin{proof}
+We assume that $\sigma_g = \mcons\,m_g$ for some $m_g:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B)$, $\sigma_f = \mcons\,m_g$ for some $m_f:M\,((B\rightarrow C)\times \stream{M}\,(B\rightarrow C)$, and $\sigma_a = \mcons\,m_a$ for some $m_a:M\,(A\times \stream{M}\,A$.
+
+By the definition of $\appl$ for monsters, the left-had side of the equation reduces to:
+$$
+\begin{array}{l}
+\sigma_g \appl (\sigma_f \appl \sigma_a) 
+ = (\mcons\,m_g) \appl ((\mcons\,m_f) \appl (\mcons\,m_a))\\
+{}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a))
+\end{array}
+$$
+
+Similarly, by the definition of $\alift{-}$ and $\appl$ for monsters, the right-hand side reduces to:
+$$
+(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
+  = \mcons((\apure_M\,\langle (\comp), \apure_{\stream{M}}\,(\comp)\rangle)
+    \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)
+$$
+
+We then need to prove that:
+$$
+m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
+  = (\apure_M\,\langle (\comp), \apure_{\stream{M}}\,(\comp)\rangle)
+    \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a
+$$
+\vcomm{I'm still working on this: not easy!}
+\end{proof}
