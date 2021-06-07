@@ -241,107 +241,8 @@ $$
 $$
 \end{proof}
 
-% Proof of interchange law with M monad
 
-The interchange law is more challenging.
-We have been able to prove it only by assuming extra properties for the base functor $M$.
-Specifically we assume $M$ to be a monad.
-In that case the applicative methods $\apure$ and $\appl$ can be defined in terms of $\return$ and $\bind$ and the applicative laws follow from the monad laws:
-$$
-\apure = \return
-\qquad
-m_f \appl m_a = m_f \bind \lambda f. (m_a \bind \return\comp f)
-$$
 
-We can then prove a couple of useful equations relating applicative expressions with simpler monadic ones.
-
-\begin{lemma}\label{lemma:pure_app_bind}
-Assuming $M$ is a monad, 
-if $f:A\rightarrow B$ and $m_a:M\,A$, then:
-$$
-(\apure\,f)\appl m_a = m_a \bind \return\comp f
-$$
-\end{lemma}
-\begin{proof}
-$$
-\begin{array}{ll}
-(\apure\,f)\appl m_a\\
-{}= (\return\,f) \bind \lambda f. (m_a \bind \return\comp f)
-  & \mbox{by definition}\\
-{}= m_a \bind \return\comp f
-  & \mbox{by the left-identity law}
-\end{array}
-$$
-\end{proof}
-
-\begin{lemma}\label{lemma:pure_app_pure_bind}
-Assuming $M$ is a monad, 
-if $g:A\rightarrow B\rightarrow C$, $m_a:M\,A$, and $b:B$ then:
-$$
-(\apure\,g) \appl m_a \appl (\apure\,b) = m_a \bind \lambda a. \return\,(g\,a\,b)
-$$
-\end{lemma}
-\begin{proof}
-$$
-\begin{array}{ll}
-(\apure\,g) \appl m_a \appl (\apure\,b)\\
-{}= (m_a \bind \return\comp g) \appl (\return\,b)
-  & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
-{}= (m_a \bind \return\comp g) \bind \lambda h. (\return\,b \bind \return \comp h)
-  & \mbox{by definition}\\
-{}= (m_a \bind \return\comp g) \bind \lambda h. \return\,(h\,b))
-  & \mbox{by the left-identity law}\\
-{}= m_a \bind \lambda a. (\return\,(g\,a) \bind \lambda h. \return\,(h\,b))
-  & \mbox{by the associativity law}\\
-{}= m_a \bind \lambda a. \return\,(g\,a\,b))
-  & \mbox{by the left-identity law}
-\end{array}
-$$
-\end{proof}
-
-\begin{lemma}
-If the base functor $M$ is a monad, then monsters satisfy the applicative interchange law:
-$$
-\sigma_f \appl (\apure_{\stream{M}}\,a) = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
-$$
-\end{lemma}
-\begin{proof}
-Assume that $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
-$$
-\begin{array}{ll}
-\sigma_f \appl (\apure_{\stream{M}}\,a) = (\mcons\,m_f) \appl (\apure_{\stream{M}}\,a) \\
-{}= (\mcons\,m_f) \appl (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by Lemma \ref{lemma:monster_pure}}\\
-{}= \mcons\,(m_f \alift{\pappl} (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by definition of }\appl\\
-{}= \mcons\,((\apure_M\,(\pappl)) \appl m_f \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by definition of }\alift{-}\\
-{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,(\langle f,\sigma_f\rangle \pappl \langle a, \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by Lemma \ref{lemma:pure_app_pure_bind}} \\
-{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,(\langle f\,a,\sigma_f \appl \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by definition of }\pappl \\
-{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,(\langle f\,a,(\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f\rangle))
-  & \mbox{by coinduction hypothesis} \\
-{}= \mcons\,(m_f \bind \lambda \langle f,\sigma_f\rangle. \return\,
-       (\langle \lambda f. f\,a, \apure_{\stream{M}} (\lambda f. f\,a) \rangle \pappl \langle f,\sigma_f \rangle)
-  & \mbox{by definition of }\pappl \\
-{}= \mcons\,(m_f \bind \return\comp
-       (\langle \lambda f. f\,a, \apure_{\stream{M}} (\lambda f. f\,a) \rangle \pappl {})
-  & \mbox{by definition of composition}\\
-{}= \mcons\,((\apure_M\,(\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle\pappl{})) \appl m_f)
-  & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
-{}= \mcons\,((\apure_M\,(\pappl)) \appl (\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \appl m_f)
-  & \mbox{by the homomorphism law for }M \\
-{}= \mcons\,((\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \alift{\pappl} m_f)
-  & \mbox{by definition of }\alift{-}\\
-{}= (\mcons\,(\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle)) \appl (\mcons\,m_f)
-  & \mbox{by definition of }\appl \\
-{}= (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl (\mcons\,m_f)
-  & \mbox{by Lemma \ref{lemma:monster_pure}} \\
-{} = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
-\end{array}
-$$
-\end{proof}
 
 % Proof of interchange law with M applicative
 
@@ -372,25 +273,23 @@ $$
 $$
 \end{lemma}
 \begin{proof}
+Since the operator $\appl$ is left-associative, the left hand side of the equality is read as:
+$$
+((\apure_M\, f) \appl m_a) \appl (\apure_M\, b)
+$$
+which means that we can apply the interchange law to it.
+In the application of the law we abstract a variable $h$ of type $B\rightarrow C$:
 $$
 \begin{array}{ll}
 (\apure_M\, f) \appl m_a \appl (\apure_M\, b) \\
-{} =  (\apure_M\, (\lambda f. f\, b)) \appl ((\apure_M\, f) \appl m_a)
+{} =  (\apure_M\, (\lambda h. h\, b)) \appl ((\apure_M\, f) \appl m_a)
  & \mbox{by interchange law of }M\\
-{} =  ((\apure_M\, (\lambda f. f\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
+{} =  ((\apure_M\, (\lambda h. h\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
  & \mbox{by composition law of }M\\
-{} =  (\apure_M ( (\lambda f. f\, b) \comp f ) ) \appl m_a
+{} =  (\apure_M ( (\lambda h. h\, b) \comp f ) ) \appl m_a
  & \mbox{by Lemma \ref{lemma:pure_lift}}\\
- {} =  (\apure_M ( (\lambda f. f\, b) \comp (\lambda a . \lambda b . f\, a\, b) )) \appl m_a
- & \mbox{by extensionality}\\
-{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, ((\lambda a . \lambda b . f\, a\, b)\, a) )) \appl m_a
- & \mbox{by definition of }\comp\\
-{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, (\lambda b . f\, a\, b) )) \appl m_a
- & \mbox{by function application}\\
-{} =  (\apure_M (\lambda a. (\lambda b . f\, a\, b) \, b )) \appl m_a
- & \mbox{by function application}\\
 {} =  (\apure_M (\lambda a. f\, a\, b )) \appl m_a
- & \mbox{by function application}\\
+ & \mbox{by definition of composition}\\
 \end{array}
 $$
 \end{proof}
@@ -418,7 +317,10 @@ $$
   & \mbox{by definition of } \pappl \\
 {}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{(\apure_{\stream{M}}\,(\lambda f . f\, a)) \appl \phi})) \appl m_f)
   & \mbox{\bf by coinduction hypothesis} \\
-{}= \mcons\,((\apure_M\,(\pair{(\lambda f . f\, a)}{\apure_{\stream{M}}\,(\lambda f . f\, a)}\, \pappl )) \appl m_f)
+{}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi}.
+    \pair{\lambda f . f\, a}{\apure_{\stream{M}}\,(\lambda f . f\, a))}
+    \pappl \pair{f}{\phi}
+    ) \appl m_f)
   & \mbox{by definition of } \pappl \\
 {}= \mcons\,((\apure_M\,(\pappl)) \appl (\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \appl m_f)
   & \mbox{by the homomorphism law for }M \\
@@ -572,10 +474,75 @@ $$
 \end{proof}
 \end{lemma}
 
+
+
+
+
+
+
+
+
 % Proof of composition law with M monad
 
-The final applicative law will also require the base functor $M$ to be a monad.
-The proof is trickier and we need a few preliminary lemmas to establish it.
+\paragraph{Attempt to prove the composition law when $M$ is a monad.}
+
+Finally, the composition law for monsters is more challenging.
+We have been able to prove it only by assuming extra properties for the base functor $M$.
+Specifically we assume $M$ to be a monad.
+In that case the applicative methods $\apure$ and $\appl$ can be defined in terms of $\return$ and $\bind$ and the applicative laws follow from the monad laws:
+$$
+\apure = \return
+\qquad
+m_f \appl m_a = m_f \bind \lambda f. (m_a \bind \return\comp f)
+$$
+
+We can then prove a couple of useful equations relating applicative expressions with simpler monadic ones.
+
+\begin{lemma}\label{lemma:pure_app_bind}
+Assuming $M$ is a monad, 
+if $f:A\rightarrow B$ and $m_a:M\,A$, then:
+$$
+(\apure\,f)\appl m_a = m_a \bind \return\comp f
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure\,f)\appl m_a\\
+{}= (\return\,f) \bind \lambda f. (m_a \bind \return\comp f)
+  & \mbox{by definition}\\
+{}= m_a \bind \return\comp f
+  & \mbox{by the left-identity law}
+\end{array}
+$$
+\end{proof}
+
+\begin{lemma}\label{lemma:pure_app_pure_bind}
+Assuming $M$ is a monad, 
+if $g:A\rightarrow B\rightarrow C$, $m_a:M\,A$, and $b:B$ then:
+$$
+(\apure\,g) \appl m_a \appl (\apure\,b) = m_a \bind \lambda a. \return\,(g\,a\,b)
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure\,g) \appl m_a \appl (\apure\,b)\\
+{}= (m_a \bind \return\comp g) \appl (\return\,b)
+  & \mbox{by Lemma \ref{lemma:pure_app_bind}}\\
+{}= (m_a \bind \return\comp g) \bind \lambda h. (\return\,b \bind \return \comp h)
+  & \mbox{by definition}\\
+{}= (m_a \bind \return\comp g) \bind \lambda h. \return\,(h\,b))
+  & \mbox{by the left-identity law}\\
+{}= m_a \bind \lambda a. (\return\,(g\,a) \bind \lambda h. \return\,(h\,b))
+  & \mbox{by the associativity law}\\
+{}= m_a \bind \lambda a. \return\,(g\,a\,b))
+  & \mbox{by the left-identity law}
+\end{array}
+$$
+\end{proof}
+
+
 \begin{lemma}\label{lemma:bind_appl}
 Let $M$ be a monad, $m_a:M\,A$, $g:A \rightarrow M\,(B\rightarrow C)$, $m_b:M\,B$; then:
 $$
