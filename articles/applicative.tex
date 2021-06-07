@@ -362,6 +362,17 @@ $$
 Just expand the definition of the two composition operators.
 \end{proof}
 
+We will in fact need to apply this {\em composition with compositions} operator twice: after producing $(\clift{\oplus}{A})$, we want in turn to compose it with the composition operator $(\comp): ((A\rightarrow B) \rightarrow (A\rightarrow C)) \rightarrow (X\rightarrow A\rightarrow B) \rightarrow X \rightarrow A \rightarrow C$ to produce the new operator $(\clift{\clift{\oplus}{A}}{X}): D\rightarrow (X\rightarrow A \rightarrow B) \rightarrow X \rightarrow A \rightarrow C$.
+\begin{lemma}\label{lemma:comp_comp_comp}
+$$
+(\clift{\clift{\oplus}{A}}{X}) =
+\lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
+$$
+\end{lemma}
+\begin{proof}
+Apply Lemma \ref{lemma:comp_comp} twice and simplify.
+\end{proof}
+
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
 $$
@@ -370,10 +381,6 @@ m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
 $$
 \end{lemma}
 \begin{proof}
-\vcomm{to be done: transfer here the proof in the main lemma for the composition law}
-
-
-
 $$
 \begin{array}{ll}
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a) \\
@@ -387,27 +394,24 @@ m_g \alift{\pappl} (m_f \alift{\pappl} m_a) \\
  \mbox{by composition law for }M \\
 {}= (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
  \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
 {}= (  ( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:pure_lift}}\\
-\end{array}
-$$
-
-
-
-$$
-\begin{array}{ll}
-{}= (  (( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \alift{\comp} (\apure\, (\pappl))) \appl m_f  ) \appl m_a\\
+ \mbox{by definition}\\
+{}= (  (( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \alift{\comp} (\apure\, (\pappl))) \appl m_f  ) \appl m_a\\
  \mbox{by composition law for }M \\
-{}= (  ( (\apure\, (\comp)) \appl ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+{}= (  ( (\apure\, (\comp)) \appl ( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
  \mbox{by definition of }\alift{-} \\
-{}= (  ( (  ((\apure\, (\comp)) \alift{\comp}  (\apure\, ((\comp) \comp (\pappl)) )) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+{}= (  ( (  ((\apure\, (\comp)) \alift{\comp}  (\apure\, (\clift{\pappl}{\pstream{A}}) )) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
  \mbox{by composition law for }M \\
-{}= (  ( (  (\apure\, ((\comp) \comp (\comp) \comp (\pappl))) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+{}= (  ( (  (\apure\, ((\comp) \comp \clift{\pappl}{\pstream{A}})) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
  \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= (  (  \big(\apure\, (\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
+{}= (  ( (  (\apure\, (\clift{\clift{\pappl}{\pstream{A}}}{\pstream{A\rightarrow B}}) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+ \mbox{by definition}\\
+{}= (  (  \big(\apure\, (\lambda \pstr{g} . \pstr{g} \clift{\clift{\pappl}{\pstream{A}}}{\pstream{A\rightarrow B}} (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
  \mbox{by Lemma \ref{lemma:applicative_flip}}\\
-{}= (  (  \big(\apure\, (\lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a)) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:appl_comp_law}}\\
+{}= (  (  \big(\apure\, (\lambda \pstr{g} . \lambda \pstr{f}. \lambda \pstr{a} . (\pstr{g}\, \pappl (\pstr{f} \pappl \pstr{a})) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:comp_comp_comp}}\\
 \end{array}
 $$
 
