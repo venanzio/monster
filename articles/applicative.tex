@@ -340,6 +340,26 @@ $$
 
 To prove the final applicative law, we first need two lemmas (mostly to make the upcoming reasoning clearer). This law is much trickier than the previous ones, and requires many rewrite steps.
 
+In the following we use repeatedly the types $A\times \stream{M}\,A$ and $M\,(A\times \stream{M}\,A)$, especially whith $A$ being instantiated to different function types.
+It is useful to use special notation for them:
+$\pstream{A} = A\times \stream{M}\,A$, $\mstream{A} = M\,\pstream{A}$.
+We will also use the notation $\pstr{a}$ for a generic term of $\pstream{A}$
+and we allow ourseves to denote the first and second component of $\pstr{a}$ by $a$ and $\sigma_a$.
+Elements of $\mstream{A}$ will be denoted by $m_a$.
+
+\begin{lemma}\label{lemma:pappl_comp_appl}
+Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
+$$
+m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
+ = (\apure (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a}))) \appl m_g \appl m_f \appl m_a
+$$
+\end{lemma}
+\begin{proof}
+\vcomm{to be done: transfer here the proof in the main lemma for the composition law}
+\end{proof}
+
+
+
 \begin{lemma}\label{lemma:appl_comp_law}
 $$
 \lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) = \lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a))
