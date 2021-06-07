@@ -467,7 +467,7 @@ $$
 
 \begin{lemma}
 $$
-(((\pappl)\, \comp)\, \comp\, ((\pappl)\, \comp\, (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) = \lambda g. \lambda f. \lambda a. ( ( (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)})\, \pappl\, g )\, \pappl\, f )\, \pappl\, a
+(((\pappl)\, \comp)\, \comp\, ((\pappl)\, \comp\, (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) = \lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl\, g )\, \pappl\, f )\, \pappl\, a
 $$
 In the proof, we define $c = \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}$ for readability.
 \end{lemma}
@@ -495,7 +495,7 @@ $$
 
 \begin{lemma}
 $$
-\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) = \lambda g. \lambda f. \lambda a. ( ( (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \pappl g ) \pappl f ) \pappl a
+\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) = \lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g ) \pappl f ) \pappl a
 $$
 \end{lemma}
 \begin{proof}
