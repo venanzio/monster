@@ -338,9 +338,9 @@ $$
 
 % Proof of composition law with M applicative
 
-To prove the final applicative law, we first need three lemmas (mostly to make the upcoming reasoning clearer). This law is much trickier than the previous ones, and requires many rewrite steps.
+To prove the final applicative law, we first need two lemmas (mostly to make the upcoming reasoning clearer). This law is much trickier than the previous ones, and requires many rewrite steps.
 
-\begin{lemma}
+\begin{lemma}\label{lemma:appl_comp_law}
 $$
 \lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) = \lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a))
 $$
@@ -367,7 +367,7 @@ $$
 $$
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}\label{lemma:comp_comp_law}
 $$
 (((\pappl)\, \comp)\, \comp\, ((\pappl)\, \comp\, (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) = \lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl\, g )\, \pappl\, f )\, \pappl\, a
 $$
@@ -396,21 +396,12 @@ $$
 \end{proof}
 
 \begin{lemma}
-$$
-\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) = \lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g ) \pappl f ) \pappl a
-$$
-\end{lemma}
-\begin{proof}
-\ccomm{Still todo, but should be fairly do-able by observing canonical forms of the inputs considering the functions they're being applied to (namely $(\pappl)$)}
-$$
-$$
-\end{proof}
-
-\begin{lemma}
 If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
 \begin{proof}
 
-We prove this by starting with both the left and right-hand-side of the law, and meeting in the middle.
+We prove this by starting with both the left and right-hand-side of the law, and then by rewriting them until both equations are almost equivalent. Once we reach this point, the the two equations are the same apart from one discrepancy - the left-most $\apure$ term. This discrepancy is fixed with a final observation that the two $\apure$ terms are equivalent, making use of the coinductive hypothesis.
+
+First we rewrite the left-hand-side of the composition law. 
 $$
 \begin{array}{ll}
 \sigma_g \appl (\sigma_f \appl \sigma_a) \\
@@ -437,9 +428,11 @@ $$
  \mbox{by Lemma \ref{lemma:pure_lift}}\\
 {}= \mcons\,( (  (  \big(\apure\, (\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a)\\
  \mbox{by Lemma \ref{lemma:applicative_flip}}\\
+ {}= \mcons\,( (  (  \big(\apure\, (\lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a)) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a)\\
+ \mbox{by Lemma \ref{lemma:appl_comp_law}}\\
 \end{array}
 $$
-Now to meet in the middle
+Next we rewrite the right-hand-side.
 $$
 \begin{array}{ll}
 (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a \\
@@ -469,6 +462,41 @@ $$
 \mbox{by composition law of }M\\
  {}= \mcons\, ( ( ( \big(\apure_M\,(((\pappl)\, \comp) \comp ((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))\big) \appl m_g ) \appl m_f) \appl m_a) \\
 \mbox{by Lemma \ref{lemma:pure_lift}}\\
+ {}= \mcons\, ( ( ( \big(\apure_M\,(\lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl\, g )\, \pappl\, f )\, \pappl\, a) \big) \appl m_g ) \appl m_f) \appl m_a) \\
+ \mbox{by Lemma \ref{lemma:comp_comp_law}}\\
+\end{array}
+$$
+
+To complete this proof, we need to show the following:
+$$
+\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) = \lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g ) \pappl f ) \pappl a
+$$
+We can prove this by observing the canonical forms of the lambda arguments. We use the coinduction hypothesis in this proof, but it is the context of the larger argument presented above: $\phi_g$, $\phi_f$ and $\phi_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
+$$
+\begin{array}{ll}
+\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .( \pair{g}{\phi_g}\, \pappl (\pair{f}{\phi_f} \pappl \pair{a}{\phi_a}))
+& \mbox{by canonical forms of }g, f, a\\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} . \pair{g}{\phi_g}\, \pappl \pair{f a}{\phi_f \appl \phi_a}
+& \mbox{by definition of }\pappl \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{g (f a)}{\phi_g \appl (\phi_f \appl \phi_a)}
+& \mbox{by definition of }\pappl \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(g \comp f)\, a)}{\phi_g \appl (\phi_f \appl \phi_a)}
+& \mbox{by definition of }\comp \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(((\comp)\, g)\, f)\, a}{\phi_g \appl (\phi_f \appl \phi_a)}
+& \mbox{trivial} \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(((\comp)\, g)\, f)\, a}{(\phi_g \alift{\comp} \phi_f) \appl \phi_a}
+& \mbox{\bf by coinduction hypothesis} \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(((\comp)\, g)\, f)\, a}{(((\apure_{\stream{M}}\, (\comp)) \appl \phi_g) \appl \phi_f) \appl \phi_a}
+& \mbox{by definition of }\alift{-} \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a}.\pair{((\comp)\, g)\, f}{((\apure_{\stream{M}}\, (\comp)) \appl \phi_g) \appl \phi_f} \pappl  \pair{a}{\phi_a}
+& \mbox{by definition of }\pappl \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a}. (\pair{(\comp)\, g}{(\apure_{\stream{M}}\, (\comp)) \appl \phi_g} \pappl \pair{f}{\phi_f}) \pappl \pair{a}{\phi_a}
+& \mbox{by definition of }\pappl \\
+{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a}. ((\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl \pair{g}{\phi_g}) \pappl \pair{f}{\phi_f}) \pappl \pair{a}{\phi_a}
+& \mbox{by definition of }\pappl \\
+{}= \lambda g . \lambda f . \lambda a. ((\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g) \pappl f) \pappl a
+& \mbox{by abstraction} \\
 \end{array}
 $$
 \end{proof}
