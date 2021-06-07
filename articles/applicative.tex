@@ -372,25 +372,31 @@ $$
 $$
 \end{lemma}
 \begin{proof}
+Since the operator $\appl$ is left-associative, the left hand side of the equality is read as:
+$$
+((\apure_M\, f) \appl m_a) \appl (\apure_M\, b)
+$$
+which means that we can apply the interchange law to it.
+In the application of the law we abstract a variable $h$ of type $B\rightarrow C$:
 $$
 \begin{array}{ll}
 (\apure_M\, f) \appl m_a \appl (\apure_M\, b) \\
-{} =  (\apure_M\, (\lambda f. f\, b)) \appl ((\apure_M\, f) \appl m_a)
+{} =  (\apure_M\, (\lambda h. h\, b)) \appl ((\apure_M\, f) \appl m_a)
  & \mbox{by interchange law of }M\\
-{} =  ((\apure_M\, (\lambda f. f\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
+{} =  ((\apure_M\, (\lambda h. h\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
  & \mbox{by composition law of }M\\
-{} =  (\apure_M ( (\lambda f. f\, b) \comp f ) ) \appl m_a
+{} =  (\apure_M ( (\lambda h. h\, b) \comp f ) ) \appl m_a
  & \mbox{by Lemma \ref{lemma:pure_lift}}\\
- {} =  (\apure_M ( (\lambda f. f\, b) \comp (\lambda a . \lambda b . f\, a\, b) )) \appl m_a
- & \mbox{by extensionality}\\
-{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, ((\lambda a . \lambda b . f\, a\, b)\, a) )) \appl m_a
- & \mbox{by definition of }\comp\\
-{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, (\lambda b . f\, a\, b) )) \appl m_a
- & \mbox{by function application}\\
-{} =  (\apure_M (\lambda a. (\lambda b . f\, a\, b) \, b )) \appl m_a
- & \mbox{by function application}\\
+% {} =  (\apure_M ( (\lambda h. h\, b) \comp (\lambda a . \lambda b . f\, a\, b)% )) \appl m_a
+% & \mbox{by extensionality}\\
+%{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, ((\lambda a . \lambda b . f\, %a\, b)\, a) )) \appl m_a
+% & \mbox{by definition of }\comp\\
+%{} =  (\apure_M (\lambda a. (\lambda f. f\, b)\, (\lambda b . f\, a\, b) )) \ap%pl m_a
+% & \mbox{by function application}\\
+%{} =  (\apure_M (\lambda a. (\lambda b . f\, a\, b) \, b )) \appl m_a
+% & \mbox{by function application}\\
 {} =  (\apure_M (\lambda a. f\, a\, b )) \appl m_a
- & \mbox{by function application}\\
+ & \mbox{by definition of composition}\\
 \end{array}
 $$
 \end{proof}
