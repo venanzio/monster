@@ -1,1 +1,81 @@
 \section{Monsters are Functors}
+
+To show that $\stream{M}$ is a functor whenever $M$ is, we have to define its behaviour on morphisms: if $f:A\rightarrow B$, then we must define how $f$ maps on monadic streams:
+$$
+\begin{array}{l}
+\stream{M}\,f : \stream{M,A} \rightarrow \stream{M,B}\\
+\stream{M}\,f\,(\mcons\,m) = \mcons\,(M\,(f\times \stream{M}\,f)\,m)
+\end{array}
+$$
+
+This definition complies with the {\em guarded-by-constructors} discipline: the recursive call to $(\stream{M}\,f)$ is mapped to the recursive substreams by the functorial application of the functor $M\,(A \times -)$.
+That is: $(\stream{M}\,f)$ will be recursively applied only at the recursive positions inside the shape of $m$.
+There are also applications of $f$ to the first element (of type $A$) of the pairs in the $M$-position: this is non-recursive, and therefore not problematic.
+
+
+We can now prove that the functor laws are satisfied by $\stream{M}$: its functorial mapping preserves identity and composition.
+The proofs are straightforward applications of definitions and the functoriality of $M$ and $\times$, except for the use of coinduction;
+we are allowed to invoke the laws themselves in their proofs, as long as we use them only in the direct recursive subterms of the $\mcons$ constructor, that is, in the {\em positions} for the container $M\,(A\times -)$.
+
+\begin{lemma}\label{lemma:functor_id}
+The identity functor law holds for monadic streams:
+$$
+\stream{M}\,\id_A = \id_{\stream{M,A}}
+$$
+\end{lemma}
+\begin{proof}
+We apply the left-hand side function to an $M$-monster in constructor form:
+$$
+\begin{array}{ll}
+\stream{M}\,\id_A\,(\mcons\,m)\\
+{}= \mcons\,(M\,(\id_A\times \stream{M}\,\id_A)\,m)
+  & \mbox{by definition}\\
+{}= \mcons\,(M\,(\id_A\times \id_{\stream{M,A}})\,m)
+  & \mbox{by coinduction hypothesis}\\
+{}= \mcons\,(M\,(\id_{A\times \stream{M,A}})\,m)
+  & \mbox{by functoriality of }\times\\
+{}= \mcons\,(\id_{M\,(A\times \stream{M,A})}\,m)
+  & \mbox{by functoriality of }M\\
+{}= \mcons\,m
+\end{array}
+$$
+\end{proof}
+
+\begin{lemma}\label{lemma:functor_comp}
+The composition functor law holds for monadic streams:
+
+If $f:A\rightarrow B$ and $g:B\rightarrow C$, then
+$$
+\stream{M}\,(g\comp f) = (\stream{M}\,g) \comp (\stream{M}\,f)
+$$
+\end{lemma}
+\begin{proof}
+Let's again apply the left-hand side function to an $M$-monster in constructor form:
+$$
+\begin{array}{ll}
+\stream{M}\,(g\comp f)\,(\mcons\,m)\\
+{}= \mcons\,(M\,((g\comp f)\times \stream{M}\,(g\comp f))\,m)
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\
+{}= \mcons\,(M\,((g\comp f)\times ((\stream{M}\,g) \comp (\stream{M}\,f)))\,m)
+  & \mbox{by coinduction hypothesis}\\ 
+{}= \mcons\,(M\,((g\times \stream{M}\,g) \comp (f\times \stream{M}\,f))\,m)
+  & \mbox{by functoriality of }\times\\ 
+{}= \mcons\,((M\,(g\times \stream{M}\,g) \comp M\,(f\times \stream{M}\,f))\,m)
+  & \mbox{by functoriality of }M\\ 
+{}= \mcons\,(M\,(g\times \stream{M}\,g)\, (M\,(f\times \stream{M}\,f)\,m))
+  & \mbox{by definition of composition}\\ 
+{}= \stream{M}\,g\, (\mcons\,(M\,(f\times \stream{M}\,f)\,m))
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
+{}= \stream{M}\,g\, (\stream{M}\,f\,(\mcons\,m))
+  & \mbox{by definition of }\stream{M}\mbox{ mapping}\\ 
+{}= ((\stream{M}\,g) \comp (\stream{M}\,f))\,(\mcons\,m)
+  & \mbox{by definition of composition}
+\end{array}
+$$
+\end{proof}
+
+We can sum up these results by stating that the monster operator is a functor if the underlying `monad' is (remember that we are not actually assuming that $M$ is a monad yet, but just a type operator).
+
+\begin{theorem}
+If $M$ is a functor, $\stream{M}$ is also a functor.
+\end{theorem}
