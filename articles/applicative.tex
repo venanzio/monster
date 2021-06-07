@@ -500,34 +500,17 @@ We prove this by starting with both the left and right-hand-side of the law, and
 First we rewrite the left-hand-side of the composition law. 
 $$
 \begin{array}{ll}
-\sigma_g \appl (\sigma_f \appl \sigma_a) \\
+\sigma_g \appl (\sigma_f \appl \sigma_a)
  = (\mcons\,m_g) \appl ((\mcons\,m_f) \appl (\mcons\,m_a))\\
 {}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a)) \\
 \mbox{by definition of}\appl\mbox{for monsters} \\
-{}= \mcons\,((\apure\, (\pappl)) \appl m_g \appl ((\apure\, (\pappl)) \appl m_f \appl m_a)) \\
- \mbox{by definition of }\alift{-}\\
-{}= \mcons\,( (  ((\apure\, (\pappl)) \appl m_g) \alift{\comp} ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a) \\
- \mbox{by composition law for }M \\
-{}= \mcons\,( (  (\apure\, (\comp)) \appl  ((\apure\, (\pappl)) \appl m_g) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a) \\
- \mbox{by definition of }\alift{-}\\
-{}= \mcons\,( (  ( ((\apure\, (\comp)) \alift{\comp}  (\apure\, (\pappl))) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a) \\
- \mbox{by composition law for }M \\
-{}= \mcons\,( (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a)\\
- \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= \mcons\,( (  (( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \alift{\comp} (\apure\, (\pappl))) \appl m_f  ) \appl m_a)\\
- \mbox{by composition law for }M \\
-{}= \mcons\,( (  ( (\apure\, (\comp)) \appl ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a)\\
- \mbox{by definition of }\alift{-} \\
-{}= \mcons\,( (  ( (  ((\apure\, (\comp)) \alift{\comp}  (\apure\, ((\comp) \comp (\pappl)) )) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a)\\
- \mbox{by composition law for }M \\
-{}= \mcons\,( (  ( (  (\apure\, ((\comp) \comp (\comp) \comp (\pappl))) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a)\\
- \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= \mcons\,( (  (  \big(\apure\, (\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a)\\
- \mbox{by Lemma \ref{lemma:applicative_flip}}\\
- {}= \mcons\,( (  (  \big(\apure\, (\lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a)) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a)\\
- \mbox{by Lemma \ref{lemma:appl_comp_law}}\\
+{}= \mcons\,(
+(\apure (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a}))) \appl m_g \appl m_f \appl m_a
+)\\
+\mbox{by Lemma \ref{lemma:pappl_comp_appl}}
 \end{array}
 $$
+
 Next we rewrite the right-hand-side.
 $$
 \begin{array}{ll}
