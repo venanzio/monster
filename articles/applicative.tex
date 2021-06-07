@@ -13,6 +13,17 @@ $$
 $$
 satisfying the four equational laws regulating the interaction of sequencing and pure values and requiring associativity of application.
 
+A typical use of applicative functors is to apply a function of many arguments to several applicative values.
+If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
+$$
+(\apure\,g) \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
+$$
+
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
+$$
+m_a \alift{\oplus} m_b = (\apure\,(\oplus)) \appl m_a \appl m_b
+$$
+
 For the base functor $M$, the laws take the following form, where
  $a:A$, $f:A\rightarrow B$,
 $m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
@@ -38,16 +49,6 @@ $
 M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
 
-A typical use of applicative functors is to apply a function of many arguments to several applicative values.
-If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
-$$
-(\apure\,g) \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
-$$
-
-In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
-$$
-m_a \alift{\oplus} m_b = (\apure\,(\oplus)) \appl m_a \appl m_b
-$$
 
 We will show that $\stream{M}$ is also applicative.
 In order to define the methods, we need some auxiliary functions on applicative monsters.
@@ -347,6 +348,20 @@ We will also use the notation $\pstr{a}$ for a generic term of $\pstream{A}$
 and we allow ourseves to denote the first and second component of $\pstr{a}$ by $a$ and $\sigma_a$.
 Elements of $\mstream{A}$ will be denoted by $m_a$.
 
+We start with a little general lemma about {\em composition with compositions}.
+The generic composition operator has type: $(\comp): (B\rightarrow C) \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$.
+Suppose we want to compose it with a binary operator $(\oplus) : D\rightarrow (B\rightarrow C)$.
+What would this higher composition, $(\comp) \comp (\oplus) : D \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$ be?
+We will use the notation $\clift{\oplus}{A}$ for it.
+\begin{lemma}\label{lemma:comp_comp}
+$$
+(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
+$$
+\end{lemma}
+\begin{proof}
+Just expand the definition of the two composition operators.
+\end{proof}
+
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
 $$
@@ -356,7 +371,64 @@ $$
 \end{lemma}
 \begin{proof}
 \vcomm{to be done: transfer here the proof in the main lemma for the composition law}
+
+
+
+$$
+\begin{array}{ll}
+m_g \alift{\pappl} (m_f \alift{\pappl} m_a) \\
+{}= (\apure\, (\pappl)) \appl m_g \appl ((\apure\, (\pappl)) \appl m_f \appl m_a) \\
+ \mbox{by definition of }\alift{-}\\
+{}= (  ((\apure\, (\pappl)) \appl m_g) \alift{\comp} ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a \\
+ \mbox{by composition law for }M \\
+{}= (  (\apure\, (\comp)) \appl  ((\apure\, (\pappl)) \appl m_g) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a \\
+ \mbox{by definition of }\alift{-}\\
+{}= (  ( ((\apure\, (\comp)) \alift{\comp}  (\apure\, (\pappl))) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a \\
+ \mbox{by composition law for }M \\
+{}= (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= (  ( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+\end{array}
+$$
+
+
+
+$$
+\begin{array}{ll}
+{}= (  (( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \alift{\comp} (\apure\, (\pappl))) \appl m_f  ) \appl m_a\\
+ \mbox{by composition law for }M \\
+{}= (  ( (\apure\, (\comp)) \appl ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+ \mbox{by definition of }\alift{-} \\
+{}= (  ( (  ((\apure\, (\comp)) \alift{\comp}  (\apure\, ((\comp) \comp (\pappl)) )) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+ \mbox{by composition law for }M \\
+{}= (  ( (  (\apure\, ((\comp) \comp (\comp) \comp (\pappl))) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= (  (  \big(\apure\, (\lambda g . ((\comp) \comp (\comp) \comp (\pappl))\, g\, (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:applicative_flip}}\\
+{}= (  (  \big(\apure\, (\lambda g . \lambda f . \lambda a . (g\, \pappl (f \pappl a)) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
+ \mbox{by Lemma \ref{lemma:appl_comp_law}}\\
+\end{array}
+$$
+
+
 \end{proof}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
