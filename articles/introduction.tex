@@ -59,23 +59,27 @@ $$
 
 This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\lst{A}$.
 Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
-Therefore $\lst{A}$ is the type of finite and infinite sequences. \\
+Therefore $\lst{A}$ is the type of finite and infinite sequences.
 
 Another example is when the underlying monad is $M = \lstsym $ itself.
 In this case each entry in the stream is a list of pairs of heads and tails.
-This is equivalent trees of arbitrary branching degrees (finitely branching if we use only finite lists, but also countably infinite branches if we use lazy lists).
+This is equivalent to trees of arbitrary branching degrees (finite branches if we use only finite lists, but also countably infinite branches if we use lazy lists).
 Since the type is coinductive, the trees can be non-well-founded, that is, they may be infinitely deep.
 
 
 It is important to make two observations about $M$.
 
 First, $M$ does not need to be a monad for the definition to make sense. 
-In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being just a functor.
+In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being an applicative functor.
 So we will take $M$ to be any type operator (but see second observation) and we will explicitly state what properties we assume about it.
 The most important instances are monads and it is convenient to use the facilities of monadic notation in programming and monad theory in reasoning.
 
 The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
 Haskell will accept the definition when $M$ is any operator, but mathematically the type is well defined only when $F_M\,X = M\,(A\times X)$ is a functor with a final coalgebra.
+As stated above, this is the case if $M$ is a container functor.
+
+
+%% Revised up to here
 
 
 We can define a function into $\stream{A}$ by defining a coalgebra on the domain type $A$, which in this case is $\nat$.
