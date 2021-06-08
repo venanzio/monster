@@ -491,6 +491,52 @@ $$
 $$
 \end{proof}
 
+We introduce a notation for a {\em pure} value in the type $\pstream{A}$:
+if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
+
+\begin{lemma}\label{lemma:ppair}
+$$
+\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a
+= (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})) \appl m_g \appl m_f \appl m_a 
+$$
+\end{lemma}
+\begin{proof}
+\vcomm{This is just copied from the previous version. It needs to be simplified and use new notation.}
+$$
+\begin{array}{ll}
+((\apure_M\,(\pappl)) \appl (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
+ \mbox{by homomorphism law of }M\\
+{}= (\apure_M\,(\pappl) \appl ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= (((\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+\mbox{by composition law of }M\\
+{}= (((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+\mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= (\apure_M\,(\pappl)) \appl (((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \appl m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= ( ((\apure_M\,(\pappl)) \alift{\comp} ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a \\
+\mbox{by composition law of }M\\
+{}= ( ( (\apure_M\,(\comp)) \appl (\apure_M\,(\pappl)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a \\
+\mbox{by definition of }\alift{-}\\
+{}= ( ( (\apure_M\,((\pappl)\, \comp)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) ) \appl m_f) \appl m_a \\
+ \mbox{by homomorphism law of }M\\
+ {}= ( ( (\apure_M\,((\pappl)\, \comp)) \alift{\comp} (\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))  ) \appl m_g ) \appl m_f) \appl m_a \\
+\mbox{by composition law of }M\\
+ {}= ( ( \big(\apure_M\,(((\pappl)\, \comp) \comp ((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))\big) \appl m_g ) \appl m_f) \appl m_a \\
+\mbox{by Lemma \ref{lemma:pure_lift}}\\
+ {}= ( ( \big(\apure_M\,(\lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl\, g )\, \pappl\, f )\, \pappl\, a) \big) \appl m_g ) \appl m_f) \appl m_a \\
+ \mbox{by Lemma \ref{lemma:comp_comp_law}}\\
+\end{array}
+$$
+
+\end{proof}
+
+
+
+
+
 \begin{lemma}
 If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
 \begin{proof}
@@ -519,37 +565,23 @@ $$
 \mbox{by definition of }\alift{-}\\
 {}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
 \mbox{by definition of}\appl\mbox{for monsters}\\
-{}= \mcons\, (((\apure_M\,(\pappl)) \appl (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)\\
-\mbox{by definition of }\alift{-}\\
-{}= \mcons\, (((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a)\\
- \mbox{by homomorphism law of }M\\
-{}= \mcons\, ((\apure_M\,(\pappl) \appl ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a)\\
-\mbox{by definition of }\alift{-}\\
-{}= \mcons\, ((((\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)\\
-\mbox{by composition law of }M\\
-{}= \mcons\, ((((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a)\\
-\mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= \mcons\, ( (\apure_M\,(\pappl)) \appl (((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \appl m_a)\\
-\mbox{by definition of }\alift{-}\\
-{}= \mcons\, ( ( ((\apure_M\,(\pappl)) \alift{\comp} ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a) \\
-\mbox{by composition law of }M\\
-{}= \mcons\, ( ( ( (\apure_M\,(\comp)) \appl (\apure_M\,(\pappl)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a) \\
-\mbox{by definition of }\alift{-}\\
-{}= \mcons\, ( ( ( (\apure_M\,((\pappl)\, \comp)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) ) \appl m_f) \appl m_a) \\
- \mbox{by homomorphism law of }M\\
- {}= \mcons\, ( ( ( ( (\apure_M\,((\pappl)\, \comp)) \alift{\comp} (\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))  ) \appl m_g ) \appl m_f) \appl m_a) \\
-\mbox{by composition law of }M\\
- {}= \mcons\, ( ( ( \big(\apure_M\,(((\pappl)\, \comp) \comp ((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))\big) \appl m_g ) \appl m_f) \appl m_a) \\
-\mbox{by Lemma \ref{lemma:pure_lift}}\\
- {}= \mcons\, ( ( ( \big(\apure_M\,(\lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl\, g )\, \pappl\, f )\, \pappl\, a) \big) \appl m_g ) \appl m_f) \appl m_a) \\
- \mbox{by Lemma \ref{lemma:comp_comp_law}}\\
+{}= \mcons\, (\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
+\mbox{by definition of}\ppair{-}\\
+\mcons\,(
+(\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})) \appl m_g \appl m_f \appl m_a) \\
+\mbox{by Lemma \ref{lemma:ppair}}
 \end{array}
 $$
 
 To complete this proof, we need to show the following:
 $$
-\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) = \lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g ) \pappl f ) \pappl a
+\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})
+  = 
+\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a}
 $$
+
+\vcomm{The following needs to be revised with new notation}
+
 We can prove this by observing the canonical forms of the lambda arguments. We use the coinduction hypothesis in this proof, but it is the context of the larger argument presented above: $\phi_g$, $\phi_f$ and $\phi_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
 $$
 \begin{array}{ll}
