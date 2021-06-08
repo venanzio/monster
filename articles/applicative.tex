@@ -339,7 +339,7 @@ $$
 
 % Proof of composition law with M applicative
 
-To prove the final applicative law, we first need two lemmas (mostly to make the upcoming reasoning clearer). This law is much trickier than the previous ones, and requires many rewrite steps.
+To prove the final applicative law, we first need a few lemmas, and some new notations. This law is much trickier than the previous ones, and requires many rewrite steps.
 
 In the following we use repeatedly the types $A\times \stream{M}\,A$ and $M\,(A\times \stream{M}\,A)$, especially whith $A$ being instantiated to different function types.
 It is useful to use special notation for them:
@@ -424,8 +424,8 @@ if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
 
 \begin{lemma}\label{lemma:ppair}
 $$
-(\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a
-= (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})) \appl m_g \appl m_f \appl m_a 
+(\apure_M\,\ppair{\comp})\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
+= (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a}))\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
 $$
 \end{lemma}
 \begin{proof}
@@ -539,9 +539,9 @@ $$
 {}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
 \mbox{by definition of}\appl\mbox{for monsters}\\
 {}= \mcons\, ((\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
-\mbox{by definition of}\ppair{-}\\
+\mbox{by definition of }\ppair{-}\\
 \mcons\,(
-(\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})) \appl m_g \appl m_f \appl m_a) \\
+(\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a})) \appl m_g \appl m_f \appl m_a) \\
 \mbox{by Lemma \ref{lemma:ppair}}
 \end{array}
 $$
@@ -550,10 +550,10 @@ To complete this proof, we need to show the following:
 $$
 \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})
   = 
-\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a}
+\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a}
 $$
 
-Let's assume the abstracted variable are in canonical form: $\pstr{g} = \pair{g}{\tau_g}$, $\pstr{f} = \pair{f}{\tau_f}$, $\pstr{a} = \pair{a}{\tau_a}$.
+Let's assume the abstracted variables are in canonical form: $\pstr{g} = \pair{g}{\tau_g}$, $\pstr{f} = \pair{f}{\tau_f}$, $\pstr{a} = \pair{a}{\tau_a}$.
 
 We use the coinduction hypothesis to prove the equality.
 This is justified because the equality itself is embedded in an application of the constructor $\mcons$: in this context, $\tau_g$, $\tau_f$ and $\tau_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
