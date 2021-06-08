@@ -16,7 +16,7 @@ satisfying the four equational laws regulating the interaction of sequencing and
 A typical use of applicative functors is to apply a function of many arguments to several applicative values.
 If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
 $$
-(\apure\,g) \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
+\apure\,g \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
 $$
 
 In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
@@ -29,11 +29,11 @@ For the base functor $M$, the laws take the following form, where
 $m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
 $$
 \begin{array}{l@{\qquad}l}
-(\apure\,\id) \appl m_a = m_a
+\apure\,\id \appl m_a = m_a
   & \mbox{Identity} \\
-(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a)
+\apure\,f \appl \apure\,a = \apure\,(f\,a)
   & \mbox{Homomorphism} \\
-m_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl m_f
+m_f \appl \apure\,a = \apure\,(\lambda f. f\,a) \appl m_f
   & \mbox{Interchange} \\
 m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a
   & \mbox{Composition}
@@ -42,13 +42,12 @@ $$
 
 Functoriality of $M$ follows from these laws, with functorial mapping defined as
 $
-M\,f\,m_a = (\apure\,f) \appl m_a.
+M\,f\,m_a = \apure\,f \appl m_a.
 $
 The interchange law implies that
 $
 M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
-
 
 We will show that $\stream{M}$ is also applicative.
 In order to define the methods, we need some auxiliary functions on applicative monsters.
@@ -70,7 +69,7 @@ $$
 \apure : A \rightarrow \stream{M}\,A\\
 \apure\,a = a \acons \apure\,a
 \end{array}
-$$
+$$ 
 
 Using the applicative laws for $M$, we can give a simplified characterization of pure monsters.
 The term we use combine the use of $\apure$ on $M$ and on $\stream{M}$.
@@ -100,18 +99,17 @@ This guarantees the soundness of the definition according to the {\em guardednes
 We aim to show that these definitions satisfy the applicative laws.
 We assume that the laws are satisfied by the base functor and we aim to prove them for the monster functor.
 
-\begin{conjecture}\label{lemma:appl_laws}
-If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
-That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
-$$
-\begin{array}{l}
-(\apure\,\id) \appl \sigma_a = \sigma_a \\
-(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a) \\
-\sigma_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl \sigma_f \\
-\sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
-\end{array}
-$$
-\end{conjecture}
+%
+%That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
+%$$
+%\begin{array}{l}
+%(\apure\,\id) \appl \sigma_a = \sigma_a \\
+%(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a) \\
+%\sigma_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl \sigma_f \\
+%\sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
+%\end{array}
+%$$
+%\end{conjecture}
 
 The new operator $\alift{\pappl}$ has a direct simplification on pure values, which will be very useful in the proofs of the laws.
 \begin{lemma}\label{lemma:pappl}
@@ -123,8 +121,8 @@ $$
 \begin{proof}
 $$
 \begin{array}{ll}
-(\apure_M\,\langle f, m_f\rangle) \alift{\pappl} (\apure_M\,\langle a, m_a\rangle) \\
-{}= (\apure_M\,(\pappl)) \appl (\apure_M\,\langle f, m_f\rangle) \appl (\apure_M\,\langle a, m_a\rangle)
+\apure_M\,\langle f, m_f\rangle \alift{\pappl} \apure_M\,\langle a, m_a\rangle \\
+{}= \apure_M\,(\pappl) \appl \apure_M\,\langle f, m_f\rangle \appl \apure_M\,\langle a, m_a\rangle
   & \mbox{by definition of }\alift{-}\\
 {}= \apure_M\,(\langle f, m_f\rangle \pappl \langle a, m_a\rangle)
   & \mbox{by the homomorphism law for }M\\
@@ -142,10 +140,12 @@ It is clear from the type of the arguments which version is intended, but it may
 Therefore we will use a slightly heavier but clearer notation: we use $M$ as subscript for $\apure$ when the $M$ version is intended, $\stream{M}$ when the monster version is intended; we consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions; we explicitely write the argument type of identity functions as subscripts.
 We won't distinguish the occurrences of $\appl$ for $M$ and $\stream{M}$ with subscripts, but they should be clear given the previous notational conventions.
 
+We also use the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\pappl}$ and $\alift{\comp}$.
+
 \begin{lemma}
 Monsters satisfy the applicative identity law:
 $$
-(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a
+\apure_{\stream{M}}\,\id_A \appl \sigma_a = \sigma_a
 $$
 We will assume that the $\sigma_a$ has the canonical form:
 $\sigma_a = \mcons\,m$ where $m:M\,(A\times \stream{M}A).$
@@ -157,26 +157,26 @@ The only unusual step is the application of the {\em coinduction hypothesis}.
 Recall that this means that we can assume that the statement to prove is already true, as long as it is invoked directly on direct arguments of the monster constructor.
 $$
 \begin{array}{ll}
-(\apure_{\stream{M}}\,\id_A) \appl \sigma_a \\
+\apure_{\stream{M}}\,\id_A \appl \sigma_a \\
 {}= (\id_A \acons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
   & \mbox{by definition of }\apure \\
 {}= ((\apure_M\,\id_A) \fcons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
   & \mbox{by definition of }\acons \\
-{}= (\mcons\,(M\,(\lambda f. \langle f, (\apure_{\stream{M}}\,\id_A)\rangle)\,(\apure_M\,\id_A))) \appl \sigma_a
+{}= (\mcons\,(M\,(\lambda f. \langle f, \apure_{\stream{M}}\,\id_A\rangle)\,(\apure_M\,\id_A))) \appl \sigma_a
   & \mbox{by definition of }\fcons \\
-{}= (\mcons\,(\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle)) \appl \sigma_a
+{}= (\mcons\,(\apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A \rangle)) \appl \sigma_a
   & \mbox{by the interchange law} \\
-{}= (\mcons\,(\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle)) \appl (\mcons\,m)
+{}= (\mcons\,(\apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle)) \appl (\mcons\,m)
   & \mbox{canonical form of }\sigma_a\\
-{}= \mcons\,(\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle)) \alift{\pappl}  m)
+{}= \mcons\,(\apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle)) \alift{\pappl}  m)
   & \mbox{by definition of }\appl \\
-{}= \mcons\,((\apure_{M}\,\pappl) \appl (\apure_M\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle) \appl  m)
+{}= \mcons\,(\apure_{M}\,(\pappl) \appl \apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle \appl  m)
   & \mbox{by definition of }\alift{-} \\
-{}= \mcons\,(\apure_M\,((\pappl)\,\langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle) \appl  m)
+{}= \mcons\,(\apure_M\,((\pappl)\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle) \appl  m)
   & \mbox{by the homomorphism law}\\
-{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A, (\apure_{\stream{M}}\,\id_A)\rangle \pappl \langle a,\sigma_a\rangle) \appl m)
+{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A, \apure_{\stream{M}}\,\id_A\rangle \pappl \langle a,\sigma_a\rangle) \appl m)
   & \mbox{expansion of the section}\\
-{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A\,a, (\apure_{\stream{M}}\,\id_A) \appl \sigma_a\rangle) \appl m)
+{}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A\,a, \apure_{\stream{M}}\,\id_A \appl \sigma_a\rangle) \appl m)
   & \mbox{definition of }\pappl\\
 {}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle a, \sigma_a\rangle) \appl m)
   & \mbox{\bf by coinduction hypothesis}\\
@@ -196,18 +196,18 @@ This stuctural positioning of the term ensure that the application of the coindu
 \begin{lemma}
 Monsters satisfy the applicative homomorphism law:
 $$
-(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a)
+\apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a = \apure\,(f\,a)
 $$
 \end{lemma}
 \begin{proof}
 $$
 \begin{array}{ll}
-(\apure\,f) \appl (\apure\,a)\\
+\apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a\\
 {}= (\mcons\,(\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle)) \appl
     (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
   & \mbox{by Lemma \ref{lemma:monster_pure}}\\
-{}= \mcons\,((\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle) \alift{\pappl}
-             (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+{}= \mcons\,(\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle \alift{\pappl}
+             \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
   & \mbox{by definition of }\appl\\
 {}= \mcons\,(\apure_M\,(\langle f, \apure_{\stream{M}}\,f\rangle \appl \langle a, \apure_{\stream{M}}\,a\rangle))
   & \mbox{by Lemma }\ref{lemma:pappl}\\
@@ -225,7 +225,7 @@ $$
 \begin{lemma}\label{lemma:pure_lift}
 For an applicative functor $M$, with $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$:
 $$
-(\apure_M\, a) \alift{\oplus} (\apure_M\, b) = \apure_M\, (a \oplus b)
+\apure_M\, a \alift{\oplus} \apure_M\, b = \apure_M\, (a \oplus b)
 $$
 \end{lemma}
 
@@ -240,40 +240,40 @@ This lemma has proven to be highly applicative in the following proofs of the la
 \begin{lemma}
 If the base functor $M$ is an applicative, then monsters with this base functor satisfy the applicative interchange law:
 $$
-\sigma_f \appl (\apure_{\stream{M}}\,a) = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
+\sigma_f \appl \apure_{\stream{M}}\,a = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 $$
 Assume that $a:A$ and $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
 \end{lemma}
 \begin{proof}
 $$
 \begin{array}{ll}
-\sigma_f \appl (\apure_{\stream{M}}\,a) = (\mcons\,m_f) \appl (\apure_{\stream{M}}\,a) \\
+\sigma_f \appl \apure_{\stream{M}}\,a = (\mcons\,m_f) \appl \apure_{\stream{M}}\,a \\
 {}= (\mcons\,m_f) \appl (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
   & \mbox{by Lemma \ref{lemma:monster_pure}}\\
-{}= \mcons\,(m_f \alift{\pappl} (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+{}= \mcons\,(m_f \alift{\pappl} \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
   & \mbox{by definition of }\appl\\
-{}= \mcons\,((\apure_M\,(\pappl)) \appl m_f \appl (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
+{}= \mcons\,(\apure_M\,(\pappl) \appl m_f \appl \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
   & \mbox{by definition of }\alift{-}\\
-{}= \mcons \, ((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a})) \appl m_f)
+{}= \mcons \, (\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a}) \appl m_f)
   & \mbox{by Lemma \ref{lemma:applicative_flip}}\\
-{}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl (\apure_{\stream{M}}\,a)})) \appl m_f)
+{}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl \apure_{\stream{M}}\,a}) \appl m_f)
   & \mbox{by definition of } \pappl \\
-{}= \mcons\,((\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{(\apure_{\stream{M}}\,(\lambda f . f\, a)) \appl \phi})) \appl m_f)
+{}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\apure_{\stream{M}}\,(\lambda f . f\, a) \appl \phi}) \appl m_f)
   & \mbox{\bf by coinduction hypothesis} \\
 {}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi}.
     \pair{\lambda f . f\, a}{\apure_{\stream{M}}\,(\lambda f . f\, a))}
     \pappl \pair{f}{\phi}
     ) \appl m_f)
   & \mbox{by definition of } \pappl \\
-{}= \mcons\,((\apure_M\,(\pappl)) \appl (\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \appl m_f)
+{}= \mcons\,(\apure_M\,(\pappl) \appl \apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle \appl m_f)
   & \mbox{by the homomorphism law for }M \\
-{}= \mcons\,((\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle) \alift{\pappl} m_f)
+{}= \mcons\,(\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle \alift{\pappl} m_f)
   & \mbox{by definition of }\alift{-}\\
 {}= (\mcons\,(\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle)) \appl (\mcons\,m_f)
   & \mbox{by definition of }\appl \\
-{}= (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl (\mcons\,m_f)
+{}= \apure_{\stream{M}}\,(\lambda f. f\,a) \appl (\mcons\,m_f)
   & \mbox{by Lemma \ref{lemma:monster_pure}} \\
-{} = (\apure_{\stream{M}}\,(\lambda f. f\,a)) \appl \sigma_f
+{} = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 \end{array}
 $$
 \end{proof}
@@ -328,8 +328,8 @@ if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
 
 \begin{lemma}\label{lemma:ppair}
 $$
-(\apure_M\,\ppair{\comp})\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
-= (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a}))\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
+\apure_M\,\ppair{\comp}\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
+= \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
 $$
 \end{lemma}
 
@@ -347,7 +347,7 @@ $$
 {}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a)) \\
 \mbox{by definition of}\appl\mbox{for monsters} \\
 {}= \mcons\,(
-(\apure (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a}))) \appl m_g \appl m_f \appl m_a
+\apure_M\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 )\\
 \mbox{by Lemma \ref{lemma:pappl_comp_appl}}
 \end{array}
@@ -357,14 +357,14 @@ Next we rewrite the right-hand-side.
 $$
 \begin{array}{ll}
 (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a \\
-{}= (\apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f) \appl \sigma_a \\
+{}= \apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f \appl \sigma_a \\
 \mbox{by definition of }\alift{-}\\
-{}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
+{}= \mcons\, (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
 \mbox{by definition of}\appl\mbox{for monsters}\\
-{}= \mcons\, ((\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
+{}= \mcons\, (\apure_M\,\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
 \mbox{by definition of }\ppair{-}\\
 \mcons\,(
-(\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a})) \appl m_g \appl m_f \appl m_a) \\
+\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a}) \appl m_g \appl m_f \appl m_a) \\
 \mbox{by Lemma \ref{lemma:ppair}}
 \end{array}
 $$
@@ -394,11 +394,11 @@ $$
 & \mbox{trivial} \\
 {}= \pair{(((\comp)\, g)\, f)\, a}{(\tau_g \alift{\comp} \tau_f) \appl \tau_a}
 & \mbox{by coinduction hypothesis} \\
-{}= \pair{(((\comp)\, g)\, f)\, a}{(\apure_{\stream{M}}\, (\comp)) \appl \tau_g \appl \tau_f \appl \tau_a}
+{}= \pair{(((\comp)\, g)\, f)\, a}{\apure_{\stream{M}}\, (\comp) \appl \tau_g \appl \tau_f \appl \tau_a}
 & \mbox{by definition of }\alift{-} \\
-{}= \pair{((\comp)\, g)\, f}{(\apure_{\stream{M}}\, (\comp)) \appl \tau_g \appl \tau_f} \pappl  \pair{a}{\tau_a}
+{}= \pair{((\comp)\, g)\, f}{\apure_{\stream{M}}\, (\comp) \appl \tau_g \appl \tau_f} \pappl  \pair{a}{\tau_a}
 & \mbox{by definition of }\pappl \\
-{}= \pair{(\comp)\, g}{(\apure_{\stream{M}}\, (\comp)) \appl \tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
+{}= \pair{(\comp)\, g}{\apure_{\stream{M}}\, (\comp) \appl \tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
 & \mbox{by definition of }\pappl \\
 {}= \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl \pair{g}{\tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
 & \mbox{by definition of }\pappl \\
@@ -408,3 +408,6 @@ $$
 \end{proof}
 \end{lemma}
 
+\begin{theorem}\label{lemma:appl_laws}
+If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
+\end{theorem}
