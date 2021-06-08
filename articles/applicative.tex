@@ -496,46 +496,91 @@ if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
 
 \begin{lemma}\label{lemma:ppair}
 $$
-\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a
+(\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a
 = (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})) \appl m_g \appl m_f \appl m_a 
 $$
 \end{lemma}
 \begin{proof}
-\vcomm{This is just copied from the previous version. It needs to be simplified and use new notation.}
 $$
 \begin{array}{ll}
-((\apure_M\,(\pappl)) \appl (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
+(\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a\\
+{}=
+((\apure_M\,(\pappl)) \appl (\apure_M\,\ppair{\comp}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
 \mbox{by definition of }\alift{-}\\
-{}= ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
+{}= ((\apure_M\,(\ppair{\comp}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
  \mbox{by homomorphism law of }M\\
-{}= (\apure_M\,(\pappl) \appl ((\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+{}= ((\apure_M\,(\pappl)) \appl ((\apure_M\,(\ppair{\comp}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
 \mbox{by definition of }\alift{-}\\
-{}= (((\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+{}= ((
+       (\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\ppair{\comp} \pappl {})))
+       \appl m_g
+     ) \appl m_f) \alift{\pappl} m_a\\
 \mbox{by composition law of }M\\
-{}= (((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+{}= ((
+       (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
+       \appl m_g
+     ) \appl m_f) \alift{\pappl} m_a\\
 \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= (\apure_M\,(\pappl)) \appl (((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) \appl m_f) \appl m_a\\
+{}= (\apure_M\,(\pappl)) \appl
+    ((
+       (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
+       \appl m_g
+     ) \appl m_f) \appl m_a\\
 \mbox{by definition of }\alift{-}\\
-{}= ( ((\apure_M\,(\pappl)) \alift{\comp} ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a \\
+{}= ((\apure_M\,(\pappl)) \alift{\comp}
+     ((\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
+       \appl m_g))
+    \appl m_f \appl m_a\\
 \mbox{by composition law of }M\\
-{}= ( ( (\apure_M\,(\comp)) \appl (\apure_M\,(\pappl)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g)) \appl m_f) \appl m_a \\
+{}= ((\apure_M\,(\comp)) \appl
+     (\apure_M\,(\pappl)) \appl
+     ((\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
+       \appl m_g))
+    \appl m_f \appl m_a\\
 \mbox{by definition of }\alift{-}\\
-{}= ( ( (\apure_M\,((\pappl)\, \comp)) \appl ((\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl))) \appl m_g) ) \appl m_f) \appl m_a \\
+{}= ((\apure_M\,((\pappl) \comp {})) \appl
+     ((\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
+       \appl m_g))
+    \appl m_f \appl m_a\\
  \mbox{by homomorphism law of }M\\
- {}= ( ( (\apure_M\,((\pappl)\, \comp)) \alift{\comp} (\apure_M\,((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))  ) \appl m_g ) \appl m_f) \appl m_a \\
+{}= ((\apure_M\,((\pappl) \comp {})) \alift{\comp}
+     (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))))
+    \appl m_g \appl m_f \appl m_a\\
 \mbox{by composition law of }M\\
- {}= ( ( \big(\apure_M\,(((\pappl)\, \comp) \comp ((\pappl) \comp (\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl)))\big) \appl m_g ) \appl m_f) \appl m_a \\
-\mbox{by Lemma \ref{lemma:pure_lift}}\\
- {}= ( ( \big(\apure_M\,(\lambda g. \lambda f. \lambda a. ( ( \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}\, \pappl\, g )\, \pappl\, f )\, \pappl\, a) \big) \appl m_g ) \appl m_f) \appl m_a \\
- \mbox{by Lemma \ref{lemma:comp_comp_law}}\\
+{}= (\apure_M\,(((\pappl) \comp {}) \comp
+                ((\pappl) \comp (\ppair{\comp} \pappl {}))))
+    \appl m_g \appl m_f \appl m_a\\
+\mbox{by Lemma \ref{lemma:pure_lift}}
 \end{array}
 $$
 
+We are left with the daunting high-order expression:
+$$
+((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {}))
+$$
+where the composition operator $\comp$ is used in several places with different types.
+The whole expression has type $\pstream{B\rightarrow C}\rightarrow \pstream{A\rightarrow B} \rightarrow \pstream{A}\rightarrow \pstream{C}$.
+If we apply it to elements $\pstr{g}$, $\pstr{f}$, $\pstr{a}$ and simplify by repeatedly applying the definition of composition, we get:
+$$
+\begin{array}{l}
+(((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {})))\,
+\pstr{g}\,\pstr{f}\,\pstr{a}\\
+{}= (((\pappl) \comp {}) (((\pappl) \comp (\ppair{\comp} \pappl {}))\,\pstr{g}))\,
+    \pstr{f}\,\pstr{a}\\
+{}= (((\pappl) \comp {}) ((\pappl) (\ppair{\comp} \pappl\pstr{g})))\,
+    \pstr{f}\,\pstr{a}\\
+{}= ((\pappl) ((\ppair{\comp} \pappl\pstr{g}) \pappl \pstr{f}))\,\pstr{a}\\
+{}= (\ppair{\comp} \pappl\pstr{g}) \pappl \pstr{f})\pappl\pstr{a}\\
+\end{array}
+$$
+Therefore:
+$$
+((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {}))
+= \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}.
+  \ppair{\comp} \pappl\pstr{g} \pappl \pstr{f} \pappl\pstr{a}
+$$
+which concludes the proof.
 \end{proof}
-
-
-
-
 
 \begin{lemma}
 If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
@@ -565,7 +610,7 @@ $$
 \mbox{by definition of }\alift{-}\\
 {}= \mcons\, ((\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
 \mbox{by definition of}\appl\mbox{for monsters}\\
-{}= \mcons\, (\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
+{}= \mcons\, ((\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
 \mbox{by definition of}\ppair{-}\\
 \mcons\,(
 (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})) \appl m_g \appl m_f \appl m_a) \\
