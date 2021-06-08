@@ -86,7 +86,7 @@ $$
 $$
 
 The law is expanded using the definition of $\bind$ in terms of $\join$. 
-To show this does not hold, the following lemmas are useful to simplify reasoning. Any uses of $\join$ without a subscript refer to the $\join$ operation for monsters, otherwise the subscript will indicate the monad.
+To show this does not hold, the following two lemmas are useful to simplify reasoning. Any uses of $\join$ without a subscript refer to the $\join$ operation for monsters, otherwise the subscript will indicate the monad.
 
 \begin{lemma}\label{lemma:general_bind_law}
 For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
@@ -94,67 +94,17 @@ $$
 (\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{traverse}\, (f\, n)))})\, (\head\, (f\, n)))
 $$
 \end{lemma}
-
-\begin{proof}
-$$
-\begin{array}{ll}
-(\join \comp  M\, f \comp \return)\, n \\
-{}= (\join \comp  M\, f)\, (\apure_{\stream{M}}\, n)
-  & \mbox{by definition of } \return \mbox{ as } \apure \\
-{}= \join\, (\apure_{\stream{M}}\, (f \,n))
-  & \mbox{by the homomorphism law for } \stream{M}\\
-{}= \mcons\, ((\uncons\, (\apure_{\stream{M}}\, (f\, n)))\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)))
-  & \mbox{by definition of } \join \\
-{}= \mcons\,((\apure_{M}\,\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)})\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\, \mathsf{traverse})\, ts})\, (\head\, hs)))
-  & \mbox{by definition of } \uncons \mbox{ and Lemma \ref{lemma:monster_pure}}\\
-{}= \mcons\, ((\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)) \, \\\qquad (\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)}))
-  & \mbox{by left identity law of } M \\
-{}= \mcons\,(M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, (\apure_{\stream{M}}\,(f\, n))})\, \\ \qquad (\head\, (f\, n)))
- & \mbox{function application} \\
- {}= \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{traverse}\, (f\, n)))})\, (\head\, (f\, n)))
- & \mbox{by the homomorphism law for } \stream{M}\\
-
-\end{array} 
-$$
-\end{proof}
-
-
 \begin{lemma}\label{lemma:traverse_fromstepstr}
 $$
 \mathsf{traverse}\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
 $$
 \end{lemma} 
 
-\begin{proof}
-We prove this by expanding definitions
-$$
-\begin{array}{ll}
-\mathsf{traverse}\, (\fromstepstr\, n) \\
-{}= \mathsf{traverse}\, (\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n}))
-	& \mbox{by definition of }\fromstepstr \\
-{}= (\mathsf{absorb} \comp \tail \comp \uncons)\, \\\qquad (\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n}))
-	& \mbox{by definition of }\mathsf{traverse} \\
-{}= (\mathsf{absorb} \comp \tail)\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n})
-	& \mbox{by definition of }\uncons \\
-{}= \mathsf{absorb}\, (\lambda s. \pair{\fromstepstr\, (n + 1)}{s + n})
-	& \mbox{by definition of }\tail \\
-{}= \mathsf{absorb}\, (\lambda s. \pair{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)}))}{s + n})
-	& \mbox{by definition of }\fromstepstr \\
-{}= (\mcons \comp \join_{\state_{\nat}} \comp \state_{\nat}\,\uncons) \\\qquad \, (\lambda s. \pair{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)}))}{s + n})
-	& \mbox{by definition of }\mathsf{absorb} \\
-{}= (\mcons \comp \join_{\state_{\nat}})\, \\\qquad (\lambda s. \pair{(\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)})}{s + n})
-	& \mbox{by functoriality of }\state_{\nat} \\
-{}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{(s + n) + (n + 1)})
-	& \mbox{by definition of } \join_{\state_{\nat}} \\
-{}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{s + 2n + 1})
-	& \mbox{non-trivial arithmetic} \\
-\end{array}
-$$
-\end{proof}
+The proofs of these lemmas are mostly simple cases of expanding definitions, and are included in the appendix.
 
-\begin{conjecture}\label{lemma:monad_counterexample}
+\begin{theorem}\label{lemma:monad_counterexample}
 Monadic streams equipped with a `diagonal' $\join$ operation are not monads.
-\end{conjecture}
+\end{theorem}
 \begin{proof}
 We use $tts = \join\, (\mathsf{traverse}\, (\mathsf{traverse}\, (\fromstepstr\, n)))$ to simplify the following reasoning, as we only need to unfold the definitions so far in order to demonstrate the conjecture. \\
 
@@ -206,4 +156,6 @@ without expanding $tts$ and $\fromstepstr\, (n + 2)$ any further.
 
 The issue is that the first monadic action (that of $\fromstepstr\, n$) is repeated twice in the monster resulting from the $\join$ operation. 
 This indicates that monsters may still be monads if the underlying functor is an idempotent monad instead. 
-We have yet to prove this, and we are also looking for a weaker condition on the underlying functor, as idempotency is a strong requirement.
+We have yet to prove this, and we are also looking for a weaker condition on the underlying functor, as idempotency is a strong requirement. \\
+
+An argument could be made that the only possible definition of $\join$ is the one we consider here. Pure streams are simply monsters with the underlying monad $\Id$, and taking the diagonal is the canonical $\join$ operation in this case. By naturality of the $\join$ operation, the definition may have to be independent of the particular underlying monad chosen. If this is the case, then monsters are not monads, because as demonstrated, the diagonal $\join$ operation does not satisfy the required laws for $\state\stream{\nat}$, so either a different definition is required (which could violate naturality), or monsters are not monads in general. We suspect it is the latter, and one goal of our future work is to verify this.
