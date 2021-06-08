@@ -5,6 +5,7 @@ If $\sigma$ is such a stream, it will consist of an action for a certain monad $
 This process can be continued in a non-well-founded way: streams constitute a coinductive type.
 
 Formally the type of streams over a monad $M$ (let's call them {\em $M$-monsters}) with elements of type $A$ is defined as:
+
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -12,6 +13,7 @@ $$
 \quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}
 \end{array}
 $$
+
 Categorically, we can see this type as the {\em final coalgebra} of the functor $F_M\,X = M\,(A\times X)$.
 We give definitions of (final) coalgebras and a summary of their properties below.
 The final coalgebra does not necessarily exist for every $M$, 
@@ -25,6 +27,7 @@ Instantiating $M$ with some of the most well-known monads leads to versions of k
 
 If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
 Its usual definition is the following:
+
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -32,6 +35,7 @@ $$
 \quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}.
 \end{array}
 $$
+
 (The type of the constructor has been curried, as is common.)
 An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
 
@@ -40,6 +44,7 @@ The $\maybe$ monad is a functor that adds an extra element to the argument type:
 $\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
 So $\maybe\,X \cong X+1$.
 The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -48,6 +53,7 @@ $$
 \quad \nil: \lst{A}.
 \end{array}
 $$
+
 This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\lst{A}$.
 Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
 Therefore $\lst{A}$ is the type of finite and infinite sequences. \\
@@ -71,23 +77,27 @@ Haskell will accept the definition when $M$ is any operator, but mathematically 
 
 We can define a function into $\stream{A}$ by defining a coalgebra on the domain type $A$, which in this case is $\nat$.
 For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by using a coalgebra on $\nat$:
+
 $$
 \begin{array}{l}
 \xi : \nat \rightarrow \nat\times \nat\\
 \xi\,n = \langle n,n+1\rangle
 \end{array}
 $$
+
 (Note that the target type of the coalgebra is $F(\nat) = \nat\times\nat$: The first $\nat$ is the parameter of the functor, while the second $\nat$ is the carrier of the coalgebra.)
 The anamorphism $\sfr = \ana{\xi}:\nat \rightarrow \stream{\nat}$ maps $n$ to the stream starting at $n$.
 
 In practical programming, we often let the coalgebra $\xi$ be implicit by directly defining the function $\ana{\xi}$ recursively.
 For example, the function above can be defined as:
+
 $$
 \begin{array}{l}
 \sfr: \nat \rightarrow \stream{\nat}\\
 \sfr\,n = n \scons \sfr\,(n+1)
 \end{array}
 $$
+
 Here the presence of the parameter $n$ and the argument of the recursive call $n+1$ implicitly give the coalgebra $n \mapsto \langle n, n+1\rangle$.
 This is a general programming pattern: we specify a function by equations that directly give the head of the resulting stream, and indirectly determine the tail
  by applying recursively the function at the top of the second argument of the constructor ${\scons}$.
@@ -96,13 +106,16 @@ When this happens we can always find a coalgebra that justifies the definition.
 
 In practical programming we can use a more liberal methodology, coding programs by equations that are not strictly guarded by constructors, but can be reduced to that form (or directly to coalgebra form) by some standard transformation.
 For example, a different way of defining the function $\sfr$ is:
+
 $$
 \begin{array}{l}
 \sfp: \nat \rightarrow \stream{\nat}\\
 \sfp\,n = n \scons (\sfp\,n \oplus \bar{1})
 \end{array}
 $$
+
 where $\oplus$ is the pointwise addition of streams and $\bar{1}$ is the constant stream of ones:
+
 $$
 \begin{array}{l}
 (\oplus): \stream{\nat}\rightarrow \stream{\nat}\rightarrow \stream{\nat}\\
@@ -114,6 +127,7 @@ $$
 \bar{x} = x \scons \bar{x}
 \end{array}
 $$
+
 Notice that, while the definitions of $\oplus$ and $\bar{\cdot}$ are correctly guarded by constructors, the definition of $\sfp$ is not strictly guarded: the recursive call doesn't occur immediately at the top of the second argument of the constructor $\scons$, but instead as an argument of the $\oplus$ operator.
 However, it is relatively easy to modify the definition to make it comply with the strict guardedness condition \cite{capretta:2011}.
 We will allow ourselves to use this more lax definition style. \\
@@ -131,6 +145,7 @@ This is the case for all the instances that we consider (but there are well know
 The idea of a container functor $F$ is that, given a type $X$, the elements of $F\,X$ are built by constructors that specify a {\em shape} together with {\em positions} inside the shape where elements of $X$ can be inserted.
 For example, the functor $\maybe$ has two shapes: $\nothing$, with not positions at all, and $\just$, with a single position.
 Another example is the $\lstsym$ functor: we can see it as having an infinite number of shapes: one shape for every natural number $n$, with $n$ positions:
+
 $$
 \begin{array}{llcll}
 \mbox{shape $n$: } \quad [ & \bullet,  & \cdots ,  & \bullet & ]\\
@@ -140,6 +155,7 @@ $$
 
 In our case, if $M$ is a container, the functor $F_M$ is a container where the shapes are extended with an element of $A$ paired to every positions.
 For example, if $M$ is $\lstsym$, the general form of shapes and positions is this:
+
 $$
 \begin{array}{lrcrl}
 \mbox{shape $n$: } \quad [ & \langle a_0, \bullet\rangle,  
@@ -159,6 +175,7 @@ One final observation is about the distinction between {\em inductive} and {\em 
 We have defined pure streams, lazy lists, monadic streams as coinductive types, using the keyword $\codata$.
 Every container functor also has an inductive type, defined similarly but with the keyword $\data$.
 For example, if we change the keyword in the definition of lazy lists, we obtain the type of finite lists:
+
 $$
 \begin{array}[t]{l}
 \data\;
@@ -167,6 +184,7 @@ $$
 \quad \nil: \flst{A}.
 \end{array}
 $$
+
 This change requires every element of $\flst{A}$ to be well-founded, that is, to hit the base case $\nil$ after a finite number of steps.
 Inductive types are much more well known that the coinductive ones, and have been a staple of computer science for decades.
 The field of coinductive types is instead much younger and still under development.
