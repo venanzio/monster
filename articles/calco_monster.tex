@@ -19,6 +19,12 @@
 \keywords{monadic streams, applicative functor, monad}
 \usepackage{notations}
 
+\newtheorem{lemmainner}{Lemma}
+\newenvironment{lemmaa}[1]{%
+  \renewcommand\thelemmainner{#1}%
+  \lemmainner
+}{\endlemmainner}
+
 %\newtheorem{definition}{Definition}
 %\newtheorem{theorem}[definition]{Theorem}
 %\newtheorem{proposition}[definition]{Proposition}

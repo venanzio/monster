@@ -1,31 +1,11 @@
-\documentclass{article}
 
-\usepackage{amssymb,amsmath,amsthm}
-\usepackage{pstricks,pst-node}
+\section{Appendix}
 
-\title{Programming with Monsters: Appendix}
-\author{Venanzio Capretta and Christopher Purdy}
-
-\usepackage{notations}
-
-\newtheorem{lemmainner}{Lemma}
-\newenvironment{lemma}[1]{%
-  \renewcommand\thelemmainner{#1}%
-  \lemmainner
-}{\endlemmainner}
-
-\begin{document}
-\bibliographystyle{plain}
-
-\maketitle
-
-This appendix is a supplement to our main paper, containing lemmas used for proving applicative laws and disproving monad laws in relation to monadic streams. 
-
-\begin{lemma}{5}\label{lemma:monster_pure}
+\begin{lemmaa}{5}\label{lemma:monster_pure}
 $$
 \apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 By unfolding definitions and using the identity law for the applicative functor $M$:
 $$
@@ -49,12 +29,12 @@ $$
 
 %---
 
-\begin{lemma}{10}\label{lemma:pure_lift}
+\begin{lemmaa}{10}\label{lemma:pure_lift}
 For an applicative functor $M$, with $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$:
 $$
 (\apure_M\, a) \alift{\oplus} (\apure_M\, b) = \apure_M\, (a \oplus b)
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 $$
 \begin{array}{ll}
@@ -71,12 +51,12 @@ $$
 
 %---
 
-\begin{lemma}{11}\label{lemma:applicative_flip}
+\begin{lemmaa}{11}\label{lemma:applicative_flip}
 Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
 $$
 \apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 Since the operator $\appl$ is left-associative, the left hand side of the equality is read as:
 $$
@@ -101,34 +81,33 @@ $$
 
 %---
 
-\begin{lemma}{13}\label{lemma:comp_comp}
+\begin{lemmaa}{13}\label{lemma:comp_comp}
 $$
 (\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 Just expand the definition of the two composition operators.
 \end{proof}
 
-\begin{lemma}{14}\label{lemma:comp_comp_comp}
+\begin{lemmaa}{14}\label{lemma:comp_comp_comp}
 $$
 (\clift{\clift{\oplus}{A}}{X}) =
 \lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 Apply Lemma \ref{lemma:comp_comp} twice and simplify.
 \end{proof}
 
-\newpage
 
-\begin{lemma}{15}\label{lemma:pappl_comp_appl}
+\begin{lemmaa}{15}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
 $$
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
  = \apure\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 $$
 \begin{array}{ll}
@@ -166,12 +145,12 @@ $$
 % ---
 \newpage
 
-\begin{lemma}{16}\label{lemma:ppair}
+\begin{lemmaa}{16}\label{lemma:ppair}
 $$
 (\apure_M\,\ppair{\comp})\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
 = \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
 $$
-\end{lemma}
+\end{lemmaa}
 \begin{proof}
 $$
 \begin{array}{ll}
@@ -256,12 +235,12 @@ which concludes the proof.
 
 %---
 
-\begin{lemma}{18}\label{lemma:general_bind_law}
+\begin{lemmaa}{18}\label{lemma:general_bind_law}
 For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
 $$
 (\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{traverse}\, (f\, n)))})\, (\head\, (f\, n)))
 $$
-\end{lemma}
+\end{lemmaa}
 
 \begin{proof}
 $$
@@ -288,11 +267,11 @@ $$
 
 %---
 
-\begin{lemma}{19}\label{lemma:traverse_fromstepstr}
+\begin{lemmaa}{19}\label{lemma:traverse_fromstepstr}
 $$
 \mathsf{traverse}\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
 $$
-\end{lemma} 
+\end{lemmaa} 
 
 \begin{proof}
 We prove this by expanding definitions
@@ -316,12 +295,8 @@ $$
 {}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{(s + n) + (n + 1)})
 	& \mbox{by definition of } \join_{\state_{\nat}} \\
 {}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{s + 2n + 1})
-	& \mbox{non-trivial arithmetic} \\
+	& \mbox{trivial} \\
 \end{array}
 $$
 \end{proof}
 
-
-\bibliography{monster_biblio.bib}
-
-\end{document}
