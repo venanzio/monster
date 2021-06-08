@@ -115,7 +115,7 @@ The new operator $\alift{\pappl}$ has a direct simplification on pure values, wh
 \begin{lemma}\label{lemma:pappl}
 If $f:A\rightarrow B$, $m_f:\stream{M}\,(A\rightarrow B)$, $a:A$, $m_a:\stream{M}\,A$, then:
 $$
-(\apure_M\,\langle f, m_f\rangle) \alift{\pappl} (\apure_M\,\langle a, m_a\rangle) = \apure_M \langle f\,a, m_f \appl m_a \rangle
+\apure_M\,\langle f, m_f\rangle \alift{\pappl} \apure_M\,\langle a, m_a\rangle = \apure_M \langle f\,a, m_f \appl m_a \rangle
 $$
 \end{lemma}
 \begin{proof}
@@ -209,15 +209,14 @@ $$
 {}= \mcons\,(\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle \alift{\pappl}
              \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
   & \mbox{by definition of }\appl\\
-{}= \mcons\,(\apure_M\,(\langle f, \apure_{\stream{M}}\,f\rangle \appl \langle a, \apure_{\stream{M}}\,a\rangle))
+{}= \mcons\,(\apure_M\,\langle f\, a, \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a \rangle))
   & \mbox{by Lemma }\ref{lemma:pappl}\\
 {}= \mcons\,(\apure_M\,\langle f\,a, \apure_{\stream{M}}\,(f\,a)\rangle)
   & \mbox{by coinduction hypothesis}\\
 {}= \apure_{\stream{M}}\,(f\,a)
   & \mbox{by lemma }\ref{lemma:monster_pure}
 \end{array}
-$$
-\end{proof}
+$$\end{proof}
 
 
 % Proof of interchange law with M applicative
