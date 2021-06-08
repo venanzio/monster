@@ -1,7 +1,7 @@
 
 \section{Appendix}
 
-\begin{lemmaa}{5}\label{lemma:monster_pure}
+\begin{lemmaa}{4}
 $$
 \apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
 $$
@@ -29,7 +29,7 @@ $$
 
 %---
 
-\begin{lemmaa}{10}\label{lemma:pure_lift}
+\begin{lemmaa}{8}
 For an applicative functor $M$, with $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$:
 $$
 (\apure_M\, a) \alift{\oplus} (\apure_M\, b) = \apure_M\, (a \oplus b)
@@ -51,7 +51,7 @@ $$
 
 %---
 
-\begin{lemmaa}{11}\label{lemma:applicative_flip}
+\begin{lemmaa}{9}
 Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
 $$
 \apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
@@ -81,27 +81,7 @@ $$
 
 %---
 
-\begin{lemmaa}{13}\label{lemma:comp_comp}
-$$
-(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
-$$
-\end{lemmaa}
-\begin{proof}
-Just expand the definition of the two composition operators.
-\end{proof}
-
-\begin{lemmaa}{14}\label{lemma:comp_comp_comp}
-$$
-(\clift{\clift{\oplus}{A}}{X}) =
-\lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
-$$
-\end{lemmaa}
-\begin{proof}
-Apply Lemma \ref{lemma:comp_comp} twice and simplify.
-\end{proof}
-
-
-\begin{lemmaa}{15}\label{lemma:pappl_comp_appl}
+\begin{lemmaa}{13}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
 $$
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
@@ -145,7 +125,7 @@ $$
 % ---
 \newpage
 
-\begin{lemmaa}{16}\label{lemma:ppair}
+\begin{lemmaa}{14}
 $$
 (\apure_M\,\ppair{\comp})\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
 = \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
@@ -235,7 +215,7 @@ which concludes the proof.
 
 %---
 
-\begin{lemmaa}{18}\label{lemma:general_bind_law}
+\begin{lemmaa}{17}
 For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
 $$
 (\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{traverse}\, (f\, n)))})\, (\head\, (f\, n)))
@@ -267,7 +247,7 @@ $$
 
 %---
 
-\begin{lemmaa}{19}\label{lemma:traverse_fromstepstr}
+\begin{lemmaa}{18}
 $$
 \mathsf{traverse}\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
 $$
@@ -295,7 +275,6 @@ $$
 {}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{(s + n) + (n + 1)})
 	& \mbox{by definition of } \join_{\state_{\nat}} \\
 {}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{s + 2n + 1})
-	& \mbox{trivial} \\
 \end{array}
 $$
 \end{proof}
