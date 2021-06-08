@@ -74,32 +74,12 @@ $$
 
 Using the applicative laws for $M$, we can give a simplified characterization of pure monsters.
 The term we use combine the use of $\apure$ on $M$ and on $\stream{M}$.
-This could be confusing, so we explicitely write the functor as subscript.
-\begin{lemma}\label{lemma:monster_pure}
+This could be confusing, so we explicitely write the functor as subscript. The proof that this characterisation is valid (alongside proofs of later lemmas) is included in the appendix.
+\begin{lemma}\label{lemma:monster_pure} 
 $$
 \apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
 $$
 \end{lemma}
-\begin{proof}
-By unfolding definitions and using the identity law for the applicative functor $M$:
-$$
-\begin{array}{ll}
-\apure_{\stream{M}}\,a \\
-{}= a \acons \apure_{\stream{M}}\,a
-  & \mbox{by definition of }\apure_{\stream{M}} \\
-{}= (\apure_M\,a) \fcons (\apure_{\stream{M}}\,a)
-  & \mbox{by definition of }\acons\\
-{}=  \mcons\, (M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)\,(\apure_M\,a))
-  & \mbox{by definition of }\fcons\\
-{}= \mcons\, ((\apure_M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)) \appl (\apure_M\,a))
-  & \mbox{by functoriality of applicatives}\\
-{}= \mcons\, (\apure_M\,((\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)\,a))
-  & \mbox{by the homomorphism law for }M\\
-{}= \mcons\, (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
-  & \mbox{by function application}
-\end{array}
-$$
-\end{proof}
 
 We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
 $$
@@ -120,9 +100,6 @@ This guarantees the soundness of the definition according to the {\em guardednes
 We aim to show that these definitions satisfy the applicative laws.
 We assume that the laws are satisfied by the base functor and we aim to prove them for the monster functor.
 
-\vcomm{I leave this year with the conjecture: to be placed at the end as a Theorem when we have the proofs.}
-Preliminary investigation and analysis of specific instances suggest that this is the case for monsters.
-A full proof is one of the goals of future work.
 \begin{conjecture}\label{lemma:appl_laws}
 If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
 That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
@@ -253,47 +230,14 @@ $$
 (\apure_M\, a) \alift{\oplus} (\apure_M\, b) = \apure_M\, (a \oplus b)
 $$
 \end{lemma}
-\begin{proof}
-$$
-\begin{array}{ll}
-(\apure_M\, a) \alift{\oplus} (\apure_M\, b) \\
-{}= \apure_M\, (\oplus) \appl (\apure_M\, a) \appl (\apure_M\, b)
-  & \mbox{by definition of }\alift{-}\\
-{}= \apure_M\, (a\, \oplus) \appl (\apure_M\, b)
-  & \mbox{by homomorphism law of }M\\
-{}= \apure_M\, (a \oplus b)
-  & \mbox{by homomorphism law of }M\\
-\end{array}
-$$
-\end{proof}
 
 \begin{lemma}\label{lemma:applicative_flip}
 Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
 $$
-(\apure_M\, f) \appl m_a \appl (\apure_M\, b) = (\apure_M\, (\lambda a . f\, a\, b)) \appl m_a
+\apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
 $$
 \end{lemma}
-\begin{proof}
-Since the operator $\appl$ is left-associative, the left hand side of the equality is read as:
-$$
-((\apure_M\, f) \appl m_a) \appl (\apure_M\, b)
-$$
-which means that we can apply the interchange law to it.
-In the application of the law we abstract a variable $h$ of type $B\rightarrow C$:
-$$
-\begin{array}{ll}
-(\apure_M\, f) \appl m_a \appl (\apure_M\, b) \\
-{} =  (\apure_M\, (\lambda h. h\, b)) \appl ((\apure_M\, f) \appl m_a)
- & \mbox{by interchange law of }M\\
-{} =  ((\apure_M\, (\lambda h. h\, b)) \alift{\comp} (\apure_M\, f)) \appl m_a
- & \mbox{by composition law of }M\\
-{} =  (\apure_M ( (\lambda h. h\, b) \comp f ) ) \appl m_a
- & \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{} =  (\apure_M (\lambda a. f\, a\, b )) \appl m_a
- & \mbox{by definition of composition}\\
-\end{array}
-$$
-\end{proof}
+This lemma has proven to be highly applicative in the following proofs of the last two applicative laws.
 
 \begin{lemma}
 If the base functor $M$ is an applicative, then monsters with this base functor satisfy the applicative interchange law:
@@ -377,47 +321,9 @@ Apply Lemma \ref{lemma:comp_comp} twice and simplify.
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
 $$
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
- = (\apure (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a}))) \appl m_g \appl m_f \appl m_a
+ = \apure\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 $$
 \end{lemma}
-\begin{proof}
-$$
-\begin{array}{ll}
-m_g \alift{\pappl} (m_f \alift{\pappl} m_a) \\
-{}= (\apure\, (\pappl)) \appl m_g \appl ((\apure\, (\pappl)) \appl m_f \appl m_a) \\
- \mbox{by definition of }\alift{-}\\
-{}= (  ((\apure\, (\pappl)) \appl m_g) \alift{\comp} ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a \\
- \mbox{by composition law for }M \\
-{}= (  (\apure\, (\comp)) \appl  ((\apure\, (\pappl)) \appl m_g) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a \\
- \mbox{by definition of }\alift{-}\\
-{}= (  ( ((\apure\, (\comp)) \alift{\comp}  (\apure\, (\pappl))) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a \\
- \mbox{by composition law for }M \\
-{}= (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= (  ( (\apure\, ((\comp) \comp (\pappl)) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= (  ( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \appl ((\apure\, (\pappl)) \appl m_f)  ) \appl m_a\\
- \mbox{by definition}\\
-{}= (  (( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \alift{\comp} (\apure\, (\pappl))) \appl m_f  ) \appl m_a\\
- \mbox{by composition law for }M \\
-{}= (  ( (\apure\, (\comp)) \appl ( (\apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
- \mbox{by definition of }\alift{-} \\
-{}= (  ( (  ((\apure\, (\comp)) \alift{\comp}  (\apure\, (\clift{\pappl}{\pstream{A}}) )) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
- \mbox{by composition law for }M \\
-{}= (  ( (  (\apure\, ((\comp) \comp \clift{\pappl}{\pstream{A}})) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= (  ( (  (\apure\, (\clift{\clift{\pappl}{\pstream{A}}}{\pstream{A\rightarrow B}}) \appl m_g  ) \appl (\apure\, (\pappl)) ) \appl m_f  ) \appl m_a\\
- \mbox{by definition}\\
-{}= (  (  \big(\apure\, (\lambda \pstr{g} . \pstr{g} \clift{\clift{\pappl}{\pstream{A}}}{\pstream{A\rightarrow B}} (\pappl) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:applicative_flip}}\\
-{}= (  (  \big(\apure\, (\lambda \pstr{g} . \lambda \pstr{f}. \lambda \pstr{a} . (\pstr{g}\, \pappl (\pstr{f} \pappl \pstr{a})) ) \big) \appl m_g   ) \appl m_f  ) \appl m_a\\
- \mbox{by Lemma \ref{lemma:comp_comp_comp}}\\
-\end{array}
-$$
-
-
-\end{proof}
-
 
 We introduce a notation for a {\em pure} value in the type $\pstream{A}$:
 if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
@@ -428,87 +334,6 @@ $$
 = (\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a}))\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
 $$
 \end{lemma}
-\begin{proof}
-$$
-\begin{array}{ll}
-(\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a\\
-{}=
-((\apure_M\,(\pappl)) \appl (\apure_M\,\ppair{\comp}) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
-\mbox{by definition of }\alift{-}\\
-{}= ((\apure_M\,(\ppair{\comp}\, \pappl)) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
- \mbox{by homomorphism law of }M\\
-{}= ((\apure_M\,(\pappl)) \appl ((\apure_M\,(\ppair{\comp}\, \pappl)) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
-\mbox{by definition of }\alift{-}\\
-{}= ((
-       (\apure_M\,(\pappl) \alift{\comp} (\apure_M\,(\ppair{\comp} \pappl {})))
-       \appl m_g
-     ) \appl m_f) \alift{\pappl} m_a\\
-\mbox{by composition law of }M\\
-{}= ((
-       (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
-       \appl m_g
-     ) \appl m_f) \alift{\pappl} m_a\\
-\mbox{by Lemma \ref{lemma:pure_lift}}\\
-{}= (\apure_M\,(\pappl)) \appl
-    ((
-       (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
-       \appl m_g
-     ) \appl m_f) \appl m_a\\
-\mbox{by definition of }\alift{-}\\
-{}= ((\apure_M\,(\pappl)) \alift{\comp}
-     ((\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
-       \appl m_g))
-    \appl m_f \appl m_a\\
-\mbox{by composition law of }M\\
-{}= ((\apure_M\,(\comp)) \appl
-     (\apure_M\,(\pappl)) \appl
-     ((\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
-       \appl m_g))
-    \appl m_f \appl m_a\\
-\mbox{by definition of }\alift{-}\\
-{}= ((\apure_M\,((\pappl) \comp {})) \appl
-     ((\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
-       \appl m_g))
-    \appl m_f \appl m_a\\
- \mbox{by homomorphism law of }M\\
-{}= ((\apure_M\,((\pappl) \comp {})) \alift{\comp}
-     (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))))
-    \appl m_g \appl m_f \appl m_a\\
-\mbox{by composition law of }M\\
-{}= (\apure_M\,(((\pappl) \comp {}) \comp
-                ((\pappl) \comp (\ppair{\comp} \pappl {}))))
-    \appl m_g \appl m_f \appl m_a\\
-\mbox{by Lemma \ref{lemma:pure_lift}}
-\end{array}
-$$
-
-We are left with the daunting high-order expression:
-$$
-((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {}))
-$$
-where the composition operator $\comp$ is used in several places with different types.
-The whole expression has type $\pstream{B\rightarrow C}\rightarrow \pstream{A\rightarrow B} \rightarrow \pstream{A}\rightarrow \pstream{C}$.
-If we apply it to elements $\pstr{g}$, $\pstr{f}$, $\pstr{a}$ and simplify by repeatedly applying the definition of composition, we get:
-$$
-\begin{array}{l}
-(((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {})))\,
-\pstr{g}\,\pstr{f}\,\pstr{a}\\
-{}= (((\pappl) \comp {}) (((\pappl) \comp (\ppair{\comp} \pappl {}))\,\pstr{g}))\,
-    \pstr{f}\,\pstr{a}\\
-{}= (((\pappl) \comp {}) ((\pappl) (\ppair{\comp} \pappl\pstr{g})))\,
-    \pstr{f}\,\pstr{a}\\
-{}= ((\pappl) ((\ppair{\comp} \pappl\pstr{g}) \pappl \pstr{f}))\,\pstr{a}\\
-{}= (\ppair{\comp} \pappl\pstr{g}) \pappl \pstr{f})\pappl\pstr{a}\\
-\end{array}
-$$
-Therefore:
-$$
-((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {}))
-= \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}.
-  \ppair{\comp} \pappl\pstr{g} \pappl \pstr{f} \pappl\pstr{a}
-$$
-which concludes the proof.
-\end{proof}
 
 \begin{lemma}
 If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
