@@ -1,0 +1,327 @@
+\documentclass{article}
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{pstricks,pst-node}
+
+\title{Programming with Monsters: Appendix}
+\author{Venanzio Capretta and Christopher Purdy}
+
+\usepackage{notations}
+
+\newtheorem{lemmainner}{Lemma}
+\newenvironment{lemma}[1]{%
+  \renewcommand\thelemmainner{#1}%
+  \lemmainner
+}{\endlemmainner}
+
+\begin{document}
+\bibliographystyle{plain}
+
+\maketitle
+
+This appendix is a supplement to our main paper, containing lemmas used for proving applicative laws and disproving monad laws in relation to monadic streams. 
+
+\begin{lemma}{5}\label{lemma:monster_pure}
+$$
+\apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
+$$
+\end{lemma}
+\begin{proof}
+By unfolding definitions and using the identity law for the applicative functor $M$:
+$$
+\begin{array}{ll}
+\apure_{\stream{M}}\,a \\
+{}= a \acons \apure_{\stream{M}}\,a
+  & \mbox{by definition of }\apure_{\stream{M}} \\
+{}= (\apure_M\,a) \fcons (\apure_{\stream{M}}\,a)
+  & \mbox{by definition of }\acons\\
+{}=  \mcons\, (M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)\,(\apure_M\,a))
+  & \mbox{by definition of }\fcons\\
+{}= \mcons\, (\apure_M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle) \appl \apure_M\,a)
+  & \mbox{by functoriality of applicatives}\\
+{}= \mcons\, (\apure_M\,((\lambda a. \langle a, \apure_{\stream{M}}\,a\rangle)\,a))
+  & \mbox{by the homomorphism law for }M\\
+{}= \mcons\, (\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
+  & \mbox{by function application}
+\end{array}
+$$
+\end{proof}
+
+%---
+
+\begin{lemma}{10}\label{lemma:pure_lift}
+For an applicative functor $M$, with $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$:
+$$
+(\apure_M\, a) \alift{\oplus} (\apure_M\, b) = \apure_M\, (a \oplus b)
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure_M\, a) \alift{\oplus} (\apure_M\, b) \\
+{}= \apure_M\, (\oplus) \appl \apure_M\, a \appl \apure_M\, b
+  & \mbox{by definition of }\alift{-}\\
+{}= \apure_M\, (a\, \oplus) \appl \apure_M\, b
+  & \mbox{by homomorphism law of }M\\
+{}= \apure_M\, (a \oplus b)
+  & \mbox{by homomorphism law of }M\\
+\end{array}
+$$
+\end{proof}
+
+%---
+
+\begin{lemma}{11}\label{lemma:applicative_flip}
+Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
+$$
+\apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
+$$
+\end{lemma}
+\begin{proof}
+Since the operator $\appl$ is left-associative, the left hand side of the equality is read as:
+$$
+(\apure_M\, f \appl m_a) \appl \apure_M\, b
+$$
+which means that we can apply the interchange law to it.
+In the application of the law we abstract a variable $h$ of type $B\rightarrow C$:
+$$
+\begin{array}{ll}
+\apure_M\, f \appl m_a \appl \apure_M\, b \\
+{} =  \apure_M\, (\lambda h. h\, b) \appl (\apure_M\, f \appl m_a)
+ & \mbox{by interchange law of }M\\
+{} =  (\apure_M\, (\lambda h. h\, b) \alift{\comp} \apure_M\, f) \appl m_a
+ & \mbox{by composition law of }M\\
+{} =  \apure_M ( (\lambda h. h\, b) \comp f ) ) \appl m_a
+ & \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{} =  \apure_M (\lambda a. f\, a\, b ) \appl m_a
+ & \mbox{by definition of composition}\\
+\end{array}
+$$
+\end{proof}
+
+%---
+
+\begin{lemma}{13}\label{lemma:comp_comp}
+$$
+(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
+$$
+\end{lemma}
+\begin{proof}
+Just expand the definition of the two composition operators.
+\end{proof}
+
+\begin{lemma}{14}\label{lemma:comp_comp_comp}
+$$
+(\clift{\clift{\oplus}{A}}{X}) =
+\lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
+$$
+\end{lemma}
+\begin{proof}
+Apply Lemma \ref{lemma:comp_comp} twice and simplify.
+\end{proof}
+
+\newpage
+
+\begin{lemma}{15}\label{lemma:pappl_comp_appl}
+Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
+$$
+m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
+ = \apure\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+m_g \alift{\pappl} (m_f \alift{\pappl} m_a) \\
+{}= \apure\, (\pappl) \appl m_g \appl (\apure\, (\pappl) \appl m_f \appl m_a) \\
+ \mbox{by definition of }\alift{-}\\
+{}= (\apure\, (\pappl) \appl m_g) \alift{\comp} (\apure\, (\pappl) \appl m_f)  \appl m_a \\
+ \mbox{by composition law for }M \\
+{}=   \apure\, (\comp) \appl  (\apure\, (\pappl) \appl m_g) \appl (\apure\, (\pappl) \appl m_f) \appl m_a \\
+ \mbox{by definition of }\alift{-}\\
+{}=   (\apure\, (\comp) \alift{\comp}  \apure\, (\pappl)) \appl m_g \appl (\apure\, (\pappl) \appl m_f) \appl m_a \\
+ \mbox{by composition law for }M \\
+{}=   ( \apure\, ((\comp) \comp (\pappl)) \appl m_g ) \appl (\apure\, (\pappl) \appl m_f)   \appl m_a\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}=   ( \apure\, (\clift{\pappl}{\pstream{A}}) \appl m_g ) \appl (\apure\, (\pappl) \appl m_f)   \appl m_a\\
+ \mbox{by definition}\\
+{}=   ( ( \apure\, (\clift{\pappl}{\pstream{A}})  \appl m_g ) \alift{\comp} \apure\, (\pappl)) \appl m_f  \appl m_a\\
+ \mbox{by composition law for }M \\
+{}=  \apure\, (\comp) \appl (\apure\, (\clift{\pappl}{\pstream{A}})  \appl m_g ) \appl \apure\, (\pappl)  \appl m_f  \appl m_a\\
+ \mbox{by definition of }\alift{-} \\
+{}=   (\apure\, (\comp) \alift{\comp}  \apure\, (\clift{\pappl}{\pstream{A}}) ) \appl m_g \appl \apure\, (\pappl) \appl m_f \appl m_a\\
+ \mbox{by composition law for }M \\
+{}=   \apure\, ((\comp) \comp \clift{\pappl}{\pstream{A}}) \appl m_g \appl \apure\, (\pappl) \appl m_f \appl m_a\\
+ \mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}=    \apure\, (\clift{\clift{\pappl}{\pstream{A}}}{\pstream{A\rightarrow B}}) \appl m_g \appl \apure\, (\pappl) \appl m_f  \appl m_a\\
+ \mbox{by definition}\\
+{}= \apure\, (\lambda \pstr{g} . \pstr{g} \clift{\clift{\pappl}{\pstream{A}}}{\pstream{A\rightarrow B}} (\pappl) ) \appl m_g  \appl m_f  \appl m_a\\
+ \mbox{by Lemma \ref{lemma:applicative_flip}}\\
+{}=  \apure\, (\lambda \pstr{g} . \lambda \pstr{f}. \lambda \pstr{a} . (\pstr{g}\, \pappl (\pstr{f} \pappl \pstr{a})) ) \appl m_g  \appl m_f  \appl m_a\\
+ \mbox{by Lemma \ref{lemma:comp_comp_comp}}\\
+\end{array}
+$$
+\end{proof}
+
+% ---
+\newpage
+
+\begin{lemma}{16}\label{lemma:ppair}
+$$
+(\apure_M\,\ppair{\comp})\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
+= \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{ll}
+(\apure_M\,\ppair{\comp}) \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a\\
+{}=
+(\apure_M\,(\pappl) \appl \apure_M\,\ppair{\comp} \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= (\apure_M\,(\ppair{\comp}\, \pappl) \appl m_g) \alift{\pappl} m_f \alift{\pappl} m_a\\
+ \mbox{by homomorphism law of }M\\
+{}= (\apure_M\,(\pappl) \appl (\apure_M\,(\ppair{\comp}\, \pappl) \appl m_g) \appl m_f) \alift{\pappl} m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= (
+       (\apure_M\,(\pappl) \alift{\comp} \apure_M\,(\ppair{\comp} \pappl {}))
+       \appl m_g
+     \appl m_f) \alift{\pappl} m_a\\
+\mbox{by composition law of }M\\
+{}= ((
+       \apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))
+       \appl m_g
+     ) \appl m_f) \alift{\pappl} m_a\\
+\mbox{by Lemma \ref{lemma:pure_lift}}\\
+{}= \apure_M\,(\pappl) \appl
+    ((
+       \apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))
+       \appl m_g
+     ) \appl m_f) \appl m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= (\apure_M\,(\pappl) \alift{\comp}
+     (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))
+       \appl m_g))
+    \appl m_f \appl m_a\\
+\mbox{by composition law of }M\\
+{}= \apure_M\,(\comp) \appl
+     \apure_M\,(\pappl) \appl
+     (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))
+       \appl m_g)
+    \appl m_f \appl m_a\\
+\mbox{by definition of }\alift{-}\\
+{}= \apure_M\,((\pappl) \comp {}) \appl
+     (\apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {}))
+       \appl m_g)
+    \appl m_f \appl m_a\\
+ \mbox{by homomorphism law of }M\\
+{}= (\apure_M\,((\pappl) \comp {}) \alift{\comp}
+     \apure_M\,((\pappl) \comp (\ppair{\comp} \pappl {})))
+    \appl m_g \appl m_f \appl m_a\\
+\mbox{by composition law of }M\\
+{}= \apure_M\,(((\pappl) \comp {}) \comp
+                ((\pappl) \comp (\ppair{\comp} \pappl {})))
+    \appl m_g \appl m_f \appl m_a\\
+\mbox{by Lemma \ref{lemma:pure_lift}}
+\end{array}
+$$
+
+We are left with the daunting high-order expression:
+$$
+((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {}))
+$$
+where the composition operator $\comp$ is used in several places with different types.
+The whole expression has type $\pstream{B\rightarrow C}\rightarrow \pstream{A\rightarrow B} \rightarrow \pstream{A}\rightarrow \pstream{C}$.
+If we apply it to elements $\pstr{g}$, $\pstr{f}$, $\pstr{a}$ and simplify by repeatedly applying the definition of composition, we get:
+$$
+\begin{array}{l}
+(((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {})))\,
+\pstr{g}\,\pstr{f}\,\pstr{a}\\
+{}= (((\pappl) \comp {}) (((\pappl) \comp (\ppair{\comp} \pappl {}))\,\pstr{g}))\,
+    \pstr{f}\,\pstr{a}\\
+{}= (((\pappl) \comp {}) ((\pappl) (\ppair{\comp} \pappl\pstr{g})))\,
+    \pstr{f}\,\pstr{a}\\
+{}= ((\pappl) ((\ppair{\comp} \pappl\pstr{g}) \pappl \pstr{f}))\,\pstr{a}\\
+{}= (\ppair{\comp} \pappl\pstr{g}) \pappl \pstr{f})\pappl\pstr{a}\\
+\end{array}
+$$
+Therefore:
+$$
+((\pappl) \comp {}) \comp ((\pappl) \comp (\ppair{\comp} \pappl {}))
+= \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}.
+  \ppair{\comp} \pappl\pstr{g} \pappl \pstr{f} \pappl\pstr{a}
+$$
+which concludes the proof.
+\end{proof}
+
+%---
+
+\begin{lemma}{18}\label{lemma:general_bind_law}
+For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
+$$
+(\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{traverse}\, (f\, n)))})\, (\head\, (f\, n)))
+$$
+\end{lemma}
+
+\begin{proof}
+$$
+\begin{array}{ll}
+(\join \comp  M\, f \comp \return)\, n \\
+{}= (\join \comp  M\, f)\, (\apure_{\stream{M}}\, n)
+  & \mbox{by definition of } \return \mbox{ as } \apure \\
+{}= \join\, (\apure_{\stream{M}}\, (f \,n))
+  & \mbox{by the homomorphism law for } \stream{M}\\
+{}= \mcons\, ((\uncons\, (\apure_{\stream{M}}\, (f\, n)))\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)))
+  & \mbox{by definition of } \join \\
+{}= \mcons\,((\apure_{M}\,\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)})\, \bind \\\qquad \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\, \mathsf{traverse})\, ts})\, (\head\, hs)))
+  & \mbox{by definition of } \uncons \mbox{ and Lemma \ref{lemma:monster_pure}}\\
+{}= \mcons\, ((\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)) \, \\\qquad (\pair{f\, n}{\apure_{\stream{M}}\,(f\, n)}))
+  & \mbox{by left identity law of } M \\
+{}= \mcons\,(M\,(\lambda a . \pair{a}{(\join \comp \stream{M}\,\mathsf{traverse})\, (\apure_{\stream{M}}\,(f\, n))})\, \\ \qquad (\head\, (f\, n)))
+ & \mbox{function application} \\
+ {}= \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\mathsf{traverse}\, (f\, n)))})\, (\head\, (f\, n)))
+ & \mbox{by the homomorphism law for } \stream{M}\\
+
+\end{array} 
+$$
+\end{proof}
+
+%---
+
+\begin{lemma}{19}\label{lemma:traverse_fromstepstr}
+$$
+\mathsf{traverse}\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
+$$
+\end{lemma} 
+
+\begin{proof}
+We prove this by expanding definitions
+$$
+\begin{array}{ll}
+\mathsf{traverse}\, (\fromstepstr\, n) \\
+{}= \mathsf{traverse}\, (\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n}))
+	& \mbox{by definition of }\fromstepstr \\
+{}= (\mathsf{absorb} \comp \tail \comp \uncons)\, \\\qquad (\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n}))
+	& \mbox{by definition of }\mathsf{traverse} \\
+{}= (\mathsf{absorb} \comp \tail)\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n})
+	& \mbox{by definition of }\uncons \\
+{}= \mathsf{absorb}\, (\lambda s. \pair{\fromstepstr\, (n + 1)}{s + n})
+	& \mbox{by definition of }\tail \\
+{}= \mathsf{absorb}\, (\lambda s. \pair{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)}))}{s + n})
+	& \mbox{by definition of }\fromstepstr \\
+{}= (\mcons \comp \join_{\state_{\nat}} \comp \state_{\nat}\,\uncons) \\\qquad \, (\lambda s. \pair{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)}))}{s + n})
+	& \mbox{by definition of }\mathsf{absorb} \\
+{}= (\mcons \comp \join_{\state_{\nat}})\, \\\qquad (\lambda s. \pair{(\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + (n + 1)})}{s + n})
+	& \mbox{by functoriality of }\state_{\nat} \\
+{}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{(s + n) + (n + 1)})
+	& \mbox{by definition of } \join_{\state_{\nat}} \\
+{}= \mcons\, (\lambda s. \pair{\pair{s + n}{\fromstepstr\,(n + 2)}}{s + 2n + 1})
+	& \mbox{non-trivial arithmetic} \\
+\end{array}
+$$
+\end{proof}
+
+
+\bibliography{monster_biblio.bib}
+
+\end{document}
