@@ -580,34 +580,33 @@ $$
 \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a}
 $$
 
-\vcomm{The following needs to be revised with new notation}
+Let's assume the abstracted variable are in canonical form: $\pstr{g} = \pair{g}{\tau_g}$, $\pstr{f} = \pair{f}{\tau_f}$, $\pstr{a} = \pair{a}{\tau_a}$.
 
-We can prove this by observing the canonical forms of the lambda arguments. We use the coinduction hypothesis in this proof, but it is the context of the larger argument presented above: $\phi_g$, $\phi_f$ and $\phi_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
+We use the coinduction hypothesis to prove the equality.
+This is justified because the equality itself is embedded in an application of the constructor $\mcons$: in this context, $\tau_g$, $\tau_f$ and $\tau_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
 $$
 \begin{array}{ll}
-\lambda g . \lambda f . \lambda a .(g\, \pappl (f \pappl a)) \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .( \pair{g}{\phi_g}\, \pappl (\pair{f}{\phi_f} \pappl \pair{a}{\phi_a}))
-& \mbox{by canonical forms of }g, f, a\\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} . \pair{g}{\phi_g}\, \pappl \pair{f a}{\phi_f \appl \phi_a}
+\pstr{g}\, \pappl (\pstr{f} \pappl \pstr{a})
+ = \pair{g}{\tau_g}\, \pappl (\pair{f}{\tau_f} \pappl \pair{a}{\tau_a}) \\
+{}= \pair{g}{\tau_g}\, \pappl \pair{f\, a}{\tau_f \appl \tau_a}
 & \mbox{by definition of }\pappl \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{g (f a)}{\phi_g \appl (\phi_f \appl \phi_a)}
+{}= \pair{g\, (f\, a)}{\tau_g \appl (\tau_f \appl \tau_a)}
 & \mbox{by definition of }\pappl \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(g \comp f)\, a)}{\phi_g \appl (\phi_f \appl \phi_a)}
+{}= \pair{(g \comp f)\, a)}{\tau_g \appl (\tau_f \appl \tau_a)}
 & \mbox{by definition of }\comp \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(((\comp)\, g)\, f)\, a}{\phi_g \appl (\phi_f \appl \phi_a)}
+{}= \pair{((\comp)\, g\, f)\, a}{\tau_g \appl (\tau_f \appl \tau_a)}
 & \mbox{trivial} \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(((\comp)\, g)\, f)\, a}{(\phi_g \alift{\comp} \phi_f) \appl \phi_a}
-& \mbox{\bf by coinduction hypothesis} \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a} .\pair{(((\comp)\, g)\, f)\, a}{(((\apure_{\stream{M}}\, (\comp)) \appl \phi_g) \appl \phi_f) \appl \phi_a}
+{}= \pair{(((\comp)\, g)\, f)\, a}{(\tau_g \alift{\comp} \tau_f) \appl \tau_a}
+& \mbox{by coinduction hypothesis} \\
+{}= \pair{(((\comp)\, g)\, f)\, a}{(\apure_{\stream{M}}\, (\comp)) \appl \tau_g \appl \tau_f \appl \tau_a}
 & \mbox{by definition of }\alift{-} \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a}.\pair{((\comp)\, g)\, f}{((\apure_{\stream{M}}\, (\comp)) \appl \phi_g) \appl \phi_f} \pappl  \pair{a}{\phi_a}
+{}= \pair{((\comp)\, g)\, f}{(\apure_{\stream{M}}\, (\comp)) \appl \tau_g \appl \tau_f} \pappl  \pair{a}{\tau_a}
 & \mbox{by definition of }\pappl \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a}. (\pair{(\comp)\, g}{(\apure_{\stream{M}}\, (\comp)) \appl \phi_g} \pappl \pair{f}{\phi_f}) \pappl \pair{a}{\phi_a}
+{}= \pair{(\comp)\, g}{(\apure_{\stream{M}}\, (\comp)) \appl \tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
 & \mbox{by definition of }\pappl \\
-{}= \lambda \pair{g}{\phi_g} . \lambda \pair{f}{\phi_f} . \lambda \pair{a}{\phi_a}. ((\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl \pair{g}{\phi_g}) \pappl \pair{f}{\phi_f}) \pappl \pair{a}{\phi_a}
+{}= \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl \pair{g}{\tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
 & \mbox{by definition of }\pappl \\
-{}= \lambda g . \lambda f . \lambda a. ((\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl g) \pappl f) \pappl a
-& \mbox{by abstraction} \\
+{}= \ppair{\comp} \pappl \pstr{g} \pappl \pstr{f} \pappl \pstr{a}
 \end{array}
 $$
 \end{proof}
