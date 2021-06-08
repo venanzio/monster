@@ -1,0 +1,31 @@
+\documentclass{article}
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{pstricks,pst-node}
+
+\title{Programming with Monsters}
+\author{Venanzio Capretta and Christopher Purdy}
+
+\usepackage{notations}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{example}[definition]{Example}
+\newtheorem{conjecture}[definition]{Conjecture}
+
+\begin{document}
+\bibliographystyle{plain}
+
+\maketitle
+
+\input{introduction}
+\input{functor}
+\input{applicative}
+\input{monad_counterexample}
+\input{conclusions}
+
+\bibliography{monster_biblio.bib}
+
+\end{document}

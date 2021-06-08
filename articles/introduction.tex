@@ -1,5 +1,3 @@
-\vcomm{Intuitive explanation of monsters.}
-
 \section{Introduction}
 
 A monadic stream is a sequence of values in which every subsequent element is obtained by triggering a monadic action.
@@ -70,33 +68,6 @@ The most important instances are monads and it is convenient to use the faciliti
 The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
 Haskell will accept the definition when $M$ is any operator, but mathematically the type is well defined only when $F_M\,X = M\,(A\times X)$ is a functor with a final coalgebra.
 
-\begin{definition}\label{def:fincoal}
-For any functor $F$, a {\em coalgebra} for $F$ is pair $\langle A,\alpha\rangle$ consisting of a type $A$ and a function $\alpha:A\rightarrow FA$.
-
-We say that $\langle A,\alpha\rangle$ is a {\em final $F$-coalgebra} if, 
-for every coalgebra $\langle X,\xi:X\rightarrow F X\rangle$, 
-there is a unique coalgebra morphism between the the two coalgebras:
-$\ana{\xi}:\langle X,\xi\rangle \to \langle A,\alpha\rangle$.
-Such a morphism is a function between the types that commutes with the coalgebra functions:
-$$
-\setlength\arraycolsep{30pt}
-\begin{array}{cc} \ \\
-\Rnode{a}{A} & \Rnode{fa}{FA} \\[30pt]
-\Rnode{x}{X} & \Rnode{fx}{FX} \\ \ 
-\end{array}
-\psset{nodesep=5pt,arrows=->}
-\ncline{a}{fa} \taput{\alpha}
-\ncline{x}{fx} \tbput{\xi}
-\ncline[linestyle=dotted]{x}{a}  \tlput{\ana{\xi}}
-\ncline{fx}{fa} \trput{F\,\ana{\xi}}
-\qquad \alpha \circ \ana{\xi} = F\,\ana{\xi} \circ \xi.
-$$
-The function is called $\ana{\xi}$ because it is sometimes called the {\em anamorphism} for the coalgebra $\xi$.
-\end{definition}
-
-This definition means that we can define a function into a coinductive type by giving a coalgebra.
-For example, consider the data type of a pure stream of natural numbers:
-The type $\stream{A}$ is the final coalgebra of the functor $F(X) = A\times X$.
 
 We can define a function into $\stream{A}$ by defining a coalgebra on the domain type $A$, which in this case is $\nat$.
 For example, if we want to define a function that maps any natural number $n$ to the stream of numbers starting from $n$, $n\scons (n+1) \scons (n+2) \scons (n+3) \scons \cdots$, we can do it by using a coalgebra on $\nat$:
