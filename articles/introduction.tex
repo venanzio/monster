@@ -20,6 +20,9 @@ but it does for most of the commonly used monads, specifically for those that ar
 
 The definition of $M$-monsters is very close to that of {\em cofree (or iterative) comonad}, which can be seen as the type of $M$-monsters with a pure 
 leading value \cite{AAMV:2003,CUV:2006}.
+We introduced them in a previous article \cite{capretta/fowler:2017}, where we proved that polymorphic discrete functions on monadic streams are always continuous.
+A slightly different definition of monadic stream functions have been studied previously by Perez, B{\"{a}}renz and Nilsson \cite{PBN:2016} to model signal processors.
+
 
 The monadic streams definition is a type operator $\stream{M}$ that maps a type $A$ to the type of $M$-monsters with elements of type $A$.
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
