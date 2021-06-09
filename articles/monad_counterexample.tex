@@ -1,18 +1,32 @@
 \section{Monsters are Not Monads}\label{sec:monad}
 
-We show here that the seemingly most natural way of defining a $\join$ operation on monsters doesn't satisfy the monad laws. \\
+The pure stream constructor $\strsym$ is known to be a monad, by making the $\join$ method return the diagonal of a stream of streams.
+We may think of extending this definition to monsters: since pure streams are $\Id$-monsters, the principle of polymorphic parametricity (naturality) suggests that taking the diagonal is the only reasonable attempt.
+However, we show in this session that this fails, by giving a counterexample for state-monsters.
 
-A monad can be defined in bind form as a functor $M$, equipped with two methods, $\return$ and $\bind$:
+A monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a $\join$ or a bind operation sequencing monadic actions, satisfying three laws.
 $$
 \begin{array}{l}
 \return : A \rightarrow M\, A \\
+\join : M\,(M\, A) \rightarrow M\, A\\
+\mbox{ or }
 (\bind) : M\, A \rightarrow (A \rightarrow M\, B) \rightarrow M\, B
 \end{array}
 $$
-If a functor is a monad, it is an applicative functor. The correct definition for the $\return$ operation is always the same as that of $\apure$, and visa-versa. \\
 
-For a functor $M$ the monad laws are as follows, where $a:A$, $m_a : M\, A$
-$f : A \rightarrow M\, B$, $g : B \rightarrow M\,C$. We write these in terms of $\bind$, derived from Kleisli arrow composition and identity laws:
+The $\bind$ and $\join$ operations can be defined in terms of each other:
+
+$$
+\begin{array}{l}
+(\bind\, f) = \join \comp M f \\
+\join = (\bind\,\id)
+\end{array}
+$$
+
+The laws can be expressed either in terms of $\join$ or $\bind$.
+The following is the formulation in terms of $\bind$.
+Let $a:A$, $m_a : M\, A$
+$f : A \rightarrow M\, B$, $g : B \rightarrow M\,C$:
 $$
 \begin{array}{l@{\qquad}l}
 (\return\, a)\, \bind \, f = f\, a
@@ -23,17 +37,17 @@ m_a\, \bind \, \return = m_a
   & \mbox{Composition} \\
 \end{array}
 $$
-A more categorical way of defining a monad is in terms $\join : M\,(M\, A) \rightarrow M\, A$.
-$$
-\join : M\,(M\, A) \rightarrow M\, A
-$$
-The $\bind$ operation can be defined in terms of $\join$, and visa-versa.
-$$
-\begin{array}{l}
-(\bind\, f) = \join \comp M f \\
-\join = (\bind\,\id)
-\end{array}
-$$
+
+
+
+
+
+
+
+A monad is automatically an applicative functor. 
+The correct definition for the $\return$ operation is always the same as that of $\apure$, and visa-versa. \\
+
+
 
 By showing that a natural definition of $\join$ does not satisfy the monad laws, we also show that the corresponding definition of $\bind$ does not either.
 
