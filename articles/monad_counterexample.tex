@@ -4,7 +4,7 @@ The pure stream constructor $\strsym$ is known to be a monad, by making the $\jo
 We may think of extending this definition to monsters: since pure streams are $\Id$-monsters, the principle of polymorphic parametricity (naturality) suggests that taking the diagonal is the only reasonable attempt.
 However, we show in this session that this fails, by giving a counterexample for state-monsters.
 
-A monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a $\join$ or a bind operation sequencing monadic actions, satisfying three laws.
+A monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a join or a bind operation sequencing monadic actions, satisfying three laws.
 $$
 \begin{array}{l}
 \return : A \rightarrow M\, A \\
@@ -14,7 +14,7 @@ $$
 \end{array}
 $$
 
-The $\bind$ and $\join$ operations can be defined in terms of each other:
+The $(\bind)$ and $\join$ operations can be defined in terms of each other:
 
 $$
 \begin{array}{l}
@@ -23,10 +23,11 @@ $$
 \end{array}
 $$
 
-The laws can be expressed either in terms of $\join$ or $\bind$.
-The following is the formulation in terms of $\bind$.
-Let $a:A$, $m_a : M\, A$
+The laws can be expressed either in terms of $\join$ or $(\bind)$.
+The following is the formulation in terms of $(\bind)$.
+Let $a:A$, $m_a : M\, A$,
 $f : A \rightarrow M\, B$, $g : B \rightarrow M\,C$:
+
 $$
 \begin{array}{l@{\qquad}l}
 (\return\, a)\, \bind \, f = f\, a
@@ -38,22 +39,17 @@ m_a\, \bind \, \return = m_a
 \end{array}
 $$
 
+A monad is automatically an applicative functor:
+$\apure$ is the same as $\return$ nad $\appl$ can be defined as:
 
+$$
+m_f\appl m_a = m_f \bind (\lambda f. m_a \bind (\lambda a. f\,a))
+$$
 
+Our naive implementation of $\join$ takes the `diagonal' to flatten a monster of monsters. This means taking the first element of the first monster, the second element of the second monster, and so on. 
+This seems the most sensible approach as it generalizes canonical $\join$ operation of the pure stream monad.
 
-
-
-
-A monad is automatically an applicative functor. 
-The correct definition for the $\return$ operation is always the same as that of $\apure$, and visa-versa. \\
-
-
-
-By showing that a natural definition of $\join$ does not satisfy the monad laws, we also show that the corresponding definition of $\bind$ does not either.
-
-Our naive implementation of $\join$ takes the `diagonal' to flatten a monster of monsters. This means taking the first element of the first monster, the second element of the second monster, and so on. This was - to us - the most natural way to approach this definition initially, as it is similar to the canonical $\join$ operation of the pure stream monad. \\
-
-We first define three auxiliary functions:
+We first define four auxiliary functions:
 $$
 \begin{array}{l}
 \uncons : \stream{M}\,A \rightarrow M\,(A \times \stream{M}\,A)\\
@@ -61,6 +57,11 @@ $$
 \,\\
 \mathsf{absorb} : M\,(\stream{M}\,A) \rightarrow \stream{M}\,A \\
 \mathsf{absorb} =  \mcons \comp \join_{M} \comp M\,\uncons \\
+\end{array}
+  \qquad
+\begin{array}{l}
+\tail : \stream{M}\,A \rightarrow M\,(\stream{M}\,A)\\
+\tail = M\,\snd \comp \uncons\\
 \,\\
 \mathsf{traverse} : \stream{M}\,A \rightarrow \stream{M}\,A \\
 \mathsf{traverse} = \mathsf{absorb} \comp \tail \comp \uncons
@@ -72,32 +73,42 @@ $hs : \stream{M}\, A$, $a : M\, A$. We assume that the type operator $M$ is equi
 $$
 \join\, s = \mcons\, ((\uncons\, s) \, \bind \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join\, \comp\, \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)))
 $$
-We introduce the functor $\state\stream{S} = \stream{\state_S}$, where $\state_S A = S \rightarrow A \times S$, representing the $\state$ functor with states of type $S$, and return values of type $A$. We assume it is equipped with the usual monad operations for the $\state$ monad. We call these types of monsters (those with an underlying $\state$ monad) state machines.
+
+We recall the notation for state-monsters: $\stmon{S} = \stream{\state_S}$, where $\state_S A = S \rightarrow A \times S$, representing the $\state$ functor with states of type $S$, and return values of type $A$. 
+We assume it is equipped with the usual monad operations for the $\state$ monad. We call these types of monsters (those with an underlying $\state$ monad) state machines.
+
 $$
 \begin{array}{l}
-\fromstepstr : \nat \rightarrow \state\stream{\nat}\,\nat \\
+\fromstepstr : \nat \rightarrow \stmon{\nat}\,\nat \\
 \fromstepstr\, n = \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
 \end{array}
 $$
+
 This function generates a state machine which, when given a number, generates a stream where the first two numbers differ by $n$, the next two differ by $n + 1$, and so on.
 % Runner function
 %To observe the results of monsters of this type, we need a `runner' function that generates a pure stream:
 %$$
 %\begin{array}{l}
-%\mathsf{run}\state\stream{} :: \state\stream{S}\, A \rightarrow S \rightarrow \stream{\Id}\,A \\
-%\mathsf{run}\state\stream{}\, m_0\, s_0 = n \acons (\mathsf{run}\state\stream{}\, m_1\, %s_1) \\
+%\strun :: \stmon{S}\, A \rightarrow S \rightarrow \stream{\Id}\,A \\
+%\strun\, m_0\, s_0 = n \acons (\strun\, m_1\, %s_1) \\
 %\qquad \where\, \pair{\pair{n}{m_1}}{s_1} = (\uncons\, m_0)\, s_0
 %\end{array}
 %$$
 
 You can `run' this state machine by threading the state through each nested function, and collecting the results. This requires an initial seed state. For example:
+
 $$
-\mathsf{run}\state\stream{}\,(\fromstepstr\, 1)\, 2 = 2\, \acons\, 3\, \acons\, 5\, \acons\, 8\, \acons\, 12\, \acons\, \dots
-$$\\
+\strun\,(\fromstepstr\, 1)\, 2 = 2\, \acons\, 3\, \acons\, 5\, \acons\, 8\, \acons\, 12\, \acons\, \dots
+$$
+
 We now show that this specific case of the left identity monad law does not hold. 
+
 $$
-(\join \comp \state\stream{\nat}\, \fromstepstr \comp \return)\, n = \fromstepstr\, n
+(\join \comp \stmon{\nat}\, \fromstepstr \comp \return)\, n = \fromstepstr\, n
 $$
+\vcomm{Where does this law come from? The laws as we formulated them are in term of bind.}
+
+
 
 The law is expanded using the definition of $\bind$ in terms of $\join$. 
 To show this does not hold, the following two lemmas are useful to simplify reasoning. Any uses of $\join$ without a subscript refer to the $\join$ operation for monsters, otherwise the subscript will indicate the monad.
@@ -133,10 +144,10 @@ $$
 We then compare it to the other side of the left-identity law
 $$
 \begin{array}{ll}
-(\join \comp  \state\stream{\nat}\, \fromstepstr \comp \return)\, n \\
-{}= \mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{\join\, (\apure_{\state\stream{\nat}}\, (\mathsf{traverse}\, (\fromstepstr\, n)))})\, (\head\, (\fromstepstr\, n))) \\
+(\join \comp  \stmon{\nat}\, \fromstepstr \comp \return)\, n \\
+{}= \mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{\join\, (\apure_{\stmon{\nat}}\, (\mathsf{traverse}\, (\fromstepstr\, n)))})\, (\head\, (\fromstepstr\, n))) \\
  \mbox{by Lemma \ref{lemma:general_bind_law}}  \\
-{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{\join\, (\apure_{\state\stream{\nat}}\,(\mathsf{traverse}\, (\fromstepstr\, n)))})\, (\lambda s. \pair{s}{s + n})) \\
+{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{\join\, (\apure_{\stmon{\nat}}\,(\mathsf{traverse}\, (\fromstepstr\, n)))})\, (\lambda s. \pair{s}{s + n})) \\
  \mbox{by definition of } \head \mbox{ and } \fromstepstr \\
 {}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
 \mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, (\head\, (\mathsf{traverse}\, (\fromstepstr\, n))))
@@ -172,4 +183,4 @@ The issue is that the first monadic action (that of $\fromstepstr\, n$) is repea
 This indicates that monsters may still be monads if the underlying functor is an idempotent monad instead. 
 We have yet to prove this, and we are also looking for a weaker condition on the underlying functor, as idempotency is a strong requirement. \\
 
-An argument could be made that the only possible definition of $\join$ is the one we consider here. Pure streams are simply monsters with the underlying monad $\Id$, and taking the diagonal is the canonical $\join$ operation in this case. By naturality of the $\join$ operation, the definition may have to be independent of the particular underlying monad chosen. If this is the case, then monsters are not monads, because as demonstrated, the diagonal $\join$ operation does not satisfy the required laws for $\state\stream{\nat}$, so either a different definition is required (which could violate naturality), or monsters (with a monadic underlying functor) are not monads in general. We suspect it is the latter, and one goal of our future work is to verify this.
+An argument could be made that the only possible definition of $\join$ is the one we consider here. Pure streams are simply monsters with the underlying monad $\Id$, and taking the diagonal is the canonical $\join$ operation in this case. By naturality of the $\join$ operation, the definition may have to be independent of the particular underlying monad chosen. If this is the case, then monsters are not monads, because as demonstrated, the diagonal $\join$ operation does not satisfy the required laws for $\stmon{\nat}$, so either a different definition is required (which could violate naturality), or monsters (with a monadic underlying functor) are not monads in general. We suspect it is the latter, and one goal of our future work is to verify this.
