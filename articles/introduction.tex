@@ -191,4 +191,11 @@ In summary our results are:
 \item If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor;
 \item $\stream{M}$ is not a monad is general, even when $M$ is a monad.
 \end{itemize}
+
+The proof of the first result is straightforward and unproblematic.
+We give the proofs of the functor laws in Section \ref{sec:functor} anyway, as a warm-up in the use of coinduction arguments that will be illuminating in view of the more complex proofs to come.
+The proofs of the applicative laws, on the other hand, are surprisingly challenging and require the definition of auxiliary notation and several ancillary lemmas.
+Finally, a counterexample using the state transition monad shows that monsters do not form a monad in general. Our counterexample assumes that the join operation takes the {\em diagonal} of a stream of streams.
+This is one possible attempt at a definition, but since the join operation on pure streams ($\Id$-monsters) operates by taking the diagonal, the principle of polymorphic parametricity suggests that no alternative is possible.
+
 These results are important theoretically, they shed light on the abstract properties of monsters, and practically, they allow programmers to use specific notations and extensive libraries for these classes.
