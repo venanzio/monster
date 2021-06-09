@@ -9,8 +9,8 @@ Formally the type of streams over a monad $M$ (let's call them {\em $M$-monsters
 $$
 \begin{array}[t]{l}
 \codata\;
-\stream{M,A}:\set\\
-\quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}
+\stream{M}\,A:\set\\
+\quad \mcons_M: M\,(A\times \stream{M}\,A)\rightarrow\stream{M}\,A
 \end{array}
 $$
 
@@ -21,9 +21,7 @@ but it does for most of the commonly used monads, specifically for those that ar
 The definition of $M$-monsters is very close to that of {\em cofree (or iterative) comonad}, which can be seen as the type of $M$-monsters with a pure 
 leading value \cite{AAMV:2003,CUV:2006}.
 
-The monadic streams definition is a type operator that maps a type $A$ to the type of $M$-monsters with elements of type $A$; we may indicate the operator by $\stream{M}$ and the type by the slightly different notation $(\stream{M}\,A)$.
-This notation will be useful when we prove properties of the operator, for example that it is an applicative functor.
-
+The monadic streams definition is a type operator $\stream{M}$ that maps a type $A$ to the type of $M$-monsters with elements of type $A$.
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
 
 If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
@@ -32,21 +30,18 @@ Its usual definition is the following:
 $$
 \begin{array}[t]{l}
 \codata\;
-\stream{A}:\set\\
-\quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}.
+\strsym\,A:\set\\
+\quad (\scons): A\rightarrow \strsym\,A \rightarrow\strsym\,A
 \end{array}
 $$
 
-An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
+An element of $(\strsym\,A)$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
 
-
-
-
-If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe,A}$, equivalent to the type of lazy lists $\lst{A}$.
+If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe}\,A$, equivalent to the type of lazy lists $\lst{A}$.
 The $\maybe$ monad is a functor that adds an extra element to the argument type:
 $\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
 So $\maybe\,X \cong X+1$.
-The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe}\,A)\rightarrow\stream{\maybe}\,A$ is equivalent to two constructors (for $\nothing$ and $\just$):
 
 $$
 \begin{array}[t]{l}
@@ -66,8 +61,16 @@ In this case each entry in the stream is a list of pairs of heads and tails.
 This is equivalent to trees of arbitrary branching degrees (finite branches if we use only finite lists, but also countably infinite branches if we use lazy lists).
 Since the type is coinductive, the trees can be non-well-founded, that is, they may be infinitely deep.
 
+If we choose $M$ to be the {\em state transformer} monad, $M$-monsters are state machines that, at every step, produce an output value that depends on an underlying state and change the state itself.
+The state transformer monad is defined as $\state_S\,A = S\rightarrow A\times S$, where $S$ is the type of underlying states.
+We use the notation $\stmon{S}\,A = \stream{\state_S}\,A$ to denote state monsters.
+They will be useful to construct the counterexample to the monad laws in Section \ref{sec:monad}.
 
-It is important to make two observations about $M$.
+Finally, in Haskell user interaction and other system effects are encapsulated in the $\io$ monad. An $\io$ action produces a value that possibly depends and triggers effects. $\io$-monsters are interactive processes that continuously interface with the external world.
+
+A companion paper that we will publish later will present the Haskell monster library that we developed and describe several of its applications.
+
+It is important to make two observations about the underlying ``monad'' $M$.
 
 First, $M$ does not need to be a monad for the definition to make sense. 
 In fact we will obtain several interesting results when $M$ satisfies weaker conditions, for example being an applicative functor.
@@ -76,10 +79,116 @@ The most important instances are monads and it is convenient to use the faciliti
 
 The second observation is that it is not guaranteed in general that the $\codata$ type is well-defined.
 Haskell will accept the definition when $M$ is any operator, but mathematically the type is well defined only when $F_M\,X = M\,(A\times X)$ is a functor with a final coalgebra.
-As stated above, this is the case if $M$ is a container functor.
+As stated above, this is the case if $M$ is a container functor and we assume that it is for the rest of the article.
 
-Functions with $M$-monsters as codomain can be defined by explicitely giving a coalgebra.
+Functions with $M$-monsters as codomain can be defined by explicitly giving a coalgebra.
 In practical programming it is more convenient to define function by {\em corecursive equations} that satisfy the property of {\em guardedness by constructors}:
-a corecursive equations is accepted if right-hand side is a term with a constructor on top and recursive calls occurring only as direct arguments of that constructor.
+a corecursive equations is accepted if the right-hand side is a term with a constructor on top and recursive calls occurring only as direct arguments of that constructor.
 
-See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, and corecursive definitions.
+As an example, here is a function that generates a state machine from a natural number:
+
+$$
+\begin{array}{l}
+\frominc : \nat \rightarrow \stmon{\nat}\,\nat \\
+\frominc\, n = \mcons\, (\lambda s. \pair{\pair{s+n}{\frominc\, (n + 1)}}{s + 1})
+\end{array}
+$$
+
+Given an input $n$, this defines a state-monster that reads the current state $s$, returns its as output the value $s+n$, increments the state by 1, and continues recursively by calling itself on input $n+1$.
+In the end it will produce the infinite sequence $s+n \scons s+n+1 \scons s+n+2 \scons \cdots$.
+The justification of the soundness of the definition is in the fact that the recursive call $\frominc\, (n + 1)$ occurs under the guard of the constructor $\mcons $ and is used to generate the recursive sub-stream of the main output value.
+The fact that the input $n+1$ is larger than the original input $n$ is irrelevant to corecursive definitions (contrary to what happens in inductive definitions): what matter is that the first element of the stream and the new state are produced before the call is executed.
+
+Another example is the function from monsters to monsters that increases every element by one.
+This is a function polymorphic on $M$ that only assumes that $M$ is a functor.
+
+$$
+\begin{array}{l}
+\incr : \stream{M}\,\nat \rightarrow \stream{M}\,\nat\\
+\incr\,(\mcons\,m) = \mcons\,(M\,(\lambda \pair{k}{\sigma}. \pair{k+1}{\incr\,\sigma})\,m)
+\end{array}
+$$
+
+Here the pattern-matching variable $m$ has type $M\,(\nat\times \stream{M}\,\nat)$.
+We map onto it the function that increases the output value by one and recursively applies $\incr$ to the tail.
+This recursive occurrence is justified because it is guarded by $\mcons$ and mapped to the direct subterms inside the monad action.
+By the way,
+after we prove that $\stream{M}$ is a functor whenever $M$ is in Section \ref{sec:functor}, and that it is applicative whenever $M$ is in Section \ref{sec:applicative},
+the definition can be simplified and made more intuitive in the following ways, respectively:
+
+$$
+\incr\,\sigma = \stream{M}\,(+1)\,\sigma
+\qquad
+\incr\,\sigma = \apure\,(+1) \appl \sigma
+$$
+
+In the proofs of our results we will make frequent use of the technique of proof by {\em coinduction} on monsters.
+Inductive types comply with an {\em induction principle}, which states that we can prove statements about them by bottom-up recursion on their structure.
+Dually, coinductive types comply with a {\em coinduction principle}, which states that we can prove equalities of their elements by top-down {\em co-recursion} on their structure.
+
+Let us illustrate the idea with the example of pure streams:
+Suppose that we want to prove that two streams $\sigma_0$ and $\sigma_1$ are equal.
+Since streams are infinite sequences of elements, that will require proving equality of their entries in corresponding positions: if $\sigma_0 = a_0\scons a_1\scons a_2\scons \cdots$ and  $\sigma_1 = b_0\scons b_1\scons b_2\scons \cdots$, we must prove $a_0 = b_0$, $a_1 = b_1$, $a_2=b_2$, and so on (we assume equality on streams is extensional).
+This requires an infinite sequence of equalities to prove, and clearly we cannot produce all of these explicitly.
+However, the proof of equality can be seen itself as a stream of proofs of equalities of each pair of elements in the same positions.
+We can use the same principle of guarded recursion to generate all the proofs: we recursively assume that we can prove the equality of the tail streams and we only need to give explicitly the equality of the heads.
+
+In practice the coinduction principle is applied by a corecursive proof that can invoke the statement to be proved under certain structural restrictions.
+When proving the equality of two given terms, we can appeal to the statement that we want to prove, as a {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is only deployed to prove the equality of direct components of the given terms.
+
+As an example,
+let us prove a characterization of the function $\frominc$ defined above.
+\begin{lemma}
+$$
+\forall n:\nat. \frominc\,(n+1) = \incr\,(\frominc\,n)
+$$
+\end{lemma}
+\begin{proof}
+The proof consists of a sequence of computational steps.
+Most of them consists in folding and unfolding definitions and using basic properties of the operators involved, specifically functoriality of the state operator.
+The one unusual step is the {\em coinduction hypothesis} in which we allow ourselves to use an instance of the very statement we are proving.
+
+$$
+\begin{array}{ll}
+\frominc\,(n+1)\\
+{}= \mcons\, (\lambda s. \pair{\pair{s+n+1}{\frominc\, (n + 2)}}{s + 1})
+  & \mbox{definition of }\frominc\\
+{}= \mcons\, (\lambda s. \pair{\pair{s+n+1}{\incr\,(\frominc\,(n+1))}}{s + 1})
+  & \mbox{\bf coinduction hypothesis}\\
+{}= \mcons\,(
+    \begin{array}[t]{l}
+    \state_\nat\,(\lambda \pair{k}{\sigma}. \pair{k+1}{\incr\,\sigma})\\
+    \quad (\lambda s. \pair{\pair{s+n}{\frominc\,(n+1)}}{s + 1}))
+    \end{array}
+  & \mbox{functoriality of }\state_\nat\\
+{}= \incr\,(\mcons\,(\lambda s. \pair{\pair{s+n}{\frominc\,(n+1)}}{s + 1}))
+  & \mbox{definition of }\incr\\
+{}= \incr\,(\frominc\,n)
+  & \mbox{definition of }\frominc
+\end{array}
+$$
+
+The coinduction step invokes the main statement of the lemma to rewrite a subterm.
+This is apparently circular: we assume the truth of the statement while we are proving it.
+However, the occurrence of the hypothesis is guarded by the constructor $\mcons$ and is applied to the recursive argument inside the monadic action.
+The monadic action itself is unchanged a part from this recursive application of the hypothesis.
+This guarantees the the top levels of the two terms are equal.
+It is therefore sound to invoke the hypothesis to prove the lower levels.
+\end{proof}
+
+We will use this style of reasoning repeatedly in the article.
+Most of the proof consist in equational rewriting, with most steps consisting in term reduction, application of known laws and of previously proved lemmas.
+There will usually be a single step justified by {\em coinduction hypothesis}: it will always occur under the guard of a constructor and be mapped inside the monadic action.
+
+See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, corecursive definitions, and proof by coinduction.
+
+The main goal of this article is to study the algebraic properties of monsters, in the form of membership to operator classes.
+Is $\stream{M}$ in general a functor, an applicative functor, a monad?
+What assumptions do we need to make on $M$ to obtain membership of these classes?
+In summary our results are:
+\begin{itemize}
+\item If $M$ is a functor, $\stream{M}$ is also a functor;
+\item If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor;
+\item $\stream{M}$ is not a monad is general, even when $M$ is a monad.
+\end{itemize}
+These results are important theoretically, they shed light on the abstract properties of monsters, and practically, they allow programmers to use specific notations and extensive libraries for these classes.

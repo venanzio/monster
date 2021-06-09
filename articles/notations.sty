@@ -41,12 +41,15 @@
 
 
 % streams
-\newcommand{\stream}[1]{\mathbb{S}_{#1}}
+\newcommand{\strsym}{\mathbb{S}}
+\newcommand{\stream}[1]{\strsym_{#1}}
 \newcommand{\scons}{\triangleleft}
 \newcommand{\mcons}{\mathsf{mcons}}
 \newcommand{\head}{\mathsf{head}}
 \newcommand{\tail}{\mathsf{tail}}
 \newcommand{\uncons}{\mathsf{uncons}}
+
+\newcommand{\stmon}[1]{\mathbb{SM}_{#1}}  % State-monster, #1 = state type
 
 % Notation for M ({#1} \times \stream{M} {#1})
 \newcommand{\pstream}[1]{\mathbb{P}_{#1}}
@@ -56,6 +59,8 @@
 % concrete streams 
 \newcommand{\fromstr}{\mathsf{from}}
 \newcommand{\fromstepstr}{\mathsf{fromStep}}
+\newcommand{\frominc}{\mathsf{fromInc}}
+\newcommand{\incr}{\mathsf{incr}}
 
 % coalgebras
 \newcommand{\ana}[1]{\mathsf{ana}_{#1}}
