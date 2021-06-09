@@ -184,3 +184,13 @@ There will usually be a single step justified by {\em coinduction hypothesis}: i
 
 See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, corecursive definitions, and proof by coinduction.
 
+The main goal of this article is to study the algebraic properties of monsters, in the form of membership to operator classes.
+Is $\stream{M}$ in general a functor, an applicative functor, a monad?
+What assumptions do we need to make on $M$ to obtain membership of these classes?
+In summary our results are:
+\begin{itemize}
+\item If $M$ is a functor, $\stream{M}$ is also a functor;
+\item If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor;
+\item $\stream{M}$ is not a monad is general, even when $M$ is a monad.
+\end{itemize}
+These results are important theoretically, they shed light on the abstract properties of monsters, and practically, they allow programmers to use specific notations and extensive libraries for these classes.
