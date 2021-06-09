@@ -9,8 +9,8 @@ Formally the type of streams over a monad $M$ (let's call them {\em $M$-monsters
 $$
 \begin{array}[t]{l}
 \codata\;
-\stream{M,A}:\set\\
-\quad \mcons_M: M\,(A\times \stream{M,A})\rightarrow\stream{M,A}
+\stream{M}\,A:\set\\
+\quad \mcons_M: M\,(A\times \stream{M}\,A)\rightarrow\stream{M}\,A
 \end{array}
 $$
 
@@ -21,9 +21,7 @@ but it does for most of the commonly used monads, specifically for those that ar
 The definition of $M$-monsters is very close to that of {\em cofree (or iterative) comonad}, which can be seen as the type of $M$-monsters with a pure 
 leading value \cite{AAMV:2003,CUV:2006}.
 
-The monadic streams definition is a type operator that maps a type $A$ to the type of $M$-monsters with elements of type $A$; we may indicate the operator by $\stream{M}$ and the type by the slightly different notation $(\stream{M}\,A)$.
-This notation will be useful when we prove properties of the operator, for example that it is an applicative functor.
-
+The monadic streams definition is a type operator $\stream{M}$ that maps a type $A$ to the type of $M$-monsters with elements of type $A$.
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
 
 If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
@@ -32,18 +30,18 @@ Its usual definition is the following:
 $$
 \begin{array}[t]{l}
 \codata\;
-\stream{A}:\set\\
-\quad (\scons): \nat\rightarrow \stream{\nat} \rightarrow\stream{\nat}.
+\strsym\,A:\set\\
+\quad (\scons): A\rightarrow \strsym\,A \rightarrow\strsym\,A
 \end{array}
 $$
 
-An element of $\stream{A}$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
+An element of $(\strsym\,A)$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
 
-If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe,A}$, equivalent to the type of lazy lists $\lst{A}$.
+If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe}\,A$, equivalent to the type of lazy lists $\lst{A}$.
 The $\maybe$ monad is a functor that adds an extra element to the argument type:
 $\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
 So $\maybe\,X \cong X+1$.
-The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe,A})\rightarrow\stream{\maybe,A}$ is equivalent to two constructors (for $\nothing$ and $\just$):
+The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe}\,A)\rightarrow\stream{\maybe}\,A$ is equivalent to two constructors (for $\nothing$ and $\just$):
 
 $$
 \begin{array}[t]{l}
