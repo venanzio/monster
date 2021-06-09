@@ -71,7 +71,7 @@ $$
 \end{array}
 $$ 
 
-Using the applicative laws for $M$, we can give a simplified characterization of pure monsters.
+Using the applicative laws for $M$, we can give a simplified characterisation of pure monsters.
 The term we use combine the use of $\apure$ on $M$ and on $\stream{M}$.
 This could be confusing, so we explicitely write the functor as subscript. The proof that this characterisation is valid (alongside proofs of later lemmas) is included in the appendix.
 \begin{lemma}\label{lemma:monster_pure} 
@@ -132,12 +132,11 @@ $$
 $$
 \end{proof}
 
-
 In the proofs, we need to avoid confusion between the applicative operations for $M$ and those for $\stream{M}$.
 We assume that the laws are valid for $M$ and we want to prove them for $\stream{M}$.
 In the formulas, the two sets of operations will occur in the same terms, potentially leading to confusion.
 It is clear from the type of the arguments which version is intended, but it may be challenging to keep track of the types.
-Therefore we will use a slightly heavier but clearer notation: we use $M$ as subscript for $\apure$ when the $M$ version is intended, $\stream{M}$ when the monster version is intended; we consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions; we explicitely write the argument type of identity functions as subscripts.
+Therefore we will use a slightly heavier but clearer notation: we use $M$ as subscript for $\apure$ when the $M$ version is intended, $\stream{M}$ when the monster version is intended; we consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions; we explicitly write the argument type of identity functions as subscripts.
 We won't distinguish the occurrences of $\appl$ for $M$ and $\stream{M}$ with subscripts, but they should be clear given the previous notational conventions.
 
 We also use the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\pappl}$ and $\alift{\comp}$.
@@ -188,7 +187,7 @@ $$
 $$
 In the step that makes use of the coinduction hypothesis, we circularly use the lemma's statement that $(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a$.
 The right-hand side occurs under an application of the constructor $\mcons$, inside an application of a pure value. 
-This stuctural positioning of the term ensure that the application of the coinductive hypothesis is sound.
+This structural positioning of the term ensure that the application of the coinductive hypothesis is sound.
 
 \vcomm{This is intuitively OK, but it may be worth exploring it further and making it more rigorous by studying how application of pure functions generate the structure of the result.}
 \end{proof}
