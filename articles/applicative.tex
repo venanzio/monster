@@ -4,29 +4,34 @@ Applicative functors \cite{mcbride/paterson:2008}
 extend the mapping operation by allowing function sequencing under the functor.
 The Applicative class has two methods: $\apure$, that injects single values into the functor, and $\appl$, that applies functions under the functor.
 
-We assume that the type operator $M$ is an applicative functor, that is, it has methods:
+In this section, we assume that the type operator $M$ is an applicative functor, that is, it has methods:
+
 $$
 \begin{array}{l}
 \apure : A \rightarrow M\,A\\
 (\appl): M\,(A\rightarrow B) \rightarrow M\,A \rightarrow M\,B
 \end{array}
 $$
+
 satisfying the four equational laws regulating the interaction of sequencing and pure values and requiring associativity of application.
 
 A typical use of applicative functors is to apply a function of many arguments to several applicative values.
 If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
+
 $$
 \apure\,g \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
 $$
 
 In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
+
 $$
-m_a \alift{\oplus} m_b = (\apure\,(\oplus)) \appl m_a \appl m_b
+m_a \alift{\oplus} m_b = \apure\,(\oplus) \appl m_a \appl m_b
 $$
 
 For the base functor $M$, the laws take the following form, where
  $a:A$, $f:A\rightarrow B$,
 $m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
+
 $$
 \begin{array}{l@{\qquad}l}
 \apure\,\id \appl m_a = m_a
@@ -52,7 +57,8 @@ $
 We will show that $\stream{M}$ is also applicative.
 In order to define the methods, we need some auxiliary functions on applicative monsters.
 First of all, a simplified version of $\mcons$ that appends a single value in front of a monster.
-This in turn uses a similar operator for functors, which appends an $M$-action to the front of a monster
+This in turn uses a similar operator (which works when $M$ is just a functor) which appends an $M$-action to the front of a monster:
+
 $$
 \begin{array}{l}
 (\fcons): M\,A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
@@ -64,6 +70,7 @@ a \acons \sigma = (\apure\, a) \fcons \sigma
 $$
 
 The $\apure$ method for monsters then consists in repeating the same element forever:
+
 $$
 \begin{array}{l}
 \apure : A \rightarrow \stream{M}\,A\\
@@ -71,9 +78,16 @@ $$
 \end{array}
 $$ 
 
+In the following statements and proofs, we often need to write terms that combine the use of $\apure$ on $M$ and on $\stream{M}$.
+This could be confusing, so we explicitly write the functors as subscript: $\apure_M$ and $\apure_{\stream{M}}$.
+We explicitly write the type of identity functions as a subscript.
+We consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions.
+We also use the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\comp}$ and $\alift{\pappl}$ (defined below).
+
+
 Using the applicative laws for $M$, we can give a simplified characterisation of pure monsters.
-The term we use combine the use of $\apure$ on $M$ and on $\stream{M}$.
-This could be confusing, so we explicitely write the functor as subscript. The proof that this characterisation is valid (alongside proofs of later lemmas) is included in the appendix.
+ The proofs of this and some of the following technical lemmas are included in the Appendix.
+
 \begin{lemma}\label{lemma:monster_pure} 
 $$
 \apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
@@ -81,6 +95,7 @@ $$
 \end{lemma}
 
 We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
+
 $$
 \begin{array}{l}
 (\appl) : \stream{M}\,(A\rightarrow B) \rightarrow \stream{M}\,A \rightarrow \stream{M}\,B\\
@@ -94,199 +109,200 @@ $$
 
 This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
 This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
-This guarantees the soundness of the definition according to the {\em guardedness by constructors} criterion.
+This guarantees the soundness of the definition according to the {\em guardedness-by-constructors} criterion.
 
 We aim to show that these definitions satisfy the applicative laws.
-We assume that the laws are satisfied by the base functor and we aim to prove them for the monster functor.
-
-%
-%That is, the following laws are satisfied, for every $a:A$, $f:A\rightarrow B$, $\sigma_a:\stream{M}\,A$, $\sigma_f : \stream{M}\,(A\rightarrow B)$, $\sigma_g: \stream{M}\,(B\rightarrow C)$:
-%$$
-%\begin{array}{l}
-%(\apure\,\id) \appl \sigma_a = \sigma_a \\
-%(\apure\,f) \appl (\apure\,a) = \apure\,(f\,a) \\
-%\sigma_f \appl (\apure\,a) = (\apure\,(\lambda f. f\,a)) \appl \sigma_f \\
-%\sigma_g \appl (\sigma_f \appl \sigma_a) = (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
-%\end{array}
-%$$
-%\end{conjecture}
+We assume that the laws hold for the base functor $M$ and we wish to prove them for the monster functor $\stream{M}$.
 
 The new operator $\alift{\pappl}$ has a direct simplification on pure values, which will be very useful in the proofs of the laws.
 \begin{lemma}\label{lemma:pappl}
 If $f:A\rightarrow B$, $m_f:\stream{M}\,(A\rightarrow B)$, $a:A$, $m_a:\stream{M}\,A$, then:
+
 $$
 \apure_M\,\langle f, m_f\rangle \alift{\pappl} \apure_M\,\langle a, m_a\rangle = \apure_M \langle f\,a, m_f \appl m_a \rangle
 $$
+
 \end{lemma}
 \begin{proof}
+
 $$
 \begin{array}{ll}
 \apure_M\,\langle f, m_f\rangle \alift{\pappl} \apure_M\,\langle a, m_a\rangle \\
 {}= \apure_M\,(\pappl) \appl \apure_M\,\langle f, m_f\rangle \appl \apure_M\,\langle a, m_a\rangle
-  & \mbox{by definition of }\alift{-}\\
+  & \mbox{definition of }\alift{-}\\
 {}= \apure_M\,(\langle f, m_f\rangle \pappl \langle a, m_a\rangle)
-  & \mbox{by the homomorphism law for }M\\
+  & \mbox{the homomorphism law for }M\\
 {}= \apure_M\,\langle f\,a, m_f \appl m_a \rangle
-  & \mbox{by definition of }\pappl
+  & \mbox{definition of }\pappl
 \end{array}
 $$
 \end{proof}
 
-In the proofs, we need to avoid confusion between the applicative operations for $M$ and those for $\stream{M}$.
-We assume that the laws are valid for $M$ and we want to prove them for $\stream{M}$.
-In the formulas, the two sets of operations will occur in the same terms, potentially leading to confusion.
-It is clear from the type of the arguments which version is intended, but it may be challenging to keep track of the types.
-Therefore we will use a slightly heavier but clearer notation: we use $M$ as subscript for $\apure$ when the $M$ version is intended, $\stream{M}$ when the monster version is intended; we consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions; we explicitly write the argument type of identity functions as subscripts.
-We won't distinguish the occurrences of $\appl$ for $M$ and $\stream{M}$ with subscripts, but they should be clear given the previous notational conventions.
-
-We also use the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\pappl}$ and $\alift{\comp}$.
-
 \begin{lemma}
 Monsters satisfy the applicative identity law:
+
 $$
 \apure_{\stream{M}}\,\id_A \appl \sigma_a = \sigma_a
 $$
-We will assume that the $\sigma_a$ has the canonical form:
-$\sigma_a = \mcons\,m$ where $m:M\,(A\times \stream{M}A).$
+
 \end{lemma}
 \begin{proof}
+Assume that $\sigma_a$ has the canonical form:
+$\sigma_a = \mcons\,m$ where $m:M\,(A\times \stream{M}A).$
+
+
 Most of the proof is by straightforward equational reasoning, unfolding definitions and using the applicative laws for $M$.
 
 The only unusual step is the application of the {\em coinduction hypothesis}.
-Recall that this means that we can assume that the statement to prove is already true, as long as it is invoked directly on direct arguments of the monster constructor.
+Recall that this means that we can assume that the statement to prove is already true, as long as it is invoked only on direct arguments of the monster constructor.
+
 $$
 \begin{array}{ll}
 \apure_{\stream{M}}\,\id_A \appl \sigma_a \\
 {}= (\id_A \acons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
-  & \mbox{by definition of }\apure \\
+  & \mbox{definition of }\apure \\
 {}= ((\apure_M\,\id_A) \fcons (\apure_{\stream{M}}\,\id_A)) \appl \sigma_a
-  & \mbox{by definition of }\acons \\
+  & \mbox{definition of }\acons \\
 {}= (\mcons\,(M\,(\lambda f. \langle f, \apure_{\stream{M}}\,\id_A\rangle)\,(\apure_M\,\id_A))) \appl \sigma_a
-  & \mbox{by definition of }\fcons \\
+  & \mbox{definition of }\fcons \\
 {}= (\mcons\,(\apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A \rangle)) \appl \sigma_a
-  & \mbox{by the interchange law} \\
+  & \mbox{interchange law for }M \\
 {}= (\mcons\,(\apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle)) \appl (\mcons\,m)
   & \mbox{canonical form of }\sigma_a\\
 {}= \mcons\,(\apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle)) \alift{\pappl}  m)
-  & \mbox{by definition of }\appl \\
+  & \mbox{definition of }\appl \\
 {}= \mcons\,(\apure_{M}\,(\pappl) \appl \apure_M\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle \appl  m)
-  & \mbox{by definition of }\alift{-} \\
+  & \mbox{definition of }\alift{-} \\
 {}= \mcons\,(\apure_M\,((\pappl)\,\langle \id_A, \apure_{\stream{M}}\,\id_A\rangle) \appl  m)
-  & \mbox{by the homomorphism law}\\
+  & \mbox{homomorphism law for }M\\
 {}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A, \apure_{\stream{M}}\,\id_A\rangle \pappl \langle a,\sigma_a\rangle) \appl m)
   & \mbox{expansion of the section}\\
 {}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A\,a, \apure_{\stream{M}}\,\id_A \appl \sigma_a\rangle) \appl m)
   & \mbox{definition of }\pappl\\
 {}= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle a, \sigma_a\rangle) \appl m)
-  & \mbox{\bf by coinduction hypothesis}\\
+  & \mbox{coinduction hypothesis}\\
 {}= \mcons\,(\apure_M\,\id_{A\times\stream{M}A} \appl m)
   & \mbox{trivial}\\
 {}= \mcons\,m = \sigma_a
-  & \mbox{by the identity law for }M
+  & \mbox{identity law for }M
 \end{array}
 $$
-In the step that makes use of the coinduction hypothesis, we circularly use the lemma's statement that $(\apure_{\stream{M}}\,\id_A) \appl \sigma_a = \sigma_a$.
+
+In the step that makes use of the coinduction hypothesis, we circularly use the lemma's statement that $\apure_{\stream{M}}\,\id_A \appl \sigma_a = \sigma_a$.
 The right-hand side occurs under an application of the constructor $\mcons$, inside an application of a pure value. 
 This structural positioning of the term ensure that the application of the coinductive hypothesis is sound.
-
-\vcomm{This is intuitively OK, but it may be worth exploring it further and making it more rigorous by studying how application of pure functions generate the structure of the result.}
 \end{proof}
 
 \begin{lemma}
 Monsters satisfy the applicative homomorphism law:
+
 $$
 \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a = \apure\,(f\,a)
 $$
+
 \end{lemma}
 \begin{proof}
+
 $$
 \begin{array}{ll}
 \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a\\
 {}= (\mcons\,(\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle)) \appl
     (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by Lemma \ref{lemma:monster_pure}}\\
+  & \mbox{Lemma \ref{lemma:monster_pure}}\\
 {}= \mcons\,(\apure_M\,\langle f, \apure_{\stream{M}}\,f\rangle \alift{\pappl}
              \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
-  & \mbox{by definition of }\appl\\
+  & \mbox{definition of }\appl\\
 {}= \mcons\,(\apure_M\,\langle f\, a, \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a \rangle))
-  & \mbox{by Lemma }\ref{lemma:pappl}\\
+  & \mbox{Lemma }\ref{lemma:pappl}\\
 {}= \mcons\,(\apure_M\,\langle f\,a, \apure_{\stream{M}}\,(f\,a)\rangle)
-  & \mbox{by coinduction hypothesis}\\
+  & \mbox{coinduction hypothesis}\\
 {}= \apure_{\stream{M}}\,(f\,a)
-  & \mbox{by lemma }\ref{lemma:monster_pure}
+  & \mbox{lemma }\ref{lemma:monster_pure}
 \end{array}
-$$\end{proof}
+$$
+\end{proof}
 
 
 % Proof of interchange law with M applicative
 
 \begin{lemma}\label{lemma:pure_lift}
-For an applicative functor $M$, with $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$:
+If $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$, then:
+
 $$
 \apure_M\, a \alift{\oplus} \apure_M\, b = \apure_M\, (a \oplus b)
 $$
+
 \end{lemma}
 
 \begin{lemma}\label{lemma:applicative_flip}
-Assuming $M$ is an applicative, with $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$:
+If $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, then:
+
 $$
 \apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
 $$
+
 \end{lemma}
-This lemma has proven to be highly applicative in the following proofs of the last two applicative laws.
+
+This lemma is extremely useful in the following proofs of the last two applicative laws.
 
 \begin{lemma}
-If the base functor $M$ is an applicative, then monsters with this base functor satisfy the applicative interchange law:
+Monsters satisfy the applicative interchange law:
+
 $$
 \sigma_f \appl \apure_{\stream{M}}\,a = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 $$
+
 Assume that $a:A$ and $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
 \end{lemma}
 \begin{proof}
+
 $$
 \begin{array}{ll}
 \sigma_f \appl \apure_{\stream{M}}\,a = (\mcons\,m_f) \appl \apure_{\stream{M}}\,a \\
 {}= (\mcons\,m_f) \appl (\mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle))
-  & \mbox{by Lemma \ref{lemma:monster_pure}}\\
+  & \mbox{Lemma \ref{lemma:monster_pure}}\\
 {}= \mcons\,(m_f \alift{\pappl} \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
-  & \mbox{by definition of }\appl\\
+  & \mbox{definition of }\appl\\
 {}= \mcons\,(\apure_M\,(\pappl) \appl m_f \appl \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
-  & \mbox{by definition of }\alift{-}\\
+  & \mbox{definition of }\alift{-}\\
 {}= \mcons \, (\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a}) \appl m_f)
-  & \mbox{by Lemma \ref{lemma:applicative_flip}}\\
+  & \mbox{Lemma \ref{lemma:applicative_flip}}\\
 {}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl \apure_{\stream{M}}\,a}) \appl m_f)
-  & \mbox{by definition of } \pappl \\
+  & \mbox{definition of } \pappl \\
 {}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\apure_{\stream{M}}\,(\lambda f . f\, a) \appl \phi}) \appl m_f)
-  & \mbox{\bf by coinduction hypothesis} \\
+  & \mbox{coinduction hypothesis} \\
 {}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi}.
     \pair{\lambda f . f\, a}{\apure_{\stream{M}}\,(\lambda f . f\, a))}
     \pappl \pair{f}{\phi}
     ) \appl m_f)
-  & \mbox{by definition of } \pappl \\
+  & \mbox{definition of } \pappl \\
 {}= \mcons\,(\apure_M\,(\pappl) \appl \apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle \appl m_f)
-  & \mbox{by the homomorphism law for }M \\
+  & \mbox{homomorphism law for }M \\
 {}= \mcons\,(\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle \alift{\pappl} m_f)
-  & \mbox{by definition of }\alift{-}\\
+  & \mbox{definition of }\alift{-}\\
 {}= (\mcons\,(\apure_M\,\langle \lambda f. f\,a, \apure_{\stream{M}}\,(\lambda f. f\,a)  \rangle)) \appl (\mcons\,m_f)
-  & \mbox{by definition of }\appl \\
+  & \mbox{definition of }\appl \\
 {}= \apure_{\stream{M}}\,(\lambda f. f\,a) \appl (\mcons\,m_f)
-  & \mbox{by Lemma \ref{lemma:monster_pure}} \\
+  & \mbox{Lemma \ref{lemma:monster_pure}} \\
 {} = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 \end{array}
 $$
 \end{proof}
 
 
-% Proof of composition law with M applicative
+To prove the final applicative law, we first need a few lemmas, and some new notation.
+This law is much trickier than the previous ones, and requires many rewrite steps.
 
-To prove the final applicative law, we first need a few lemmas, and some new notations. This law is much trickier than the previous ones, and requires many rewrite steps.
-
-In the following we use repeatedly the types $A\times \stream{M}\,A$ and $M\,(A\times \stream{M}\,A)$, especially whith $A$ being instantiated to different function types.
+In the following we use repeatedly the types $A\times \stream{M}\,A$ and $M\,(A\times \stream{M}\,A)$, especially with $A$ being instantiated to different function types.
 It is useful to use special notation for them:
 $\pstream{A} = A\times \stream{M}\,A$, $\mstream{A} = M\,\pstream{A}$.
-We will also use the notation $\pstr{a}$ for a generic term of $\pstream{A}$
-and we allow ourseves to denote the first and second component of $\pstr{a}$ by $a$ and $\sigma_a$.
+We use the notation $\pstr{a}$ for a generic element of $\pstream{A}$
+and we allow ourselves to denote the first and second component of $\pstr{a}$ by $a$ and $\sigma_a$.
 Elements of $\mstream{A}$ will be denoted by $m_a$.
+We introduce notation for a {\em pure} value in the type $\pstream{A}$:
+if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
+
+
 
 We start with a little general lemma about {\em composition with compositions}.
 The generic composition operator has type: $(\comp): (B\rightarrow C) \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$.
@@ -294,9 +310,11 @@ Suppose we want to compose it with a binary operator $(\oplus) : D\rightarrow (B
 What would this higher composition, $(\comp) \comp (\oplus) : D \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$ be?
 We will use the notation $\clift{\oplus}{A}$ for it.
 \begin{lemma}\label{lemma:comp_comp}
+
 $$
 (\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
 $$
+
 \end{lemma}
 \begin{proof}
 Just expand the definition of the two composition operators.
@@ -304,10 +322,12 @@ Just expand the definition of the two composition operators.
 
 We will in fact need to apply this {\em composition with compositions} operator twice: after producing $(\clift{\oplus}{A})$, we want in turn to compose it with the composition operator $(\comp): ((A\rightarrow B) \rightarrow (A\rightarrow C)) \rightarrow (X\rightarrow A\rightarrow B) \rightarrow X \rightarrow A \rightarrow C$ to produce the new operator $(\clift{\clift{\oplus}{A}}{X}): D\rightarrow (X\rightarrow A \rightarrow B) \rightarrow X \rightarrow A \rightarrow C$.
 \begin{lemma}\label{lemma:comp_comp_comp}
+
 $$
 (\clift{\clift{\oplus}{A}}{X}) =
 \lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
 $$
+
 \end{lemma}
 \begin{proof}
 Apply Lemma \ref{lemma:comp_comp} twice and simplify.
@@ -315,59 +335,75 @@ Apply Lemma \ref{lemma:comp_comp} twice and simplify.
 
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
+
 $$
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
  = \apure\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 $$
+
 \end{lemma}
 
-We introduce a notation for a {\em pure} value in the type $\pstream{A}$:
-if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
 
 \begin{lemma}\label{lemma:ppair}
+
 $$
 \apure_M\,\ppair{\comp}\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
 = \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
 $$
+
 \end{lemma}
 
 \begin{lemma}
-If the base functor $M$ is an applicative functor, then the corresponding monster satisfies the composition law:
-\begin{proof}
+Monsters satisfies the applicative composition law:
 
-We prove this by starting with both the left and right-hand-side of the law, and then by rewriting them until both equations are almost equivalent. Once we reach this point, the the two equations are the same apart from one discrepancy - the left-most $\apure$ term. This discrepancy is fixed with a final observation that the two $\apure$ terms are equivalent, making use of the coinductive hypothesis.
+$$
+\sigma_g \appl (\sigma_f \appl \sigma_a)
+ = 
+(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a
+$$
+\end{lemma}
+\begin{proof}
+We prove this by rewriting both the left and right-hand-side of the law
+until we reduce them to a common high-level structure.
+They will then differ only by a subterm inside the leftmost application of $\apure$ in this structure.
+This difference is resolved by proving that the two argument of the $\apure$ terms are equivalent, making use of the coinductive hypothesis.
+
+As usual we assume that all monsters are in canonical form: $\sigma_g = \mcons\,m_g$, $\sigma_f = \mcons\,m_f$, $\sigma_a = \mcons\,m_a$.
 
 First we rewrite the left-hand-side of the composition law. 
+
 $$
-\begin{array}{ll}
+\begin{array}{l}
 \sigma_g \appl (\sigma_f \appl \sigma_a)
  = (\mcons\,m_g) \appl ((\mcons\,m_f) \appl (\mcons\,m_a))\\
-{}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a)) \\
-\mbox{by definition of}\appl\mbox{for monsters} \\
+{}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a))\\
+  \qquad  \mbox{definition of}\appl\mbox{for monsters} \\
 {}= \mcons\,(
 \apure_M\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 )\\
-\mbox{by Lemma \ref{lemma:pappl_comp_appl}}
+  \qquad \mbox{Lemma \ref{lemma:pappl_comp_appl}}
 \end{array}
 $$
 
 Next we rewrite the right-hand-side.
+
 $$
-\begin{array}{ll}
-(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a \\
+\begin{array}{l}
+(\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a\\
 {}= \apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f \appl \sigma_a \\
-\mbox{by definition of }\alift{-}\\
+  \qquad \mbox{definition of }\alift{-}\\
 {}= \mcons\, (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
-\mbox{by definition of}\appl\mbox{for monsters}\\
+  \qquad \mbox{definition of}\appl\mbox{for monsters}\\
 {}= \mcons\, (\apure_M\,\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
-\mbox{by definition of }\ppair{-}\\
-\mcons\,(
-\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a}) \appl m_g \appl m_f \appl m_a) \\
-\mbox{by Lemma \ref{lemma:ppair}}
+  \qquad \mbox{definition of }\ppair{-}\\
+{}= \mcons\,(
+\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a}) \appl m_g \appl m_f \appl m_a)\\
+  \qquad \mbox{Lemma \ref{lemma:ppair}}
 \end{array}
 $$
 
 To complete this proof, we need to show the following:
+
 $$
 \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})
   = 
@@ -378,33 +414,34 @@ Let's assume the abstracted variables are in canonical form: $\pstr{g} = \pair{g
 
 We use the coinduction hypothesis to prove the equality.
 This is justified because the equality itself is embedded in an application of the constructor $\mcons$: in this context, $\tau_g$, $\tau_f$ and $\tau_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
+
 $$
 \begin{array}{ll}
 \pstr{g}\, \pappl (\pstr{f} \pappl \pstr{a})
  = \pair{g}{\tau_g}\, \pappl (\pair{f}{\tau_f} \pappl \pair{a}{\tau_a}) \\
 {}= \pair{g}{\tau_g}\, \pappl \pair{f\, a}{\tau_f \appl \tau_a}
-& \mbox{by definition of }\pappl \\
+& \mbox{definition of }\pappl \\
 {}= \pair{g\, (f\, a)}{\tau_g \appl (\tau_f \appl \tau_a)}
-& \mbox{by definition of }\pappl \\
+& \mbox{definition of }\pappl \\
 {}= \pair{(g \comp f)\, a)}{\tau_g \appl (\tau_f \appl \tau_a)}
-& \mbox{by definition of }\comp \\
+& \mbox{definition of }\comp \\
 {}= \pair{((\comp)\, g\, f)\, a}{\tau_g \appl (\tau_f \appl \tau_a)}
 & \mbox{trivial} \\
 {}= \pair{(((\comp)\, g)\, f)\, a}{(\tau_g \alift{\comp} \tau_f) \appl \tau_a}
-& \mbox{by coinduction hypothesis} \\
+& \mbox{coinduction hypothesis} \\
 {}= \pair{(((\comp)\, g)\, f)\, a}{\apure_{\stream{M}}\, (\comp) \appl \tau_g \appl \tau_f \appl \tau_a}
-& \mbox{by definition of }\alift{-} \\
+& \mbox{definition of }\alift{-} \\
 {}= \pair{((\comp)\, g)\, f}{\apure_{\stream{M}}\, (\comp) \appl \tau_g \appl \tau_f} \pappl  \pair{a}{\tau_a}
-& \mbox{by definition of }\pappl \\
+& \mbox{definition of }\pappl \\
 {}= \pair{(\comp)\, g}{\apure_{\stream{M}}\, (\comp) \appl \tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
-& \mbox{by definition of }\pappl \\
+& \mbox{definition of }\pappl \\
 {}= \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl \pair{g}{\tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
-& \mbox{by definition of }\pappl \\
+& \mbox{definition of }\pappl \\
 {}= \ppair{\comp} \pappl \pstr{g} \pappl \pstr{f} \pappl \pstr{a}
 \end{array}
 $$
 \end{proof}
-\end{lemma}
+
 
 \begin{theorem}\label{lemma:appl_laws}
 If $M$ is an applicative functor, $\stream{M}$ is also an applicative functor.
