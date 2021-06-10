@@ -83,12 +83,37 @@ given a {\em monster matrix} $\mu:\stream{M}\,(\stream{M}\,A)$, we travel down t
 However, since these are monadic streams, accessing those elements requires executing all the monadic actions leading to them.
 
 Let us represent $\mu$ intuitively as follows, denoting the monadic actions by arrow:
+
 $$
-\mu \larrow{m_0}
-\begin{array}[t]{l}
-\mbox{\bf to be done}
+\begin{array}[t]{rll}
+\mu \larrow{m_0} 
+ & \sigma_0 
+ & \larrow{m_{00}} a_{00} \larrow{m_{01}} a_{01} \larrow{m_{02}} a_{02} \larrow{} \cdots\\[5pt]
+\larrow{m_1} 
+ & \sigma_1 
+ & \larrow{m_{10}} a_{10} \larrow{m_{11}} a_{11} \larrow{m_{12}} a_{12} \larrow{} \cdots\\[5pt]
+\larrow{m_2} 
+ & \sigma_2
+ & \larrow{m_{20}} a_{20} \larrow{m_{21}} a_{21} \larrow{m_{22}} a_{22} \larrow{} \cdots\\[5pt]
+\larrow{} & \cdots
 \end{array}
 $$
+
+The result of $(\join\,\mu)$ should be the monster $a_{00} \larrow{} a_{11}\larrow{} a_{22} \larrow{} \cdots$.
+However, to access these elements, we are forced to execute all the actions leading to them:
+
+$$
+\begin{array}{ll}
+\join\,\mu 
+& \larrow{m_0}\larrow{m_{00}} a_{00}\\[5pt]
+& \larrow{m_1}\larrow{m_{10}}\larrow{m_{11}} a_{11}\\[5pt]
+& \larrow{m_2}\larrow{m_{20}}\larrow{m_{21}}\larrow{m_{22}} a_{22}\\[5pt]
+& \larrow{} \cdots
+\end{array}
+$$
+
+
+
 
 The formal definition is as follows:
 $$
