@@ -234,10 +234,12 @@ To show that the equality does not hold, the following two lemmas are useful to 
 
 \begin{lemma}\label{lemma:general_bind_law}
 For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
+
 $$
 (\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\traverse\, (f\, n)))})\, (\head\, (f\, n)))
 $$
 \end{lemma}
+
 \begin{lemma}\label{lemma:traverse_fromstepstr}
 $$
 \traverse\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
