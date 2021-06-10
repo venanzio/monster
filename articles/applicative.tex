@@ -232,7 +232,7 @@ $$
 \apure_M\, a \alift{\oplus} \apure_M\, b = \apure_M\, (a \oplus b)
 $$
 
-\end{lemma}
+\end{lemma} 
 
 \begin{lemma}\label{lemma:applicative_flip}
 If $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, then:
@@ -246,15 +246,16 @@ $$
 This lemma is extremely useful in the following proofs of the last two applicative laws.
 
 \begin{lemma}
-Monsters satisfy the applicative interchange law:
+Monsters satisfy the applicative interchange law.
+ If $\sigma_f: \stream{M}(A\rightarrow B)$ and $a:A$, then:
 
 $$
 \sigma_f \appl \apure_{\stream{M}}\,a = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 $$
 
-Assume that $a:A$ and $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
 \end{lemma}
 \begin{proof}
+Assume that $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
 
 $$
 \begin{array}{ll}
