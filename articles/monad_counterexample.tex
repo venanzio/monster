@@ -74,6 +74,34 @@ $$
 \join\, s = \mcons\, ((\uncons\, s) \, \bind \,(\lambda \pair{hs}{ts} . M\,(\lambda a . \pair{a}{(\join\, \comp\, \stream{M}\,\mathsf{traverse})\, ts})\, (\head\, hs)))
 $$
 
+\vcomm{The above definition is difficult to understand. A reader could question whether it is a meaninful realization of the ``diagonal'' idea.
+Below I attempt a more intuitive definition. It still has the defect that it mixes join and bind versions of monad.
+}
+
+The idea of the implementation of the $\join$ operation is that,
+given a {\em monster matrix} $\mu:\stream{M}\,(\stream{M}\,A)$, we travel down the diagonal and pick elements in positions $(0,0)$, $(1,1)$, $(2,2)$, etc.
+However, since these are monadic streams, accessing those elements requires executing all the monadic actions leading to them.
+
+Let us represent $\mu$ intuitively as follows, denoting the monadic actions by arrow:
+$$
+\mu \larrow{m_0}
+\begin{array}[t]{l}
+\mbox{\bf to be done}
+\end{array}
+$$
+
+The formal definition is as follows:
+$$
+\begin{array}{l}
+\join : \stream{M}\,(\stream{M}\,A) \rightarrow \stream{M}\,A\\
+\join\,\mu = \mcons\,(\unc{\mu} \bind \lambda \pair{\sigma_a}{\mu'}.
+              (\head\,\sigma_a) \fcons (M\,\join\,(\tails\,\mu')))
+\end{array}
+$$
+
+
+
+
 We recall the notation for state-monsters: $\stmon{S} = \stream{\state_S}$, where $\state_S A = S \rightarrow A \times S$, representing the $\state$ functor with states of type $S$, and return values of type $A$. 
 We assume it is equipped with the usual monad operations for the $\state$ monad. We call these types of monsters (those with an underlying $\state$ monad) state machines.
 
