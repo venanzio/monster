@@ -112,10 +112,31 @@ $$
 \end{array}
 $$
 
+In order to define it formally, let us introduce some notation.
+We use $\unc{\sigma}$ to denote the monadic action associated to the monster $\sigma$, just stripping the $\mcons$ constructor away; so $\unc{\mu}$ is the action $m_0$ above.
+The $\head$ and $\tail$ functions extract the components of a monster, but of course they can only return a value inside the monad $M$.
+Finally $\tails$ applies $\tail$ to all the rows of a monster matrix, that is, it drops the first column of the matrix; of course, it still has to execute all the necessary monadic actions.
 
+$$
+\begin{array}{ll}
+\unc{-} : \stream{M}\,A \rightarrow M\,(A\times \stream{M}\,A)\\
+\unc{\sigma} = m \mbox{ if } \sigma = \mcons\,m\\
+\, \\
+\head : \stream{M}\,A \rightarrow M\,A\\
+\head\,\sigma = M\,\fst\,\unc{\sigma}
+\end{array}
+\qquad
+\begin{array}{ll}
+\tail : \stream{M}\,A \rightarrow M\,(\stream{M}\,A)\\
+\tail\,\sigma = M\,\snd\,\unc{\sigma}\\
+\, \\
+\tails : \stream{M}\,(\stream{M}\,A) \rightarrow M\,(\stream{M}\,(\stream{M}\,A))\\
+\tails\,\mu = \mlift\,(\stream{M}\,\tail\,\mu)
+\end{array}
+$$
 
+The formal definition of $\join$ is as follows:
 
-The formal definition is as follows:
 $$
 \begin{array}{l}
 \join : \stream{M}\,(\stream{M}\,A) \rightarrow \stream{M}\,A\\
