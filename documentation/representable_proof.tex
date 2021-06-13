@@ -1,0 +1,242 @@
+\documentclass{article}
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{pstricks,pst-node}
+
+\title{Monsters are Representable}
+
+\usepackage{notations_2}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{example}[definition]{Example}
+\newtheorem{conjecture}[definition]{Conjecture}
+
+\begin{document}
+\bibliographystyle{plain}
+
+\newcommand{\tabulatef}{\mathsf{tabulate}}
+\newcommand{\indexf}{\mathsf{index}}
+
+\maketitle
+
+\begin{lemma}\label{rep_lift}
+As a consequence of a representable functor $M$ being naturally isomorphic to the reader functor, and with $\tabulatef_M$ and $\indexf_M$ as the witnesses to this isomorphism:
+$$
+M\, f = \tabulatef_M \circ (f\, \circ) \circ \indexf_M
+$$
+Bear in mind that $(f\, \circ)$ is exactly the lifting of a function $f$ with the reader functor.
+\end{lemma}
+\begin{proof}
+This follows directly from the definition of a natural isomorphism.
+\end{proof}
+
+We first need two lemmas, proving properties of lifted functions in the context of $\tabulatef_M$ and $\indexf_M$. These are fairly straight-forward, and follow from the fact that $M$ is isomorphic to an instance of the reader functor.
+
+\begin{lemma}\label{rep_tabulate}
+$$
+(M\, f) \,(\tabulatef_M\, g) = \tabulatef_M\, (f \circ g)
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{l@{\qquad}l}
+M\, f \, (\tabulatef_M\, g) \\
+{}= \tabulatef_M \circ (f\, \circ) \circ \indexf_M\, (\tabulatef_M\, g) & \mbox{by Lemma \ref{rep_lift}} \\
+{}= (\tabulatef_M \circ (f\, \circ))\, g & \mbox{by isomorphism property} \\
+{}= \tabulatef_M\, (f \circ g) & \mbox{by definition of }\circ 
+\end{array}
+$$
+\end{proof}
+
+
+\begin{lemma}\label{rep_index}
+$$
+\indexf_M\, ((M\,f)\, m_a) = f \circ \indexf_M\, m_a
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{l@{\qquad}l}
+\indexf_M\, ((M\,f)\, m_a)\\
+{}= \indexf_M\, ((\tabulatef_M \circ (f\, \circ) \circ \indexf_M)\, m_a) 
+  & \mbox{by Lemma \ref{rep_lift}}\\
+{}= \indexf_M\, (\tabulatef_M\, ((f\, \circ) (\indexf_M\, m_a))) 
+  & \mbox{by definition of }\circ \\
+{}= (f\, \circ)\, (\indexf_M\, m_a) 
+  & \mbox{by isomorphism property} \\
+{}= f\, \circ (\indexf_M\, m_a) \\
+\end{array}
+$$
+\end{proof}
+
+
+Now we are set to prove that monadic streams are representable. We propose that the representing object is a non-empty sequence of representing objects for the underlying functor: for this to work, we assume the underlying functor $M$ is representable by an object $K$. The type of non-empty sequences is as follows:
+
+$$
+\begin{array}[t]{l}
+\data\;
+\mathsf{NESeq}\,A:\set \\
+\quad [\_]: A \rightarrow \mathsf{NESeq}\,A \\
+\quad \_\cons\_ : A \rightarrow \mathsf{NESeq}\,A \rightarrow \mathsf{NESeq}\,A
+\end{array}
+$$
+
+First things first, here are the proposed definitions of $\tabulatef_{\stream{M}}$ and $\indexf_{\stream{M}}$. $\sigma_a = \mcons\, m_a$, $k : K$ denotes an element of the representing object for $M$, and $f : \mathsf{NESeq}\, K \to A$.
+$$
+\tabulatef_{\stream{M}}\, f = \mcons\, (\tabulatef_M \, (\lambda k. \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \comp (k\, \cons))} ))
+$$
+$$
+\indexf_{\stream{M}}\, \sigma_a = \lambda k . \left\{
+\begin{array}{l@{\qquad}l l}
+[k] & \to& \indexf_M\, ((M\,\pi_1 \circ \uncons)\,\sigma_a)\, k\\
+(k \cons ks) &\to& \indexf_{\stream{M}} (\indexf_M\, ((M\,\pi_2 \circ \uncons)\, \sigma_a)\, k)\, ks
+\end{array}
+\right\}
+$$
+We now need to prove that they are an isomorphism.
+
+\begin{lemma}
+$$
+\tabulatef_{\stream{M}} \comp \indexf_{\stream{M}} = \id_{\stream{M}}
+$$
+\end{lemma}
+\begin{proof}
+
+$$
+\begin{array}{l l}
+(\tabulatef_{\stream{M}} \circ \indexf_{\stream{M}})\, \sigma_a \\
+{}= \tabulatef_{\stream{M}}\, (\lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& \indexf_M\, ((M\,\pi_1)\,m_a)\, k\\
+(k : ks) &\to& \indexf_{\stream{M}} (\indexf_M\, ((M\,\pi_2)\,m_a)\, k)\, ks
+\end{array}
+\right\}) &  \mbox{by definition of }\indexf_{\stream{M}} 
+\end{array}
+$$
+
+To make the following easier, lets define:
+$$
+\begin{array}{l}
+f = \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& \indexf_M\, ((M\,\pi_1)\,m_a)\, k\\
+(k : ks) &\to& \indexf_{\stream{M}} (\indexf_M\, ((M\,\pi_2)\,m_a)\, k)\, ks
+\end{array}
+\right\}
+\end{array}
+$$
+
+Continuing on:
+$$
+\begin{array}{l}
+\tabulatef_{\stream{M}} f \\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))}))\\
+\qquad \mbox{by definition of }\tabulatef_{\stream{M}} \\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(\lambda ks . f\, (k \cons ks))}))\\
+\qquad \mbox{by definition of }\comp \\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \pair{\indexf_M\, ((M\,\pi_1)\,m_a)\, k}{\tabulatef_{\stream{M}}\,(\lambda ks.\, \indexf_{\stream{M}} (\indexf_M\, ((M\,\pi_2)\,m_a)\, k)\, ks)}))\\
+\qquad \mbox{by definition of }f \\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \pair{\indexf_M\, ((M\,\pi_1)\,m_a)\, k}{\tabulatef_{\stream{M}}\,(\indexf_{\stream{M}} (\indexf_M\, ((M\,\pi_2)\,m_a)\, k))})) \\
+\qquad \mbox{trivial} \\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \pair{\indexf_M\, ((M\,\pi_1)\,m_a)\, k}{\indexf_M\, ((M\,\pi_2)\,m_a)\, k}))\\
+\qquad \mbox{coinductive hypothesis} \\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \pair{\pi_1 (\indexf_M \,m_a\, k)}{\pi_2 (\indexf_M \,m_a\, k)}))\\
+\qquad \mbox{by Lemma \ref{rep_index}}
+\\
+{}= \mcons\,(\tabulatef_M\, (\lambda k. \indexf_M \,m_a\, k))\\
+\qquad \mbox{by definition of }\pi_1, \pi_2 \\
+{}= \mcons\,(\tabulatef_M\, (\indexf_M \,m_a))\\
+{}= \mcons\,m_a = \sigma_a
+\end{array}
+$$
+\end{proof}
+
+\begin{lemma}
+$$ 
+\indexf_{\stream{M}} \comp \tabulatef_{\stream{M}} = \id_{\mathsf{NESeq}\, K \rightarrow A}
+$$
+\end{lemma}
+\begin{proof}
+$$
+\begin{array}{l}
+(\indexf_{\stream{M}} \circ \tabulatef_{\stream{M}})\, f\\
+{}= \indexf_{\stream{M}}\, (\mcons\, (\tabulatef_M \, (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )))\\
+\qquad \mbox{by definition of }\tabulatef_{\stream{M}}\\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& \indexf_M\, ((M\, \pi_1)\, (\tabulatef_M \, (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )))\, k \\
+(k \cons ks) &\to& \indexf_{\stream{M}} (\indexf_M\, ((M\, \pi_2)\,(\tabulatef_M \, (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} ))) \, k)\, ks
+\end{array}
+\right\} \\
+\qquad \mbox{by definition of }\indexf_{\stream{M}}\\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& \indexf_M\, (\tabulatef_M \, (\pi_1 \comp (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )))\, k \\
+(k \cons ks) &\to& \indexf_{\stream{M}} (\indexf_M\, (\tabulatef_M \, (\pi_2 \circ (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} ))) \, k)\, ks
+\end{array}
+\right\} \\
+\qquad \mbox{by Lemma \ref{rep_tabulate}} \\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& \indexf_M\, (\tabulatef_M \, (\lambda k . \pi_1 \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} ))\, k \\
+(k \cons ks) &\to& \indexf_{\stream{M}} (\indexf_M\, (\tabulatef_M \, (\lambda k . \pi_2 \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )) \, k)\, ks
+\end{array}
+\right\} \\
+\qquad \mbox{by definition of }\comp \\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& \indexf_M\, (\tabulatef_M \, (\lambda k. f\, [k]))\, k \\
+(k \cons ks) &\to& \indexf_{\stream{M}} (\indexf_M\, (\tabulatef_M \, (\lambda k. \tabulatef_{\stream{M}}\,(f \circ (k \,\cons)) )) \, k)\, ks
+\end{array}
+\right\}\\
+\qquad \mbox{by definition of }\pi_1, \pi_2 \\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& (\lambda k. f\, [k])\, k \\
+(k \cons ks) &\to& \indexf_{\stream{M}} (\lambda k . \tabulatef_{\stream{M}}\,(f \circ (k\,\cons))  \, k)\, ks
+\end{array}
+\right\}\\
+\qquad \mbox{by Lemma \ref{rep_lift}} \\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& f\, [k] \\
+(k \cons ks) &\to& \indexf_{\stream{M}}\, (\tabulatef_{\stream{M}}\,(f \circ (k\,\cons)))\, ks
+\end{array}
+\right\}\\
+\qquad \mbox{trivial} \\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& f\, [k] \\
+(k \cons ks) &\to& (f \circ (k\, \cons))\, ks
+\end{array}
+\right\} \\
+\qquad \mbox{coinductive hypothesis} \\
+{}= \lambda k . 
+\left\{
+\begin{array}{l@{\qquad}l l}
+[k] &\to& f\, [k] \\
+(k \cons ks) &\to& f (k \cons ks)
+\end{array}
+\right\}\\
+{}= f
+\end{array}
+$$
+\end{proof}
+
+\begin{theorem}
+$\stream{M}$ is isomorphic to $(\mathsf{NESeq}\, K \rightarrow)$, which is to say that $\stream{M}$ is representable by $\mathsf{NESeq}\, K$.
+\end{theorem}
+
+\end{document}

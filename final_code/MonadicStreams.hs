@@ -291,7 +291,6 @@ instance Representable m => Representable (MonStr m) where
                   k :< ks -> index (index (tail ms) k) ks
 
 
-
 -- Operations
 -----------------
 
