@@ -89,7 +89,7 @@ $$
 \tabulatef_{\stream{M}}\, f = \mcons\, (\tabulatef_M \, (\lambda k. \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \comp (k\, \cons))} ))
 $$
 $$
-\indexf_{\stream{M}}\, \sigma_a = \lambda k . \left\{
+\indexf_{\stream{M}}\, \sigma_a = \lambda \left\{
 \begin{array}{l@{\qquad}l l}
 [k] & \to& \indexf_M\, ((M\,\pi_1 \circ \uncons)\,\sigma_a)\, k\\
 (k \cons ks) &\to& \indexf_{\stream{M}} (\indexf_M\, ((M\,\pi_2 \circ \uncons)\, \sigma_a)\, k)\, ks
@@ -108,7 +108,7 @@ $$
 $$
 \begin{array}{l l}
 (\tabulatef_{\stream{M}} \circ \indexf_{\stream{M}})\, \sigma_a \\
-{}= \tabulatef_{\stream{M}}\, (\lambda k . 
+{}= \tabulatef_{\stream{M}}\, (\lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& \indexf_M\, ((M\,\pi_1)\,m_a)\, k\\
@@ -121,7 +121,7 @@ $$
 To make the following easier, lets define:
 $$
 \begin{array}{l}
-f = \lambda k . 
+f = \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& \indexf_M\, ((M\,\pi_1)\,m_a)\, k\\
@@ -167,7 +167,7 @@ $$
 (\indexf_{\stream{M}} \circ \tabulatef_{\stream{M}})\, f\\
 {}= \indexf_{\stream{M}}\, (\mcons\, (\tabulatef_M \, (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )))\\
 \qquad \mbox{by definition of }\tabulatef_{\stream{M}}\\
-{}= \lambda k . 
+{}= \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& \indexf_M\, ((M\, \pi_1)\, (\tabulatef_M \, (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )))\, k \\
@@ -175,7 +175,7 @@ $$
 \end{array}
 \right\} \\
 \qquad \mbox{by definition of }\indexf_{\stream{M}}\\
-{}= \lambda k . 
+{}= \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& \indexf_M\, (\tabulatef_M \, (\pi_1 \comp (\lambda k.\pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} )))\, k \\
@@ -183,7 +183,7 @@ $$
 \end{array}
 \right\} \\
 \qquad \mbox{by Lemma \ref{rep_tabulate}} \\
-{}= \lambda k . 
+{}= \lambda 
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& \indexf_M\, (\tabulatef_M \, (\lambda k . \pi_1 \pair{f\, [k]}{\tabulatef_{\stream{M}}\,(f \circ (k\, \cons))} ))\, k \\
@@ -191,7 +191,7 @@ $$
 \end{array}
 \right\} \\
 \qquad \mbox{by definition of }\comp \\
-{}= \lambda k . 
+{}= \lambda 
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& \indexf_M\, (\tabulatef_M \, (\lambda k. f\, [k]))\, k \\
@@ -199,7 +199,7 @@ $$
 \end{array}
 \right\}\\
 \qquad \mbox{by definition of }\pi_1, \pi_2 \\
-{}= \lambda k . 
+{}= \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& (\lambda k. f\, [k])\, k \\
@@ -207,7 +207,7 @@ $$
 \end{array}
 \right\}\\
 \qquad \mbox{by Lemma \ref{rep_lift}} \\
-{}= \lambda k . 
+{}= \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& f\, [k] \\
@@ -215,7 +215,7 @@ $$
 \end{array}
 \right\}\\
 \qquad \mbox{trivial} \\
-{}= \lambda k . 
+{}= \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& f\, [k] \\
@@ -223,7 +223,7 @@ $$
 \end{array}
 \right\} \\
 \qquad \mbox{coinductive hypothesis} \\
-{}= \lambda k . 
+{}= \lambda  
 \left\{
 \begin{array}{l@{\qquad}l l}
 [k] &\to& f\, [k] \\
