@@ -39,6 +39,10 @@ infixr 9 /|
 (/|) :: (Applicative m, Fractional a) => MonStr m a -> MonStr m a -> MonStr m a
 ma /| mb = (/) <$> ma <*> mb
 
-infixr 9 >:>
-(>:>) :: Applicative m => MonStr m a -> MonStr m a -> MonStr m a
-(MCons ma) >:> mb = MCons $ fmap (\p -> (fst p, mb)) ma
+infixr 9 `fby`
+fby :: Functor m => MonStr m a -> MonStr m a -> MonStr m a
+(MCons ma) `fby` mb = MCons $ fmap (\p -> (fst p, mb)) ma
+
+infixr 9 `on`
+on :: Functor m => MonStr m a -> MonStr m Bool -> MonStr m a
+ma `on` mb = --
