@@ -278,7 +278,7 @@ instance Distributive m => Distributive (MonStr m) where
 
 
 infixr 5 :<
-data NonEmpty a = Last a | a :< (NonEmpty a)
+data NonEmpty a = Last a | a :< (NonEmpty a) deriving Show
                                        
 instance Representable m => Representable (MonStr m) where
   type Rep (MonStr m) = NonEmpty (Rep m)
@@ -289,6 +289,9 @@ instance Representable m => Representable (MonStr m) where
   index ms k = case k of
                   Last k  -> index (head ms) k
                   k :< ks -> index (index (tail ms) k) ks
+
+instance (Representable m, Applicative m) => Monad (MonStr m) where
+  ma >>= f = bindRep ma f
 
 
 -- Operations
