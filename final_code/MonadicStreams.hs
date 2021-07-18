@@ -6,7 +6,6 @@ module MonadicStreams
      MonStr(..),
      
      module Control.Monad,
-     module Control.Comonad,
      
      NonEmpty(..),
           
@@ -134,12 +133,6 @@ import qualified Prelude as P ((!!), iterate, head, tail, cycle)
 import Control.Applicative
 import Control.Monad hiding (filterM)
 import Control.Monad.Trans.Reader
-import Control.Comonad
-
-import Data.Bifunctor
-
-import Data.Functor.Rep -- requires adjunctions-4.4 from Hackage
-import Data.Distributive
 
 -- | Type of monadic streams, m is not required 
 -- to be a monad - only a functor. 
@@ -248,12 +241,7 @@ transformA f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
 instance Applicative m => Applicative (MonStr m) where
   pure a = a <: pure a
   (<*>) = transformA (\f fs a as -> (f a, fs <*> as))  
-
-
-instance Comonad w => Comonad (MonStr w) where
-  extract = extract . head
-  duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (uncons ms)
-
+  
 
 instance (Functor m, Foldable m) => Foldable (MonStr m) where
   foldMap f s = foldMap f (head s) `mappend`
@@ -269,30 +257,7 @@ instance (Foldable m, Applicative m, Eq (m a), Eq (m Bool)) => Eq (MonStr m a) w
    ma == mb = (head ma == head mb) && (if null (tail ma) 
                                           then ((fmap (uncurry (==)) (pairA (tail ma) (tail mb))) == pure True)
                                           else True)
-
-                           
-instance Distributive m => Distributive (MonStr m) where
-  -- distribute :: Functor f => f (MonStr m a) -> MonStr m (f a)
-  distribute fma = MCons $ fmap (\fp -> (fmap fst fp, (distribute . fmap snd) fp)) 
-                                (distribute (fmap uncons fma))
-
-
-infixr 5 :<
-data NonEmpty a = Last a | a :< (NonEmpty a) deriving Show
-                                       
-instance Representable m => Representable (MonStr m) where
-  type Rep (MonStr m) = NonEmpty (Rep m)
-  -- tabulate :: (NonEmpty (Rep m) -> a) -> MonStr m a
-  tabulate f = MCons $ tabulate (\k -> (f (Last k), tabulate (f . (k :<))))
-         
-  -- index :: MonStr m a -> NonEmpty (Rep m) -> a
-  index ms k = case k of
-                  Last k  -> index (head ms) k
-                  k :< ks -> index (index (tail ms) k) ks
-
-instance (Representable m, Applicative m) => Monad (MonStr m) where
-  ma >>= f = bindRep ma f
-
+                       
 
 -- Operations
 -----------------
