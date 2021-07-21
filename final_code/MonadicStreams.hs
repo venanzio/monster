@@ -7,7 +7,7 @@ module MonadicStreams
      
      module Control.Monad,
      
-     NonEmpty(..),
+     -- NonEmpty(..),
           
      uncons,
      head,
