@@ -1,4 +1,6 @@
-import MonadicStreams as M
+import MonadicStreams hiding ((++))
+-- import qualified MonadicStreams as M
+
 import Examples.BLTrees
 
 echo :: Read a => MonStr IO a
@@ -8,7 +10,7 @@ echo = MCons $ do
   return (read s, echo)
 
 stopAtZero :: Monad m => MonStr m Int -> m [Int]
-stopAtZero = fmap fst . M.spanM (/=0)
+stopAtZero = fmap fst . spanM (/=0)
 
 
 -- Divisors game
@@ -40,10 +42,10 @@ move board = do
 playGame :: GameState -> IO ()
 playGame (player, board) =
   if board == []
-    then putStrLn ((printPlayer (not player)) Prelude.++ " wins!")
+    then putStrLn ((printPlayer (not player)) ++ " wins!")
     else do
-      putStrLn ((printPlayer player) Prelude.++ " to move.")
-      putStrLn ("Board: " Prelude.++ (show board))
+      putStrLn ((printPlayer player) ++ " to move.")
+      putStrLn ("Board: " ++ (show board))
       n <- move board
       playGame (not player, elimDivisors n board)
          
