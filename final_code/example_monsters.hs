@@ -36,9 +36,12 @@ accumulate :: Functor m => MonStr m Int -> MonStr m Int
 accumulate = accFrom 0 where
   accFrom s = transform (\h t -> (h+s, accFrom (h+s) t))
 
+-- Alternative definitions of nats
+--   Are they equivalent to nats for every m?
+
 myNats :: Applicative m => MonStr m Int
 myNats = 0 <: accumulate (repeatA 1)
 
--- Q: is myNats equivalent to nats for every m?
+appNats :: Applicative m => MonStr m Int
+appNats = 0 <: (pure (+ 1) <*> appNats)
 
--- ex: runIdentity (takeM 10 myNats)
