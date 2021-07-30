@@ -3,16 +3,6 @@ import MonadicStreams hiding ((++))
 
 import Examples.BLTrees
 
-echo :: Read a => MonStr IO a
-echo = MCons $ do
-  putStr("input: ")
-  s <- getLine
-  return (read s, echo)
-
-stopAtZero :: Monad m => MonStr m Int -> m [Int]
-stopAtZero = fmap fst . spanM (/=0)
-
-
 -- Divisors game
 
 divides :: Int -> Int -> Bool
