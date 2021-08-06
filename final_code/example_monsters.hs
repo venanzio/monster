@@ -45,3 +45,14 @@ myNats = 0 <: accumulate (repeatA 1)
 appNats :: Applicative m => MonStr m Int
 appNats = 0 <: (pure (+ 1) <*> appNats)
 
+-- Guessing game
+-- you can use it with nats or echo
+
+guessNum :: Int -> MonStr IO Int -> IO ()
+guessNum x s = do
+  putStrLn "Guess the number"
+  (y,s') <- uncons s
+  putStr (show y Prelude.++ " is ")
+  if y == x
+    then putStrLn "correct" >> return ()
+    else putStrLn (if y < x then "too small" else "too big") >> guessNum x s'

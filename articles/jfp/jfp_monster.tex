@@ -1,5 +1,8 @@
 \documentclass{jfp}
 
+\usepackage{listings}
+\usepackage{notations}
+
 
 \begin{document}
 
@@ -31,6 +34,20 @@ This is an article about monadic streams.
 \maketitle
 
 \section{Introduction}
+
+{\em Monadic streams} (which we shortly call {\em monsters}) are infinite sequences of values where each value and the sub-sequence following it are produced by the execution of a monadic action.
+
+To understand monadic streams, we must first look at pure streams.
+A \emph{pure stream} is an infinite sequence of values, for example (using the Haskell notation that we will introduce later), the stream of all natural numbers:
+\begin{haskell}
+  nats = 0 <: 1 <: 2 <: 3 <: 4 <: (*...*)
+\end{haskell}
+The type of pure streams with elements of type \hcode{a} is denoted by \hcode{Stream a}. The cons operation \hcode{(<:)} is used to append an element in front of an existing stream. Streams are infinite, so we must use recursion to define them:
+\begin{haskell}
+nats :: Stream Int
+nats = natsFrom 0 where
+  natsFrom n = n <: natsFrom (n+1)
+\end{haskell}
 
 \section{Definition of Monsters}
 
