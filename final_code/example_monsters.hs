@@ -10,6 +10,14 @@ nats :: Applicative m => MonStr m Int
 nats = natsFrom 0 where
   natsFrom n = n <: natsFrom (n+1)
 
+inputInt :: IO Int
+inputInt = do
+  putStr "Write a number: "
+  fmap read getLine
+
+inputInts :: MonStr IO Int
+inputInts = M.repeat inputInt
+  
 inputStr :: Read a => MonStr IO a
 inputStr = M.repeat (putStr("input: ") >> fmap read getLine)
 {-
