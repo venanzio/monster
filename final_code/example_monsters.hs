@@ -1,4 +1,4 @@
-import MonadicStreams hiding (head,tail)
+import MonadicStreams hiding (head,tail,repeat)
 import qualified MonadicStreams as M
 
 import Control.Monad.Identity
@@ -10,11 +10,13 @@ nats = natsFrom 0 where
   natsFrom n = n <: natsFrom (n+1)
 
 echo :: Read a => MonStr IO a
+echo = M.repeat (putStr("input: ") >> fmap read getLine)
+{-
 echo = MCons $ do
   putStr("input: ")
   s <- getLine
   return (read s, echo)
-
+-}
 
 -- print the first 20 elements of a polymorphic monster
 --  you can apply it to a monster of type: Monad m => Monstr m a
