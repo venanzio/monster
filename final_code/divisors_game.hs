@@ -105,6 +105,7 @@ moveIO (player,board) =
       putStrLn ((printPlayer player) Prelude.++ " to move.")
       putStrLn ("Board: " Prelude.++ (show board))
       move board
+      
 
 -- Versions of gameTree and gameIOM
 
@@ -114,6 +115,8 @@ gTree = gameMonster moves
 gIOM :: GameState -> MonStr IO Int
 gIOM = gameMonster moveIO
 
+-- gStragegy :: GameState -> MonStr ((->) GameState) Int
+-- gStragegy = gameMonster strategy
 
 
 showGTree :: Int -> IO ()
