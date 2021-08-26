@@ -15,7 +15,6 @@ open Functor
 open Category
 
 
--- Stuff related to Hom sets is (surprisingly) in Functor.Hom
 -- Category.Instance.Sets is useful to look at to get bearings on how to approach reasoning
 
 -- A helper function to prove equality of pairs when they are equal in each projection
@@ -122,4 +121,4 @@ MonStrF {o} M = record
           (uncons {o} {M} {A}) -- This is a hylomorphism?
 
     MonStrFMapId : ∀ {A : Set o} → Sets o [ MonStrFMap (id (Sets o)) ≈ id (Sets o) ]
-    MonStrFMapId = {!!}
+    MonStrFMapId {A} {x} = {!!}
