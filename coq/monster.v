@@ -82,7 +82,7 @@ Axiom coinduction: forall A (s1 s2: MonStr A),
 
 (* Pairing of functions *)
 Definition fpair {A1 A2 B1 B2:Set}(f:A1->A2)(g:B1->B2): A1*B1 -> A2*B2 :=
-fun p => match p with pair a b => pair (f a) (g b) end.
+fun p => pair (f (fst p)) (g (snd p)).
 
 CoFixpoint monstr_map {A B : Set}(f : A -> B) (x : MonStr A) : MonStr B :=
   match x with
@@ -109,16 +109,28 @@ Qed.
 
 (* MonStr is a functor *)
 
+Lemma monster_id_law:
+  forall A s, monstr_map (id A) s ~~ id (MonStr A) s.
+Proof.
+cofix mil.
+intros A [m].
+unfold id; simpl.
+rewrite mmap_unfold; simpl.
+apply mbisim.
+case m. 
+intros s h.
+unfold mmap; simpl.
+apply mrlift.
+intro p.
+unfold prlift; simpl; split.
+auto.
+apply mil.
+Qed.
+
 Lemma monster_functor_id:
   forall A, monstr_map (id A) = id (MonStr A).
 Proof.
 intro A; apply functional_extensionality.
-intros [m].
-apply coinduction.
-unfold id; simpl.
-cofix mfi.
-rewrite mmap_unfold.
-unfold id; simpl.
-apply mbisim.
-
-(* To be completed *)
+intro s; apply coinduction.
+apply monster_id_law.
+Qed.
