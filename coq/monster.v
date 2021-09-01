@@ -5,29 +5,33 @@ Require Export FunctionalExtensionality.
 Parameter Shape: Set.
 Parameter Position: Shape -> Set.
 
-Definition M (X:Set): Set := {s:Shape & Position s -> X}.
+Definition M (A:Set): Set := {s:Shape & Position s -> A}.
 
 (* Lifting of a relation by M (used in def of bisimulation) *)
 
-Inductive MRel (A:Set)(R:A->A->Prop): M A -> M A -> Prop :=
+Inductive MRel {A:Set}(R:A->A->Prop): M A -> M A -> Prop :=
   mrlift: forall (s:Shape)(h1 h2: Position s -> A),
             (forall p: Position s, R (h1 p) (h2 p))
-          -> MRel A R (existT _ s h1) (existT _ s h2).
+          -> MRel R (existT _ s h1) (existT _ s h2).
 
 (* Functoriality of M *)
 
-Definition mmap (A B:Set)(f:A->B): M A -> M B :=
+Definition mmap {A B:Set}(f:A->B): M A -> M B :=
 fun x => match x with
   existT _ s h => existT _ s (fun p => f (h p))
 end.
 
-Definition id (X:Set): X -> X := fun x => x.
+(* Identity and composition operators (are they not in the library?) *)
 
-Definition comp (X Y Z:Set)(g:Y->Z)(f:X -> Y): X -> Z :=
+Definition id (A:Set): A -> A := fun x => x.
+
+Definition comp {A B C:Set}(g:B->C)(f:A -> B): A -> C :=
 fun x => g (f x).
 
+(* M (any container) is a functor *)
+
 Lemma m_functor_id:
-  forall A, mmap A A (id A) = id (M A).
+  forall A, mmap (id A) = id (M A).
 Proof.
 intro A.
 apply functional_extensionality.
@@ -37,7 +41,7 @@ Qed.
 
 Lemma m_functor_comp:
   forall (A B C:Set)(g:B->C)(f:A->B),
-    mmap A C (comp A B C g f) = comp (M A) (M B) (M C) (mmap B C g) (mmap A B f).
+    mmap (comp g f) = comp (mmap g) (mmap f).
 Proof.
 intros A B C g f.
 apply functional_extensionality.
@@ -49,36 +53,40 @@ Qed.
 CoInductive MonStr (A:Set): Set :=
   mcons: M (A * (MonStr A)) -> MonStr A.
 
-Definition uncons (A:Set): MonStr A -> M (A* MonStr A) :=
-fun s => match s with (mcons _ m) => m end.
+Arguments mcons {A}.
+
+Definition uncons {A:Set}: MonStr A -> M (A* MonStr A) :=
+fun s => match s with (mcons m) => m end.
 
 Lemma mcons_unfold:
-  forall A (s:MonStr A), s = mcons _ (uncons _ s).
+  forall A (s:MonStr A), s = mcons (uncons s).
 Proof.
 intros A s; case s; auto.
 Qed.
 
 (* Lifting relations to a product *)
-Definition prlift (A B: Set)(RA:A->A->Prop)(RB:B->B->Prop): A*B -> A*B -> Prop:=
+Definition prlift {A B: Set}(RA:A->A->Prop)(RB:B->B->Prop): A*B -> A*B -> Prop:=
 fun p1 p2 => RA (fst p1) (fst p2) /\ RB (snd p1) (snd p2).
 
 (* Bisimulation for monsters *)
-CoInductive MonStrEq (A:Set): MonStr A -> MonStr A -> Prop :=
+CoInductive Mbisim {A:Set}: MonStr A -> MonStr A -> Prop :=
   mbisim: forall (m1 m2: M (A * (MonStr A))),
-            MRel _ (prlift _ _ (eq) (MonStrEq A)) m1 m2
-          -> MonStrEq A (mcons _ m1) (mcons _ m2). 
-            
+            MRel (prlift (eq) (@Mbisim A)) m1 m2
+          -> Mbisim (mcons m1) (mcons m2). 
+
+Notation "s1 ~~ s2" := (Mbisim s1 s2) (at level 70, no associativity).            
+
 (* CoInduction Principle: bisimulation implies equality *)
 Axiom coinduction: forall A (s1 s2: MonStr A),
-                     MonStrEq _ s1 s2 -> s1 = s2.
+                     s1 ~~ s2 -> s1 = s2.
 
 (* Pairing of functions *)
-Definition fpair (A1 A2 B1 B2:Set)(f:A1->A2)(g:B1->B2): A1*B1 -> A2*B2 :=
+Definition fpair {A1 A2 B1 B2:Set}(f:A1->A2)(g:B1->B2): A1*B1 -> A2*B2 :=
 fun p => match p with pair a b => pair (f a) (g b) end.
 
-CoFixpoint monstr_map (A B : Set) (f : A -> B) (x : MonStr A) : MonStr B :=
+CoFixpoint monstr_map {A B : Set}(f : A -> B) (x : MonStr A) : MonStr B :=
   match x with
-    mcons _ m => mcons _ (mmap _ _ (fpair _ _ _ _ f (monstr_map A B f)) m)
+    mcons m => mcons (mmap (fpair f (monstr_map f)) m)
   end.
 
 (*
@@ -90,8 +98,7 @@ CoFixpoint monstr_map (A B : Set) (f : A -> B) (x : MonStr A) : MonStr B :=
 
 Lemma mmap_unfold: 
   forall (A B : Set) (f : A -> B)(m: M (A * MonStr A)),
-    monstr_map A B f (mcons _ m) 
-    = mcons _ (mmap _ _ (fpair _ _ _ _ f (monstr_map A B f)) m).
+    monstr_map f (mcons m) = mcons (mmap (fpair f (monstr_map f)) m).
 Proof.
 intros A B f m.
 symmetry.
@@ -100,15 +107,18 @@ auto.
 Qed.
 
 
-
-
-
+(* MonStr is a functor *)
 
 Lemma monster_functor_id:
-  forall A, monstr_map A A (id A) = id (MonStr A).
+  forall A, monstr_map (id A) = id (MonStr A).
 Proof.
 intro A; apply functional_extensionality.
 intros [m].
 apply coinduction.
+unfold id; simpl.
+cofix mfi.
 rewrite mmap_unfold.
+unfold id; simpl.
+apply mbisim.
+
 (* To be completed *)
