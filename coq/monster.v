@@ -7,6 +7,13 @@ Parameter Position: Shape -> Set.
 
 Definition M (X:Set): Set := {s:Shape & Position s -> X}.
 
+(* Lifting of a relation by M (used in def of bisimulation) *)
+
+Inductive MRel (A:Set)(R:A->A->Prop): M A -> M A -> Prop :=
+  mrlift: forall (s:Shape)(h1 h2: Position s -> A),
+            (forall p: Position s, R (h1 p) (h2 p))
+          -> MRel A R (existT _ s h1) (existT _ s h2).
+
 (* Functoriality of M *)
 
 Definition mmap (A B:Set)(f:A->B): M A -> M B :=
@@ -38,8 +45,28 @@ intros [s h].
 auto.
 Qed.
 
+(* Monadic streams over the functor M *)
 CoInductive MonStr (A:Set): Set :=
   mcons: M (A * (MonStr A)) -> MonStr A.
+
+Definition uncons (A:Set): MonStr A -> M (A* MonStr A) :=
+fun s => match s with (mcons _ m) => m end.
+
+(* Lifting relations to a product *)
+Definition prlift (A B: Set)(RA:A->A->Prop)(RB:B->B->Prop): A*B -> A*B -> Prop:=
+fun p1 p2 => RA (fst p1) (fst p2) /\ RB (snd p1) (snd p2).
+
+(* Bisimulation for monsters *)
+CoInductive MonStrEq (A:Set): MonStr A -> MonStr A -> Prop :=
+  mbisim: forall (m1 m2: M (A * (MonStr A))),
+            MRel _ (prlift _ _ (eq) (MonStrEq A)) m1 m2
+          -> MonStrEq A (mcons _ m1) (mcons _ m2). 
+            
+
+
+
+
+
 
 CoFixpoint monstr_map (A B : Set) (f : A -> B) (x : MonStr A) : MonStr B :=
   match x with
