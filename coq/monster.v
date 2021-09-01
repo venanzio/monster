@@ -52,6 +52,12 @@ CoInductive MonStr (A:Set): Set :=
 Definition uncons (A:Set): MonStr A -> M (A* MonStr A) :=
 fun s => match s with (mcons _ m) => m end.
 
+Lemma mcons_unfold:
+  forall A (s:MonStr A), s = mcons _ (uncons _ s).
+Proof.
+intros A s; case s; auto.
+Qed.
+
 (* Lifting relations to a product *)
 Definition prlift (A B: Set)(RA:A->A->Prop)(RB:B->B->Prop): A*B -> A*B -> Prop:=
 fun p1 p2 => RA (fst p1) (fst p2) /\ RB (snd p1) (snd p2).
@@ -62,21 +68,47 @@ CoInductive MonStrEq (A:Set): MonStr A -> MonStr A -> Prop :=
             MRel _ (prlift _ _ (eq) (MonStrEq A)) m1 m2
           -> MonStrEq A (mcons _ m1) (mcons _ m2). 
             
+(* CoInduction Principle: bisimulation implies equality *)
+Axiom coinduction: forall A (s1 s2: MonStr A),
+                     MonStrEq _ s1 s2 -> s1 = s2.
 
-
-
-
-
+(* Pairing of functions *)
+Definition fpair (A1 A2 B1 B2:Set)(f:A1->A2)(g:B1->B2): A1*B1 -> A2*B2 :=
+fun p => match p with pair a b => pair (f a) (g b) end.
 
 CoFixpoint monstr_map (A B : Set) (f : A -> B) (x : MonStr A) : MonStr B :=
+  match x with
+    mcons _ m => mcons _ (mmap _ _ (fpair _ _ _ _ f (monstr_map A B f)) m)
+  end.
+
+(*
   match x with
   | mcons _ (existT _ s h) =>
       mcons _ (existT _ s (fun p => (f (fst (h p)), monstr_map A B f x)))
   end.
+*)
+
+Lemma mmap_unfold: 
+  forall (A B : Set) (f : A -> B)(m: M (A * MonStr A)),
+    monstr_map A B f (mcons _ m) 
+    = mcons _ (mmap _ _ (fpair _ _ _ _ f (monstr_map A B f)) m).
+Proof.
+intros A B f m.
+symmetry.
+rewrite mcons_unfold.
+auto.
+Qed.
+
+
+
+
+
 
 Lemma monster_functor_id:
   forall A, monstr_map A A (id A) = id (MonStr A).
-(* We should use bisimulation instead of equality,
-   or postulate the principle of coinduction: bisimulation => equality
-*)
-
+Proof.
+intro A; apply functional_extensionality.
+intros [m].
+apply coinduction.
+rewrite mmap_unfold.
+(* To be completed *)
