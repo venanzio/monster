@@ -7,6 +7,17 @@ Parameter Position: Shape -> Set.
 
 Definition M (A:Set): Set := {s:Shape & Position s -> A}.
 
+(* Pure streams *)
+
+CoInductive Stream (A:Set): Set :=
+  cons: A -> Stream A -> Stream A.
+
+Arguments cons {A}.
+
+CoInductive sEq {A:Set}: Stream A -> Stream A -> Prop :=
+  bisim: forall (a1 a2:A)(s1 s2:Stream A), a1=a2 -> sEq s1 s2
+         -> sEq (cons a1 s1) (cons a2 s2).
+
 (* Lifting of a relation by M (used in def of bisimulation) *)
 
 Inductive MRel {A:Set}(R:A->A->Prop): M A -> M A -> Prop :=
@@ -112,11 +123,11 @@ Qed.
 Lemma monster_id_law:
   forall A s, monstr_map (id A) s ~~ id (MonStr A) s.
 Proof.
-cofix mil.
+cofix mil. (* generate coinduction hypothesis *)
 intros A [m].
 unfold id; simpl.
 rewrite mmap_unfold; simpl.
-apply mbisim.
+apply mbisim. (* use of coinduction hypothesis *)
 case m. 
 intros s h.
 unfold mmap; simpl.
