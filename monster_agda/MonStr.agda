@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --safe --guardedness --termination-depth=2 #-}
+{-# OPTIONS --without-K --guardedness --termination-depth=2 #-}
 
 open import Categories.Category -- using (Category; _[_≈_])
 open import Categories.Category.Instance.Sets
@@ -8,14 +8,104 @@ open import Categories.Functor.Coalgebra
 open import Data.Product
 open import Function using (_∘′_) renaming (id to idf)
 open import Categories.Category.Product
+open import Relation.Binary using (Rel)
 
 import Relation.Binary.PropositionalEquality as ≡ using (_≡_; trans; cong; cong-app; refl)
 open import Level renaming (suc to lsuc; zero to lzero)
 open Functor
 open Category
 
-
 -- Category.Instance.Sets is useful to look at to get bearings on how to approach reasoning
+
+-- Function extensionality axiom
+postulate
+  extensionality : ∀ {o}{A B : Set o}{f g : A → B} → Sets o [ f ≈ g ] → f ≡.≡ g
+
+-- Containers
+-- ======================================
+
+-- Singleton set
+record ⊤ {o : Level} : Set o where
+  instance constructor tt
+
+-- Could try to define this in full generality for locally CCCs
+record Container (o : Level) : Set (lsuc o) where
+  field
+    Shapes : Set o
+    Positions : Shapes → Set o
+
+open Container
+
+
+-- Type mapping of the functor based on a container
+M : ∀ {o}{C : Container o}(A : Set o) → Set o
+M {C = C} A = Σ (Shapes C) (λ s → Positions C s → A)
+  
+
+-- The full data of a functor based on a container
+C→F : ∀ {o} → Container o → Endofunctor (Sets o)
+C→F {o} C = record
+  { F₀           = M {C = C}
+  ; F₁           = ContainerFmap
+  ; identity     = ≡.refl
+  ; homomorphism = ≡.refl
+  ; F-resp-≈     = ContainerFmapResp≈
+  }
+  where
+    ContainerFmap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ M A ,  M B ]
+    ContainerFmap f (s , p) = s , f ∘′ p
+
+    ContainerFmapResp≈ : ∀ {A B : Set o} {f g : Sets o [ A , B ]} → Sets o [ f ≈ g ] → Sets o [ ContainerFmap f ≈ ContainerFmap g ]
+    ContainerFmapResp≈ {A} {B} {f} {g} f≈g {s , p} =
+      begin
+        s , f ∘′ p
+      ≡⟨ cong (λ h → s , h ∘′ p) (extensionality {f = f} {g = g} f≈g) ⟩
+        s , g ∘′ p
+      ∎
+      where
+        open import Relation.Binary.PropositionalEquality
+        open ≡-Reasoning
+        open Category.HomReasoning using ( _⟩∘⟨refl )
+
+
+-- Lift binary relation to one on containers
+data CRel {o}{C : Container o}{A : Set o}(R : Rel A o) : Rel (M A) o where
+  crel : ∀ {s : Shapes C}{h1 h2 : Positions C s → A} → (∀ {p : Positions C s} → R (h1 p) (h2 p)) → CRel R (s , h1) (s , h2)
+
+open CRel
+
+-- Lift binary relation to one on products
+prlift : ∀ {o}{A B : Set o}(RA : Rel A o)(RB : Rel B o) → Rel (A × B) o
+prlift ra rb = λ (a₁ , b₁) (a₂ , b₂) → (ra a₁ a₂) × (rb b₁ b₂)
+
+
+-- Definition of monadic stream data type
+-- ======================================
+record MonStr {o : Level} (C : Container o) (A : Set o) : Set o where
+  coinductive
+  constructor mcons 
+  field
+    unmcons : M {C = C} (A × MonStr C A)
+
+open MonStr
+
+
+-- Bisimulation definition
+record _∼∼_ {o}{C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) : Set o where
+  coinductive
+  constructor mbisim
+  field
+    unmbisim : CRel (prlift (≡._≡_) (_∼∼_ {o}{C}{A})) (unmcons m₁) (unmcons m₂)
+
+
+-- Coinduction axiom
+postulate
+  coinduction : ∀ {o}{C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) → m₁ ∼∼ m₂ → m₁ ≡.≡ m₂
+
+
+
+-- Pair functoriality proofs
+-- ==========================
 
 -- A helper function to prove equality of pairs when they are equal in each projection
 pair≡ : ∀ {o}{A B : Set o}{a₁ a₂ : A}{b₁ b₂ : B} →  -- If ...
@@ -81,61 +171,9 @@ _×- {o} X = record
     ProductResp≈ f≈g {x , a} = ≡.cong (λ ha → x , ha) f≈g
 
 
--- Container functors
--- ======================================
-
--- Could try to define this in full generality for any locally CCC
-record Container (o : Level) : Set (lsuc o) where
-  field
-    Shapes : Set o
-    Positions : Shapes → Set o
-
-open Container
-
-
-lem1 : ∀ {o}{A B C : Set o}{f g : A → B}{p : C → A} → (∀ {x} → f x ≡.≡ g x) → (∀ {x} → f (p x) ≡.≡ g (p x))
-lem1 {o} {A} {B} {C} {f} {g} {p} f≈g {x} = f≈g
-
-lem2 : ∀ {o}{A B C : Set o}{f g : A → B}{p : C → A} → (∀ {x} → f (p x) ≡.≡ g (p x)) → ((λ x → f (p x)) ≡.≡ (λ x → g (p x)))
-lem2 {o} {A} {B} {C} {f} {g} {p} f≈g = {!!}
-
-
-C→F : ∀ {o} → Container o → Endofunctor (Sets o)
-C→F {o} C = record
-  { F₀           = λ A → Σ (Shapes C) (λ s → Positions C s → A)
-  ; F₁           = ContainerFmap
-  ; identity     = ≡.refl
-  ; homomorphism = ≡.refl
-  ; F-resp-≈     = ContainerFmapResp≈
-  }
-  where
-    ContainerFmap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [  Σ (Shapes C) (λ s → Positions C s → A) ,  Σ (Shapes C) (λ s → Positions C s → B) ]
-    ContainerFmap f (s , p) = s , (λ x → f (p x))
-
-    ContainerFmapResp≈ : ∀ {A B : Set o} {f g : Sets o [ A , B ]} → Sets o [ f ≈ g ] → Sets o [ ContainerFmap f ≈ ContainerFmap g ]
-    ContainerFmapResp≈ {A} {B} {f} {g} f≈g {s , p} =
-      begin
-        s , (λ x → f (p x))
-      ≡⟨ {!!} ⟩
-        s , (λ x → g (p x))
-      ∎
-      where
-        open import Relation.Binary.PropositionalEquality
-        open ≡-Reasoning
-
     
-
--- Definition of monadic stream data type
--- ======================================
-
-record MonStr {o : Level} (M : Container o) (A : Set o) : Set o where
-  coinductive
-  constructor mcons 
-  field
-    unmcons : F₀ (C→F M) (A × MonStr M A)
-
-open MonStr
-
+-- Monster proofs
+-- ====================
 
 -- Proof that Monsters are Coalgebras
 MonStrCoAlg : ∀ {o} → (M : Container o) (A : Set o) → F-Coalgebra ((C→F M) ∘F (A ×-))
@@ -157,33 +195,8 @@ MonStrF {o} M = record
   where
     MonStrFMap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ MonStr M A , MonStr M B ]
     unmcons (MonStrFMap {A = A} {B = B} f ma) with unmcons ma
-    ... | mp = F₁ ((C→F M) ∘F -×-) (f , MonStrFMap f) mp
+    ... | (s , p) = s , (λ x → (λ (a , b) → (f a , MonStrFMap f b)) (p x))
 
     -- Start with pure stream proof below to get used to coinductive proofs
     --MonStrFMapId : ∀ {A : Set o} → Sets o [ MonStrFMap (id (Sets o)) ≈ id (Sets o) ]
     --MonStrFMapId {A} {x} = {!!}
-
-
-
-
-
-record Stream {o : Level} (A : Set o) : Set o where
-  coinductive
-  constructor cons
-  field
-    uncons : A × Stream A
-
-open Stream
-
-StreamF : ∀ {o} → Endofunctor (Sets o)
-StreamF {o} = record
-  { F₀           = λ A → Stream A -- action on 0-cells
-  ; F₁           = StreamFmap -- action on 1-cells
-  ; identity     = {!!} -- proof that id morphisms are conserved
-  ; homomorphism = {!!} -- proof that a->b maps to Fa->Fb
-  ; F-resp-≈     = {!!} -- proof that F respects isomorphism
-  }
-  where
-    StreamFmap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ Stream A , Stream B ]
-    uncons (StreamFmap {A = A} {B = B} f sa) with uncons sa
-    ... | (a , sa') = f a , StreamFmap f sa'
