@@ -1,8 +1,15 @@
 \section{Monsters are Not Monads}\label{sec:monad}
 
 The pure stream constructor $\strsym$ is known to be a monad, by making the $\join$ method return the diagonal of a stream of streams.
-We may think of extending this definition to monsters: since pure streams are $\Id$-monsters, the principle of polymorphic parametricity (naturality) suggests that taking the diagonal is the only reasonable attempt.
+Pure streams are $\Id$-monsters, so we may think it possible to generalize this definition to monsters based on any monad.
 However, we show in this session that this fails, by giving a counterexample for state-monsters.
+
+Specific monads may result in monadic monsters, either by using the diagonal as $\join$ or with a different definitions.
+For example, $\maybe$-monsters (lazy lists) are a monad by using concatenation as $\join$.
+
+We conjecture that a universal definition (parametric on the base monad) is not possible.
+Our discussion of the counterexample for state-monster gives some intuitive reason why it seems unlikely that a monad instantiation exists.
+A full proof of impossibility is still an open problem.
 
 A monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a join or a bind operation sequencing monadic actions, satisfying three laws.
 
