@@ -1,24 +1,48 @@
-\documentclass{article}
+\documentclass[runningheads]{llncs}
 
-\usepackage{amssymb,amsmath,amsthm}
+\bibliographystyle{splncs04}
+
+\usepackage{amssymb,amsmath}      %,amsthm}
 \usepackage{pstricks,pst-node}
-
-\title{Programming with Monsters}
-\author{Venanzio Capretta and Christopher Purdy}
 
 \usepackage{notations}
 
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}[definition]{Theorem}
-\newtheorem{proposition}[definition]{Proposition}
-\newtheorem{lemma}[definition]{Lemma}
-\newtheorem{example}[definition]{Example}
-\newtheorem{conjecture}[definition]{Conjecture}
 
 \begin{document}
-\bibliographystyle{plain}
+
+\title{Monadic Streams are Applicative but not Monadic}
+
+\author{Venanzio Capretta\inst{1} \and
+        Christopher Purdy\inst{1}}
+
+
+\authorrunning{V. Capretta and C. Purdy}
+
+\institute{Nottingham University, UK
+          \email{\{venanzio.capretta,psycjpu\}@nottingham.ac.uk}}
 
 \maketitle
+
+
+\newtheorem{lemmainner}{Lemma}
+\newenvironment{lemmaa}[1]{%
+  \renewcommand\thelemmainner{#1}%
+  \lemmainner
+}{\endlemmainner}
+
+%\newtheorem{definition}{Definition}
+%\newtheorem{theorem}[definition]{Theorem}
+%\newtheorem{proposition}[definition]{Proposition}
+%\newtheorem{lemma}[definition]{Lemma}
+%\newtheorem{example}[definition]{Example}
+%\newtheorem{conjecture}[definition]{Conjecture}
+
+\begin{abstract}
+A monadic stream (which we call a {\em monster}) is a potentially infinite sequence of values in which every element triggers a monadic action.
+Monsters are useful tools in functional programming: they can be instantiated to pure streams, lazy lists, finitely branching trees, interactive processes, state machines, and many other data structures.
+We prove that if the underlying functor is applicative, monsters are also applicative.
+On the other hand, in general monsters do not form a monad, even if the underlying functor is a monad.
+\end{abstract}
 
 \input{introduction}
 \input{functor}
