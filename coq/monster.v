@@ -147,7 +147,29 @@ Lemma monster_comp_law:
   forall (A B C:Set)(f:A->B)(g:B->C)(s:MonStr A),
     monstr_map (comp g f) s ~~ comp (monstr_map g) (monstr_map f) s.
 Proof.
-Admitted.
+cofix mcl.
+intros A B C f g [m].
+
+(* rewriting the left-hand side *)
+rewrite mmap_unfold; simpl.
+
+(* rewriting the right-hand side *)
+unfold comp at 3.
+rewrite mmap_unfold; simpl.
+rewrite mmap_unfold; simpl.
+fold (comp (mmap (fpair g (monstr_map g))) (mmap (fpair f (monstr_map f))) m).
+rewrite <- m_functor_comp.
+
+(* use bisimulation constructor *)
+apply mbisim.
+case m; intros s h.
+unfold mmap; simpl.
+apply mrlift.
+intro p.
+unfold prlift; simpl; split.
+auto.
+apply mcl. (* coinductive hypothesis *)
+Qed.
 
 Lemma monster_functor_comp:
   forall (A B C:Set)(f:A->B)(g:B->C),
