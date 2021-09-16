@@ -113,6 +113,12 @@ Qed.
 
 (* MonStr IS A FUNCTOR *)
 
+(* reduce a monster-relation to the recursive case on a single position *)
+Ltac monster_reduce m := 
+  case m; intros s h; (* unpack container m *)
+  unfold mmap; apply mrlift; intro p; (* reduce to a single position *)
+  unfold prlift; simpl; split; auto. (* isolate the recursive case *)
+
 (* Identity Law *)
 
 Lemma monster_id_law:
@@ -130,10 +136,8 @@ unfold id at 3.
 
 (* use bisimulation constructor *)
 apply mbisim.
-case m; intros s h. (* unpack container m *)
-unfold mmap; apply mrlift; intro p. (* reduce to a single position *)
-unfold prlift; simpl; split; auto. (* isolate the recursive case *)
-apply mil. (* coinduction hypothesis *)
+monster_reduce m.
+apply mil.
 Qed.
 
 Lemma monster_functor_id:
@@ -165,12 +169,7 @@ rewrite <- m_functor_comp.
 
 (* use bisimulation constructor *)
 apply mbisim.
-case m; intros s h.
-unfold mmap; simpl.
-apply mrlift.
-intro p.
-unfold prlift; simpl; split.
-auto.
+monster_reduce m.
 apply mcl. (* coinductive hypothesis *)
 Qed.
 
