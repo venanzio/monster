@@ -100,13 +100,6 @@ CoFixpoint monstr_map {A B : Set}(f : A -> B) (x : MonStr A) : MonStr B :=
     mcons m => mcons (mmap (fpair f (monstr_map f)) m)
   end.
 
-(*
-  match x with
-  | mcons _ (existT _ s h) =>
-      mcons _ (existT _ s (fun p => (f (fst (h p)), monstr_map A B f x)))
-  end.
-*)
-
 Lemma mmap_unfold: 
   forall (A B : Set) (f : A -> B)(m: M (A * MonStr A)),
     monstr_map f (mcons m) = mcons (mmap (fpair f (monstr_map f)) m).
@@ -118,7 +111,9 @@ auto.
 Qed.
 
 
-(* MonStr is a functor *)
+(* MonStr IS A FUNCTOR *)
+
+(* Identity Law *)
 
 Lemma monster_id_law:
   forall A s, monstr_map (id A) s ~~ id (MonStr A) s.
@@ -144,4 +139,21 @@ Proof.
 intro A; apply functional_extensionality.
 intro s; apply coinduction.
 apply monster_id_law.
+Qed.
+
+(* Composition Law *)
+
+Lemma monster_comp_law:
+  forall (A B C:Set)(f:A->B)(g:B->C)(s:MonStr A),
+    monstr_map (comp g f) s ~~ comp (monstr_map g) (monstr_map f) s.
+Proof.
+Admitted.
+
+Lemma monster_functor_comp:
+  forall (A B C:Set)(f:A->B)(g:B->C),
+    monstr_map (comp g f) = comp (monstr_map g) (monstr_map f).
+Proof.
+intros A B C f g; apply functional_extensionality.
+intro s; apply coinduction.
+apply monster_comp_law.
 Qed.
