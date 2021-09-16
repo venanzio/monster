@@ -120,17 +120,20 @@ Lemma monster_id_law:
 Proof.
 cofix mil. (* generate coinduction hypothesis *)
 intros A [m].
-unfold id; simpl.
+
+(* rewriting the left-hand side *)
+(* unfold id; simpl. *)
 rewrite mmap_unfold; simpl.
-apply mbisim. (* use of coinduction hypothesis *)
-case m. 
-intros s h.
-unfold mmap; simpl.
-apply mrlift.
-intro p.
-unfold prlift; simpl; split.
-auto.
-apply mil.
+
+(* rewriting the right-hand side *)
+unfold id at 3.
+
+(* use bisimulation constructor *)
+apply mbisim.
+case m; intros s h. (* unpack container m *)
+unfold mmap; apply mrlift; intro p. (* reduce to a single position *)
+unfold prlift; simpl; split; auto. (* isolate the recursive case *)
+apply mil. (* coinduction hypothesis *)
 Qed.
 
 Lemma monster_functor_id:
@@ -147,7 +150,7 @@ Lemma monster_comp_law:
   forall (A B C:Set)(f:A->B)(g:B->C)(s:MonStr A),
     monstr_map (comp g f) s ~~ comp (monstr_map g) (monstr_map f) s.
 Proof.
-cofix mcl.
+cofix mcl. (* generate coinduction hypothesis *)
 intros A B C f g [m].
 
 (* rewriting the left-hand side *)
