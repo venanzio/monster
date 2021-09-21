@@ -181,3 +181,23 @@ intros A B C f g; apply functional_extensionality.
 intro s; apply coinduction.
 apply monster_comp_law.
 Qed.
+
+(* MonStr IS APPLICATIVE *)
+
+(* Definition of Applicative structure *)
+
+
+Record Applicative (M:Set->Set): Type :=
+{ pure : forall {A:Set}, A -> M A;
+  apply : forall {A B:Set}, M (A->B) -> M A -> M B;
+  app_id: forall (A:Set)(ma:M A), apply (pure (id A)) ma = ma;
+  app_hom: forall (A B:Set)(f:A->B)(a:A), apply (pure f) (pure a) = pure (f a);
+  app_interchange: forall (A B:Set)(mf: M (A->B))(a:A), 
+    apply mf (pure a) = apply (pure (fun f => f a)) mf;
+  app_comp: forall (A B C:Set)(mf: M (A->B))(mg: M (B->C))(ma:M A),
+    apply mg (apply mf ma) = apply (apply (apply (pure comp) mg) mf) ma
+}.
+
+Notation "m1 <*> m2" := (apply m1 m2) (at level 40, left associativity).            
+
+
