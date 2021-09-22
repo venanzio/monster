@@ -26,12 +26,12 @@ Parameter F: Functor.
 (* F-coalgebras and coalgebra morphisms *)
 
 Record Coalgebra: Type :=
-  { elements: Set;
+  { elements:> Set;
     coalgebra: elements -> fun_obj F elements
   }.
 
 Record CoalgMorphism (coalg1 coalg2: Coalgebra): Type :=
-  { morphism: elements coalg1 -> elements coalg2;
+  { morphism:> elements coalg1 -> elements coalg2;
     coalg_morph_law: 
       comp (coalgebra coalg2) (morphism) = 
       comp (fun_morph F morphism) (coalgebra coalg1) 
@@ -43,7 +43,7 @@ Record CoalgMorphism (coalg1 coalg2: Coalgebra): Type :=
 *)
 
 Record Span (A B:Set): Type :=
-  { span_rel: Set;
+  { span_rel:> Set;
     span_p1: span_rel -> A;
     span_p2: span_rel -> B
   }.
@@ -58,4 +58,29 @@ Record Bisimulation (coalg1 coalg2: Coalgebra): Type :=
     bisim_p2: CoalgMorphism bisim_rel coalg2
   }.
 
+Arguments bisim_rel {coalg1 coalg2}.
+Arguments bisim_p1 {coalg1 coalg2}.
+Arguments bisim_p2 {coalg1 coalg2}.
+
+(* A weakly final coalgeba is one for which
+   there is a morphism from every coalgebra to it.
+*)
+
+Definition WeaklyFinal (fcoalg:Coalgebra): Type :=
+  forall (coalg:Coalgebra), CoalgMorphism coalg fcoalg.
+
+(* We call a coalgebra coinductive if
+   bisimulation implies equality.
+*)
+
+Definition Coinductive (coalg:Coalgebra): Type :=
+  forall (R:Bisimulation coalg coalg),
+    forall r: bisim_rel R, bisim_p1 R r = bisim_p2 R r.
+
+(* A final coalgebra is weakly final and coinductive *)
+
+Record Final (fcoalg: Coalgebra): Type :=
+  { ana_morphism: WeaklyFinal fcoalg;
+    coinductive: Coinductive fcoalg
+  }.
 
