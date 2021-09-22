@@ -55,7 +55,7 @@ Record Span (A B:Set): Type :=
 *)
 
 Record Bisimulation (coalg1 coalg2: Coalgebra): Type :=
-  { bisim_rel: Coalgebra;
+  { bisim_rel:> Coalgebra;
     bisim_p1: CoalgMorphism bisim_rel coalg1;
     bisim_p2: CoalgMorphism bisim_rel coalg2
   }.
@@ -88,7 +88,7 @@ Record Final (fcoalg: Coalgebra): Type :=
      bisimulation implies equality
 *)
 
-Theorem coinduction:
+Lemma unique_bisim:
   forall (coalg:Coalgebra), UniqueMorph coalg ->
   forall (R:Bisimulation coalg coalg),
     forall r: bisim_rel R, bisim_p1 R r = bisim_p2 R r.
@@ -98,4 +98,24 @@ rewrite (unique (bisim_rel R) (bisim_p1 R) (bisim_p2 R)).
 trivial.
 Qed.
 
+
+(* Elements of a coalgebra are bisimilar if there exists a bisimulation *)
+
+Definition Bisimilar (coalg:Coalgebra)(x1 x2:coalg): Prop :=
+  exists (R: Bisimulation coalg coalg)(r:R),
+    x1 = bisim_p1 R r /\ x2 = bisim_p2 R r.
+
+(* Coinduction Principle: in a final coalgebra
+     bisimulation implies equality
+*)
+
+Theorem coinduction:
+  forall (fcoalg: Coalgebra), Final fcoalg ->
+    forall x1 x2: fcoalg, Bisimilar fcoalg x1 x2 -> x1 = x2.
+Proof.
+intros fcoalg final x1 x2 [R [r [h1 h2]]].
+rewrite h1; rewrite h2.
+apply (unique_bisim fcoalg).
+apply (final_unique fcoalg final).
+Qed.
 
