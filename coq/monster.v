@@ -1,12 +1,5 @@
 Require Export FunctionalExtensionality.
 
-(* Definition of a container functor *)
-
-Parameter Shape: Set.
-Parameter Position: Shape -> Set.
-
-Definition M (A:Set): Set := {s:Shape & Position s -> A}.
-
 (* Pure streams *)
 
 CoInductive Stream (A:Set): Set :=
@@ -17,6 +10,13 @@ Arguments cons {A}.
 CoInductive sEq {A:Set}: Stream A -> Stream A -> Prop :=
   bisim: forall (a1 a2:A)(s1 s2:Stream A), a1=a2 -> sEq s1 s2
          -> sEq (cons a1 s1) (cons a2 s2).
+
+(* Definition of a container functor *)
+
+Parameter Shape: Set.
+Parameter Position: Shape -> Set.
+
+Definition M (A:Set): Set := {s:Shape & Position s -> A}.
 
 (* Lifting of a relation by M (used in def of bisimulation) *)
 
@@ -186,7 +186,6 @@ Qed.
 
 (* Definition of Applicative structure *)
 
-
 Record Applicative (M:Set->Set): Type :=
 { pure : forall {A:Set}, A -> M A;
   apply : forall {A B:Set}, M (A->B) -> M A -> M B;
@@ -198,6 +197,13 @@ Record Applicative (M:Set->Set): Type :=
     apply mg (apply mf ma) = apply (apply (apply (pure comp) mg) mf) ma
 }.
 
-Notation "m1 <*> m2" := (apply m1 m2) (at level 40, left associativity).            
+Parameter mapp: Applicative M.
 
+Arguments pure {M} _ {A}.
+Arguments apply {M} _ {A B}.
+
+Notation "m1 <* app *> m2" := (apply app m1 m2) (at level 40, left associativity).            
+
+Definition bin_lift {A B C:Set}(op:A->B->C): M A -> M B -> M C :=
+  fun ma mb => pure mapp op <* mapp *> ma <* mapp *> mb.
 
