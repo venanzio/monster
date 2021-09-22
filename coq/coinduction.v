@@ -37,6 +37,8 @@ Record CoalgMorphism (coalg1 coalg2: Coalgebra): Type :=
       comp (fun_morph F morphism) (coalgebra coalg1) 
   }.
 
+Arguments morphism {coalg1 coalg2}.
+
 (* A relation between sets is modeled by a span
    Idea: span_rel is a set of "certificates" that elements of A and B are related
    p:span_rel is evidence that (span_p1 p) and (span_p2 p) are related
@@ -69,18 +71,31 @@ Arguments bisim_p2 {coalg1 coalg2}.
 Definition WeaklyFinal (fcoalg:Coalgebra): Type :=
   forall (coalg:Coalgebra), CoalgMorphism coalg fcoalg.
 
-(* We call a coalgebra coinductive if
-   bisimulation implies equality.
-*)
+(* Uniqueness of morphisms to a given coalgebra from any coalgebra *)
 
-Definition Coinductive (coalg:Coalgebra): Type :=
-  forall (R:Bisimulation coalg coalg),
-    forall r: bisim_rel R, bisim_p1 R r = bisim_p2 R r.
+Definition UniqueMorph (coalg:Coalgebra): Type :=
+  forall (coalg0:Coalgebra)(f1 f2:CoalgMorphism coalg0 coalg),
+    morphism f1 = morphism f2.
 
-(* A final coalgebra is weakly final and coinductive *)
+(* A final coalgebra is weakly final and satisfies uniqueness *)
 
 Record Final (fcoalg: Coalgebra): Type :=
-  { ana_morphism: WeaklyFinal fcoalg;
-    coinductive: Coinductive fcoalg
+  { final_morphism: WeaklyFinal fcoalg;
+    final_unique: UniqueMorph fcoalg
   }.
+
+(* Unicity of morphisms implies the Coinduction Principle:
+     bisimulation implies equality
+*)
+
+Theorem coinduction:
+  forall (coalg:Coalgebra), UniqueMorph coalg ->
+  forall (R:Bisimulation coalg coalg),
+    forall r: bisim_rel R, bisim_p1 R r = bisim_p2 R r.
+Proof.
+intros coalg unique R r.
+rewrite (unique (bisim_rel R) (bisim_p1 R) (bisim_p2 R)).
+trivial.
+Qed.
+
 
