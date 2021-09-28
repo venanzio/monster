@@ -19,9 +19,14 @@ apply functional_extensionality.
 intros [a x].
 auto.
 Qed.
-
   
-Axiom str_fun_comp_law: forall (A:Set), FunctorCompLaw (StrFunObj A) (@str_fun_morph A).
+Lemma str_fun_comp_law: forall (A:Set), FunctorCompLaw (StrFunObj A) (@str_fun_morph A).
+Proof.
+intros A X Y Z f g.
+apply functional_extensionality.
+intros [a x].
+auto.
+Qed.
 
 Definition StrFun (A:Set): Functor :=
   {| fun_obj := StrFunObj A;
