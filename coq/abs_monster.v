@@ -1,3 +1,5 @@
+Require Export FunctionalExtensionality.
+
 (* Replace this path with the location on your system *)
 Add LoadPath "/home/venanzio/monster/coq".
 
@@ -10,8 +12,15 @@ Definition StrFunObj (A:Set) : Set -> Set := fun X => prod A X.
 Definition str_fun_morph (A:Set){X Y:Set}: (X->Y) -> StrFunObj A X -> StrFunObj A Y :=
   fun f x => pair (fst x) (f (snd x)).
 
-Axiom str_fun_id_law: forall (A:Set), FunctorIdLaw (StrFunObj A) (@str_fun_morph A).
+Lemma str_fun_id_law: forall (A:Set), FunctorIdLaw (StrFunObj A) (@str_fun_morph A).
+Proof.
+intros A X.
+apply functional_extensionality.
+intros [a x].
+auto.
+Qed.
 
+  
 Axiom str_fun_comp_law: forall (A:Set), FunctorCompLaw (StrFunObj A) (@str_fun_morph A).
 
 Definition StrFun (A:Set): Functor :=
