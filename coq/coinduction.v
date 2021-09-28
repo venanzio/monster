@@ -4,6 +4,8 @@
    we characterize abstractly the existence of a final coalgebra.
 *)
 
+Section Coinduction.
+
 (* Identity and composition operators (are they not in the library?) *)
 
 Definition id (A:Set): A -> A := fun x => x.
@@ -13,15 +15,21 @@ fun x => g (f x).
 
 (* Definition of functor on Set *)
 
-Record Functor: Type:=
+Definition FunctorIdLaw (F:Set->Set)(fmorph:forall {A B:Set}, (A->B) -> F A -> F B): Prop :=
+  forall (A:Set), fmorph (id A) = id (F A).
+
+Definition FunctorCompLaw (F:Set->Set)(fmorph:forall {A B:Set}, (A->B) -> F A -> F B): Prop :=
+  forall (A B C:Set)(f:A->B)(g:B->C),
+    fmorph (comp g f) = comp (fmorph g) (fmorph f).
+
+Record Functor: Type:= functor
   { fun_obj: Set -> Set;
     fun_morph: forall {A B:Set}, (A->B) -> fun_obj A -> fun_obj B;
-    fun_id_law: forall (A:Set), fun_morph (id A) = id (fun_obj A);
-    fun_comp_law: forall (A B C:Set)(f:A->B)(g:B->C),
-                    fun_morph (comp g f) = comp (fun_morph g) (fun_morph f)
+    fun_id_law: FunctorIdLaw fun_obj (@fun_morph);
+    fun_comp_law: FunctorCompLaw fun_obj (@fun_morph)
   }.
 
-Parameter F: Functor.
+Variable F: Functor.
 
 (* F-coalgebras and coalgebra morphisms *)
 
@@ -119,3 +127,4 @@ apply (unique_bisim fcoalg).
 apply (final_unique fcoalg final).
 Qed.
 
+End Coinduction.
