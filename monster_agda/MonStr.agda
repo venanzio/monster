@@ -1,4 +1,4 @@
-{-# OPTIONS --without-K --guardedness --termination-depth=2 #-}
+{-# OPTIONS --without-K --guardedness --termination-depth=3 #-}
 
 open import Categories.Category -- using (Category; _[_≈_])
 open import Categories.Category.Instance.Sets
@@ -37,13 +37,16 @@ record Container (o : Level) : Set (lsuc o) where
 open Container
 
 
+variable
+  o : Level
+
 -- Type mapping of the functor based on a container
-M : ∀ {o}{C : Container o}(A : Set o) → Set o
+M : ∀ {C : Container o}(A : Set o) → Set o
 M {C = C} A = Σ (Shapes C) (λ s → Positions C s → A)
-  
+
 
 -- The full data of a functor based on a container
-C→F : ∀ {o} → Container o → Endofunctor (Sets o)
+C→F : Container o → Endofunctor (Sets o)
 C→F {o} C = record
   { F₀           = M {C = C}
   ; F₁           = ContainerFmap
@@ -65,23 +68,22 @@ C→F {o} C = record
       where
         open import Relation.Binary.PropositionalEquality
         open ≡-Reasoning
-        open Category.HomReasoning using ( _⟩∘⟨refl )
 
 
 -- Lift binary relation to one on containers
-data CRel {o}{C : Container o}{A : Set o}(R : Rel A o) : Rel (M A) o where
+data CRel {C : Container o}{A : Set o}(R : Rel A o) : Rel (M A) o where
   crel : ∀ {s : Shapes C}{h1 h2 : Positions C s → A} → (∀ {p : Positions C s} → R (h1 p) (h2 p)) → CRel R (s , h1) (s , h2)
 
 open CRel
 
 -- Lift binary relation to one on products
-prlift : ∀ {o}{A B : Set o}(RA : Rel A o)(RB : Rel B o) → Rel (A × B) o
+prlift : ∀ {A B : Set o}(RA : Rel A o)(RB : Rel B o) → Rel (A × B) o
 prlift ra rb = λ (a₁ , b₁) (a₂ , b₂) → (ra a₁ a₂) × (rb b₁ b₂)
 
 
 -- Definition of monadic stream data type
 -- ======================================
-record MonStr {o : Level} (C : Container o) (A : Set o) : Set o where
+record MonStr (C : Container o) (A : Set o) : Set o where
   coinductive
   constructor mcons 
   field
@@ -91,7 +93,7 @@ open MonStr
 
 
 -- Bisimulation definition
-record _∼∼_ {o}{C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) : Set o where
+record _∼∼_ {C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) : Set o where
   coinductive
   constructor mbisim
   field
@@ -100,8 +102,7 @@ record _∼∼_ {o}{C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) : Set o 
 
 -- Coinduction axiom
 postulate
-  coinduction : ∀ {o}{C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) → m₁ ∼∼ m₂ → m₁ ≡.≡ m₂
-
+  coinduction : ∀ {C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) → m₁ ∼∼ m₂ → m₁ ≡.≡ m₂
 
 
 -- Pair functoriality proofs
@@ -118,7 +119,7 @@ pair≡ {a₁ = a₁} {b₂ = b₂} π₁≡ π₂≡ = ≡.trans (π₂≡ a₁
 -- Proof that cartesian product is functorial in both arguments
 -- ============================================================
 
--×- : ∀ {o} → Bifunctor (Sets o) (Sets o) (Sets o)
+-×- : Bifunctor (Sets o) (Sets o) (Sets o)
 -×- = record
   { F₀           = λ A⊗B → proj₁ A⊗B × proj₂ A⊗B
   ; F₁           = ProductBiMap
@@ -141,7 +142,7 @@ pair≡ {a₁ = a₁} {b₂ = b₂} π₁≡ π₂≡ = ≡.trans (π₂≡ a₁
                                 (λ x → ≡.cong (λ hb → x , hb) f₂≈g₂)
                                 
 
--×_ : ∀ {o} → Set o → Endofunctor (Sets o)
+-×_ : Set o → Endofunctor (Sets o)
 -×_ {o} X = record
   { F₀           = λ A → A × X
   ; F₁           = λ f → (λ (a , x) → (f a , x))
@@ -156,7 +157,7 @@ pair≡ {a₁ = a₁} {b₂ = b₂} π₁≡ π₂≡ = ≡.trans (π₂≡ a₁
     ProductResp≈ f≈g {a , x} = ≡.cong (λ ha → ha , x) f≈g
 
 
-_×- : ∀ {o} → Set o → Endofunctor (Sets o)
+_×- : Set o → Endofunctor (Sets o)
 _×- {o} X = record
   { F₀           = λ A → X × A
   ; F₁           = λ f → (λ (x , a) → (x , f a))
@@ -176,7 +177,7 @@ _×- {o} X = record
 -- ====================
 
 -- Proof that Monsters are Coalgebras
-MonStrCoAlg : ∀ {o} → (M : Container o) (A : Set o) → F-Coalgebra ((C→F M) ∘F (A ×-))
+MonStrCoAlg : (M : Container o) (A : Set o) → F-Coalgebra ((C→F M) ∘F (A ×-))
 MonStrCoAlg M A = record
   { A = MonStr M A
   ; α = unmcons
@@ -184,19 +185,32 @@ MonStrCoAlg M A = record
 
 
 -- Proof that Monsters are Functors
-MonStrF : ∀ {o} → Container o → Endofunctor (Sets o)
-MonStrF {o} M = record
-  { F₀           = λ A → MonStr M A -- action on 0-cells
+MonStrF : Container o → Endofunctor (Sets o)
+MonStrF {o} C = record
+  { F₀           = λ A → MonStr C A -- action on 0-cells
   ; F₁           = MonStrFMap -- action on 1-cells
   ; identity     = {!!} -- proof that id morphisms are conserved
   ; homomorphism = {!!} -- proof that a->b maps to Fa->Fb
   ; F-resp-≈     = {!!} -- proof that F respects isomorphism
   }
   where
-    MonStrFMap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ MonStr M A , MonStr M B ]
+    MonStrFMap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ MonStr C A , MonStr C B ]
     unmcons (MonStrFMap {A = A} {B = B} f ma) with unmcons ma
     ... | (s , p) = s , (λ x → (λ (a , b) → (f a , MonStrFMap f b)) (p x))
 
     -- Start with pure stream proof below to get used to coinductive proofs
-    --MonStrFMapId : ∀ {A : Set o} → Sets o [ MonStrFMap (id (Sets o)) ≈ id (Sets o) ]
-    --MonStrFMapId {A} {x} = {!!}
+    MonStrFMapId : ∀ {A : Set o} → Sets o [ MonStrFMap {A = A} {B = A} (id (Sets o)) ≈ id (Sets o) ]
+    MonStrFMapId {A} {ms} with unmcons ms
+    ... | (s , p) =
+      begin
+        MonStrFMap {A = A} {B = A} (λ x → x) ms
+      ≡⟨⟩
+        {!!}
+    
+      where
+        open import Relation.Binary.PropositionalEquality
+        open ≡-Reasoning
+
+        lem1 : ∀ {A : Set o}{ms : MonStr C A} → ms ≡ mcons (unmcons ms)
+        lem1 {A} {ms} with unmcons ms
+        ... | (s , p) = {!!}

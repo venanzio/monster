@@ -5,7 +5,7 @@ module MonStreams where
 
 import Control.Applicative
 import Control.Monad
-import Control.Comonad
+--import Control.Comonad
 
 -- Type of monadic streams
 -- m is not required to be a monad
@@ -178,17 +178,8 @@ joinMS mm = MCons $
 
 -- These versions seem to be the way to join the inner and outer streams resulting in the least duplication of monadic action
 --  they only satisfy the monad laws for monads which have certain properties (discussed in monster_monad.tex)
-joinPrelimMS :: Monad m => MonMatrix m a -> MonStr m (m a)
-joinPrelimMS mm = MCons $ fmap (\(as,ss) -> (headMS as, joinPrelimMS (fmap (absorbMS . tailMS) ss))) (unwrapMS mm)
-
-joinInnerMS :: Monad m => MonStr m (m a) -> MonStr m a
-joinInnerMS mas = MCons $ join (pure (\(ma, ss) -> fmap (\a -> (a, joinInnerMS ss)) ma) <*> unwrapMS mas)
-
-makeMonMatrix :: Monad m => (a -> MonStr m b) -> MonStr m a -> MonMatrix m b
-makeMonMatrix f = fmap f
-
-joinMS' ::  Monad m => MonMatrix m a -> MonStr m a
-joinMS' = joinInnerMS . joinPrelimMS
+joinMS' :: Monad m => MonMatrix m a -> MonStr m a
+joinMS' = MCons . join . fmap (\(as, ss) -> fmap (\a -> (a, joinMS'' . fmap (absorbMS . tailMS) $ ss)) . headMS $ as) . unwrapMS 
 
 outMS :: Functor m => MonStr m a -> (m a, m (MonStr m a))
 outMS ms = (headMS ms, tailMS ms)
@@ -203,12 +194,13 @@ instance Monad m => Monad (MonStr m) where
   It seems that a monadic stream with an underlying comonad forms a comonad itself 
    The laws are satisfied as far as I've been able to check with ad-hoc reasoning
 -}
+{-
 instance Comonad w => Comonad (MonStr w) where
   --extract :: MonStr w a -> a
   extract = extract . headMS
   
   --duplicate :: MonStr w a -> MonStr w (MonStr w a)
   duplicate ms = MCons $ fmap (\(h,t) -> (ms, duplicate t)) (unwrapMS ms)
-
+-}
 
 
