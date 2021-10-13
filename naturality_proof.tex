@@ -1,0 +1,169 @@
+\documentclass{article}
+
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{pstricks,pst-node}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\usepackage{tikz}
+\usetikzlibrary{trees}
+\title{Monsters can be Monads in Only One Way}
+
+\usepackage{notations_2}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{example}[definition]{Example}
+\newtheorem{conjecture}[definition]{Conjecture}
+
+\begin{document}
+\bibliographystyle{plain}
+
+\newcommand{\tabulatef}{\mathsf{tabulate}}
+\newcommand{\indexf}{\mathsf{index}}
+\newcommand{\sfork}{\mathsf{sfork}}
+\newcommand{\Set}{\mathsf{Set}}
+
+\maketitle
+
+\textit{Sidenote}: In the following, $M_i, N_i, E_i$ are functors equipped with monad definitions, and $A,B,X,Y,R,S$ are objects (types/sets)
+
+\vspace{1cm}
+
+To prove this statement, we need a single pivotal lemma.
+
+\begin{lemma}\label{lemma:stream_monad}
+The pure stream functor $\stream{\Id}: \Set \to \Set$, defined as the final coalgebra of the functor $F\,X = A \times X$ can be made a monad in only one way.
+\end{lemma}
+\begin{proof}
+$$\text{Insert funky Yoneda-based reasoning here}$$
+\end{proof}
+
+Given this lemma, we now conjecture that from the functoriality of $\stream{M}$ in its argument $M$, $\mu^{\stream{M}}$ can be defined in only one way - this way can be calculated from the following naturality condition:
+
+\begin{lemma}\label{lemma:naturality_of_mstr}
+$$\stream{}(\eta^M) \bullet \mu^{\stream{\Id}} = \mu^{\stream{M}} \bullet (\stream{}(\eta^M) \comp \stream{}(\eta^M))$$
+\end{lemma}
+\begin{proof}
+This follows directly from chasing the below commuting square, derived from the assertion that $\stream{M}$ is functorial in $M$.
+$$
+\setlength\arraycolsep{30pt}
+\begin{array}{cc} \ \\
+\Rnode{sid}{\stream{\Id}} & \Rnode{sid2}{(\stream{\Id})^2} \\[30pt]
+\Rnode{sm}{\stream{M}} & \Rnode{sm2}{(\stream{M})^2}  \\ \ 
+\end{array}
+\psset{nodesep=5pt,arrows=->}
+\ncline{sid2}{sid} \taput{\mu^{\stream{\Id}}}
+\ncline{sm2}{sm} \tbput{\mu^{\stream{M}}}
+\ncline{sid}{sm}  \tlput{\stream{}(\eta^M)}
+\ncline{sid2}{sm2}  \trput{\stream{}(\eta^M) \comp \stream{}(\eta^M)}
+$$
+\end{proof}
+
+We define $\stream{}(\phi)$, where $\phi: M_1 \Rightarrow M_2$ as:
+\begin{align*}
+	\stream{}(\phi)_A =\,&\mcons \circ \phi_{A \times \stream{M_2}} \circ\, \\
+	&(\lambda (h, t).\pair{h}{\stream{}(\phi)_A\, t})\, \circ\, \\ 
+	&\uncons
+\end{align*}
+The above is the 'natural' way of defining the lifting of a natural transformation by the functor $\stream{}$??? (how to prove this?) \\
+
+Given Lemma \ref{lemma:stream_monad} we know that the definition of $\mu^{\stream{\Id}}$ is unique up to isomorphism. Thus our chosen definition of $\mu^{\stream{\Id}}$ is the following:
+\begin{align*}
+	\mu^{\stream{\Id}}_A =\, &\mcons \circ \mu^\Id_{A \times \stream{\Id}A}\, \circ\, \\
+	&\Id\,(\lambda (hs, ts). (\Id\,(\lambda \bar{hs} . \pair{\bar{hs}}{(\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail)\,ts}) \circ \head)\,hs)\, \circ\, \\
+	&\uncons
+\end{align*}
+
+The long function in the middle is just a fancy way of applying functions to the heads and tails of a stream of streams (*an uncons'd one) underneath its various functor layers.
+
+Lets define a rather general helper function to assist with this:
+$$
+\begin{array}{ll}
+\sfork : ((M_1\, A \rightarrow N_1\, X) \times  (M_2\, B \rightarrow N_2\, Y)) \to 
+\\ \qquad\qquad M_1\, A \times M_2\, B \to N_1\,(X \times N_2\,Y) \\
+\sfork\,\pair{f}{g} = \lambda (h, t). (N_1\,(\lambda \bar{h} . \pair{\bar{h}}{g\,t}) \circ f)\,h
+\end{array}
+$$
+
+Along with an odd lemma about composing them:
+\begin{lemma}\label{lemma:sfork_comp}
+For functions: 
+$$
+\begin{array}{ll}
+f : M_1\,A \to \Id\,X & \qquad
+k : \Id\,X \to E_1\,R  \\
+g : M_2\,B \to N_2\,Y &\qquad
+l : N_2\,Y \to E_2\,S
+\end{array}
+$$
+The following holds:
+$$
+\sfork\,\pair{k}{l} \comp \sfork\,\pair{f}{g} =  \sfork\,\pair{k \comp f}{l \comp g}
+$$
+\end{lemma}
+\begin{proof}
+This is clear by unfolding the definition of $\sfork$ and considering that $\Id\,X \cong X$ (I can fill this in later but it should be really straight-forward)
+\end{proof}
+
+Which allows us to rewrite the above definitions. Since the $\Id$ functors mapping, on both objects and morphisms, are isomorphisms, we will be slightly loose with adding/removing the $\Id$ functor 'label' as required in the proof (as in, not spelling out each step in which we use this isomorphism due to its triviality).
+\begin{align*}
+	\stream{}(\phi)_A =\,&\mcons \circ \phi_{A \times \stream{M_2}} \circ\, \\
+	&\Id\,(\sfork\,\pair{\id}{\stream{}(\phi)_A})\, \circ\, \\ 
+	&\uncons
+\end{align*}
+\begin{align*}
+	\mu^{\stream{\Id}}_A =\, &\mcons \circ \mu^\Id_{A \times \stream{\Id}A}\, \circ\, \\
+	&\Id\,(\sfork\,\pair{\head}{\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	&\uncons
+\end{align*}
+
+This gives us a more detailed breakdown of Lemma \ref{lemma:naturality_of_mstr}:
+$$
+\begin{array}{ll}
+	\mu^{\stream{M}} \bullet (\stream{}(\eta^M) \comp \stream{}(\eta^M)) \\
+	= \\
+	\mcons \circ \eta^M_{A \times \stream{M}} \circ\, \Id\,(\sfork\,\pair{\id}{\stream{}(\eta^M)_A})\, \circ\, \\ 
+	 \uncons \circ \mcons\, \circ\, \\
+	 \mu^\Id_{A \times \stream{\Id}A} \circ \Id\,(\sfork\,\pair{\head}{\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+	 = \text{[Lambek's lemma, $\uncons \circ \mcons = \id$]}\\
+	\mcons \circ \eta^M_{A \times \stream{M}} \circ\, \Id\,(\sfork\,\pair{\id}{\stream{}(\eta^M)_A})\, \circ\, \\ 
+	 \mu^\Id_{A \times \stream{\Id}A} \circ \Id\,(\sfork\,\pair{\head}{\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+	 = \text{[naturality of $\mu^M$]}\\
+	\mcons \circ \eta^M_{A \times \stream{M}} \circ\, \mu^\Id_{A \times \stream{M}A}\, \circ\, \\ 
+	 (\sfork\,\pair{\id}{\stream{}(\eta^M)_A}) \circ \Id\,(\sfork\,\pair{\head}{\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+	 = \text{[$\Id\,f \cong f$]}\\
+	\mcons \circ \eta^M_{A \times \stream{M}} \circ\, \mu^\Id_{A \times \stream{M}A}\, \circ\, \\ 
+	 \Id\,(\sfork\,\pair{\id}{\stream{}(\eta^M)_A}) \circ \Id\,(\sfork\,\pair{\head}{\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+	 = \text{[Functoriality of $\Id$]}\\
+	 \mcons \circ \eta^M_{A \times \stream{M}} \circ\, \mu^\Id_{A \times \stream{M}A}\, \circ\, \\ 
+	 \Id\,(\sfork\,\pair{\id}{\stream{}(\eta^M)_A} \circ \sfork\,\pair{\head}{\mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+	 = \text{[by Lemma \ref{lemma:sfork_comp}]}\\
+	 \mcons \circ \eta^M_{A \times \stream{M}} \circ\, \mu^\Id_{A \times \stream{M}A}\, \circ\, \\ 
+	 \Id\,(\sfork\,\pair{\head}{\stream{}(\eta^M)_A \comp \mu^{\stream{\Id}}_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+	 = \text{[by Lemma \ref{lemma:naturality_of_mstr}]}\\
+	 \mcons \circ \eta^M_{A \times \stream{M}} \circ\, \mu^\Id_{A \times \stream{M}A}\, \circ\, \\ 
+	 \Id\,(\sfork\,\pair{\head}{(\mu^{\stream{M}} \bullet (\stream{}(\eta^M) \comp \stream{}(\eta^M)))_A \comp \stream{\Id}\,\tail})\, \circ\, \\
+	 \uncons \\
+\end{array}
+$$
+
+It seems that to proceed, we lift $(\stream{}(\eta^M) \comp \stream{}(\eta^M))$ up through the lambda functions until it is on the outside, at which point we should hopefully be able to cancel on both sides of the equation. 
+
+This looks even more promising considering that the 'target' $\mu^{\stream{M}}$ is:
+\begin{align*}
+	\mu^{\stream{M}}_A =\, &\mcons \circ \mu^M_{A \times \stream{M}A}\, \circ\, \\
+	&M\,(\sfork\,\pair{\head}{\mu^{\stream{M}}_A \comp \stream{M}\,\tail})\, \circ\, \\
+	&\uncons
+\end{align*}
+
+
+\end{document}
