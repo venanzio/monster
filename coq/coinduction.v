@@ -23,7 +23,7 @@ Definition FunctorCompLaw (F:Set->Set)(fmorph:forall {A B:Set}, (A->B) -> F A ->
     fmorph (comp g f) = comp (fmorph g) (fmorph f).
 
 Record Functor: Type:= functor
-  { fun_obj: Set -> Set;
+  { fun_obj:> Set -> Set;
     fun_morph: forall {A B:Set}, (A->B) -> fun_obj A -> fun_obj B;
     fun_id_law: FunctorIdLaw fun_obj (@fun_morph);
     fun_comp_law: FunctorCompLaw fun_obj (@fun_morph)

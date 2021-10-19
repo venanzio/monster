@@ -35,4 +35,14 @@ Definition StrFun (A:Set): Functor :=
      fun_comp_law := str_fun_comp_law A
   |}.
 
+(* Monadic Streams *)
+
+
+Variable M: Functor.
+
+Definition MonStrFunObj (A:Set) : Set -> Set := fun X => M (StrFun A X).
+
+Definition mon_str_fun_morph (A:Set){X Y:Set}: 
+  (X->Y) -> MonStrFunObj A X -> MonStrFunObj A Y :=
+  fun f s => fun_morph M (fun_morph (StrFun A) f) s.
 
