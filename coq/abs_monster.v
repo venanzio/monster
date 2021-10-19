@@ -46,3 +46,26 @@ Definition mon_str_fun_morph (A:Set){X Y:Set}:
   (X->Y) -> MonStrFunObj A X -> MonStrFunObj A Y :=
   fun f s => fun_morph M (fun_morph (StrFun A) f) s.
 
+Lemma Mon_str_fun_id_law: 
+  forall (A:Set), FunctorIdLaw (MonStrFunObj A) (@mon_str_fun_morph A).
+Proof.
+intros A X.
+apply functional_extensionality.
+intro s.
+unfold mon_str_fun_morph.
+rewrite (fun_id_law (StrFun A)).
+rewrite (fun_id_law M).
+auto.
+Qed.
+
+Lemma mon_str_fun_comp_law: 
+  forall (A:Set), FunctorCompLaw (MonStrFunObj A) (@mon_str_fun_morph A).
+Proof.
+intros A X Y Z f g.
+apply functional_extensionality.
+intros s.
+unfold mon_str_fun_morph.
+rewrite (fun_comp_law (StrFun A)).
+rewrite (fun_comp_law M).
+auto.
+Qed.
