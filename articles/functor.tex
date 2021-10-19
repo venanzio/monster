@@ -27,13 +27,17 @@ $$
 
 \end{lemma}
 \begin{proof}
-We apply the left-hand side function to an $M$-monster in constructor form:
-
+We prove the statement pointwise, by applying the left-hand side function to an $M$-monster in constructor form $(\mcons\,m)$.
+We symplify according the the definition of the definition of $\stream{M}$ mapping:
+$$
+\stream{M} \id_A\,(\mcons\,m)
+= \mcons\,(M\,(\id_A\times \stream{M} \id_A)\,m)
+$$
+Notice now that the function $(\stream{M} \id_A)$ occurs as argument of the functor $M$, which in turn is guarded by the constructor $\mcons$.
+This guarantees the fulfillment of the {\em guardedness by constructors} constraint, so we can apply the {\em coinduction hypothesis} allowing us to apply the Lemma's statement to this occurrence:
 $$
 \begin{array}{ll}
-\stream{M} \id_A\,(\mcons\,m)\\
-{}= \mcons\,(M\,(\id_A\times \stream{M} \id_A)\,m)
-  & \mbox{definition of }\stream{M}\mbox{ mapping}\\
+\cdots\\
 {}= \mcons\,(M\,(\id_A\times \id_{(\stream{M} A)})\,m)
   & \mbox{coinduction hypothesis}\\
 {}= \mcons\,(M\,(\id_{A\times \stream{M} A})\,m)
@@ -43,7 +47,9 @@ $$
 {}= \mcons\,m
 \end{array}
 $$
-
+This concludes the proof that the statement's identity holds for all objects in canonical constructor form.
+We have recursively used the statement as coinductive hypothesis only on a subterm guarded by construction.
+This validates this proof as a correct application of coinduction.
 \end{proof}
 
 \begin{lemma}\label{lemma:functor_comp}
