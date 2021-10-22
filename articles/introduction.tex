@@ -67,6 +67,14 @@ $$
 This means that an element of $\lst{A}$ is either an empty sequence $\nil$ or a non-empty sequence $a\scons \sigma$ where $a:A$ and $\sigma$ is recursively an element of $\lst{A}$.
 Since this is a coinductive type, the constructor $(\scons)$ can be applied an infinite number of times.
 Therefore $\lst{A}$ is the type of finite and infinite sequences.
+For instance, a finite list with two elements would be written, using $\maybe$-monster notation as:
+$$
+a_0 \scons a_1\scons \nil \cong
+\mcons\, (\just\,\langle a_0, 
+  \mcons\, (\just\,\langle a_1,
+    \mcons\,\nothing\rangle) \rangle)
+$$
+
 
 Another example is when the underlying monad is $M = \lstsym $ itself.
 In this case each entry in the stream is a list of pairs of heads and tails.
