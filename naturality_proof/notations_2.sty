@@ -1,0 +1,205 @@
+
+\newenvironment{vcomment}{\scriptsize\sffamily\slshape {\bf [Venanzio's comment: }}{{\bf ]}}
+\newcommand{\vcomm}[1]{{\scriptsize\sffamily\slshape {\bf [V: }#1{\bf ]}}}
+
+\newenvironment{ccomment}{\scriptsize\sffamily\slshape {\bf [Chris's comment: }}{{\bf ]}}
+\newcommand{\ccomm}[1]{{\scriptsize\sffamily\slshape {\bf [C: }#1{\bf ]}}}
+
+\newcommand{\hide}[1]{}
+
+\newcommand{\trunc}[2]{{#1}|_{#2}}
+\newcommand{\eqn}[1]{\mathrel{=_{#1}}}
+\newcommand{\set}{\mathsf{Set}}
+\newcommand{\nat}{\mathbb{N}}
+\newcommand{\unit}{1}
+
+\newcommand{\bool}{\mathbb{B}}
+\newcommand{\true}{\mathsf{true}}
+\newcommand{\false}{\mathsf{false}}
+\newcommand{\band}{\mathbin{\mathsf{and}}}
+
+% projections
+\newcommand{\fst}{\mathsf{fst}}
+\newcommand{\snd}{\mathsf{snd}}
+
+
+\newcommand{\comp}{\circ} % composition of functions
+\newcommand{\clift}[2]{\mathbin{#1_{\bullet #2}}}
+    % composition lift: composition with the comp operator
+
+
+\newcommand{\data}{\mathbf{data}}
+\newcommand{\codata}{\mathbf{codata}}
+\newcommand{\where}{\mathsf{where}}
+\newcommand{\cfunct}{\rhd}
+\newcommand{\shape}{\mathsf{shape}}
+\newcommand{\subs}{\mathsf{subs}}
+\newcommand{\nuout}{{\mathsf{out}_\nu}}
+
+% lists
+\newcommand{\lstsym}{\mathsf{List}}
+\newcommand{\lst}[1]{\lstsym(#1)}  % lazy lists
+\newcommand{\flstsym}{\mathsf{FList}}
+\newcommand{\flst}[1]{\flstsym(#1)}  % finite lists
+\newcommand{\nil}{\mathsf{nil}}
+\newcommand{\cons}{\mathbin{:\hspace{-0.1em}:}}
+
+
+% streams
+\newcommand{\strsym}{\mathbb{S}}
+\newcommand{\stream}[1]{\strsym_{#1}}
+\newcommand{\scons}{\triangleleft}
+\newcommand{\mcons}{\mathsf{mcons}}
+\newcommand{\head}{\mathsf{head}}
+\newcommand{\tail}{\mathsf{tail}}
+\newcommand{\tails}{\mathsf{tails}}
+\newcommand{\uncons}{\mathsf{uncons}}
+
+
+\newcommand{\stmon}[1]{\mathbb{SM}_{#1}}  % State-monster, #1 = state type
+\newcommand{\strun}{\mathsf{run}}
+
+% Notation for M ({#1} \times \stream{M} {#1})
+\newcommand{\pstream}[1]{\mathbb{P}_{#1}}
+\newcommand{\pstr}[1]{\check{#1}}
+\newcommand{\mstream}[1]{\mathbb{M}_{#1}}  
+
+% concrete streams 
+\newcommand{\fromstr}{\mathsf{from}}
+\newcommand{\fromstepstr}{\mathsf{fromStep}}
+\newcommand{\frominc}{\mathsf{fromInc}}
+\newcommand{\incr}{\mathsf{incr}}
+
+% coalgebras
+\newcommand{\ana}[1]{\mathsf{ana}_{#1}}
+\newcommand{\sfr}{\mathsf{fr}}
+\newcommand{\sfp}{\mathsf{fr'}}
+
+
+% trees
+\newcommand{\treesym}{\mathsf{Tree}}
+\newcommand{\tree}[1]{\treesym(#1)}
+
+\newcommand{\headfun}{\mathsf{head}}
+\newcommand{\tailfun}{\mathsf{tail}}
+\newcommand{\headsymbol}{\mathfrak{h}}
+\newcommand{\tailsymbol}{\mathfrak{t}}
+
+\newcommand{\hd}[1]{{\head\,#1}}
+\newcommand{\tl}[1]{{\tail\,#1}}
+\newcommand{\heads}[2]{{\head\,(\tail^n\,#1)}}
+
+% pairs
+\newcommand{\pair}[2]{\langle #1, #2 \rangle}
+\newcommand{\ppair}[1]{\mathopen{\langle\!\langle}{#1}\mathclose{\rangle\!\rangle}}
+
+% functors
+
+\newcommand{\fcons}{\mathbin{\scons\!::}}
+
+% applicative
+
+\newcommand{\apure}{\mathsf{pure}}
+\newcommand{\appl}{\circledast}
+\newcommand{\aseq}{\mathbin{\langle \$ \rangle}}
+\newcommand{\acons}{\mathbin{\scons\!:}}
+\newcommand{\alift}[1]{\mathbin{\widehat{#1}}}
+\newcommand{\pappl}{\circledcirc}
+
+% monads
+\newcommand{\Id}{\mathsf{Id}}
+\newcommand{\maybe}{\mathsf{Maybe}}
+\newcommand{\nothing}{\mathsf{Nothing}}
+\newcommand{\just}{\mathsf{Just}}
+\newcommand{\io}{\mathsf{IO}}
+\newcommand{\state}{\mathsf{State}}
+\newcommand{\writer}{\mathsf{Writer}}
+\newcommand{\reader}{\mathsf{Reader}}
+
+\newcommand{\error}{\mathsf{Error}}
+\newcommand{\throw}{\mathsf{Throw}}
+\newcommand{\pure}{\mathsf{Pure}}
+\newcommand{\mmerge}{\mathsf{merge}}
+\newcommand{\forget}{\mathsf{forget}}
+\newcommand{\intoerror}{\mathsf{intoError}}
+
+\newcommand{\unc}[1]{\widehat{#1}}
+\newcommand{\larrow}[1]{\stackrel{#1}{\longrightarrow}}  % labeled arrow
+\newcommand{\mlift}{\mathsf{mlift}}
+
+\newcommand{\absorb}{\mathsf{absorb}}
+\newcommand{\traverse}{\mathsf{traverse}}
+
+
+% naturality
+\newcommand{\nattransf}{\overset{.}{\rightarrow}}
+\newcommand{\mmorph}{\nattransf}
+\newcommand{\strlift}[1]{\hat{#1}}
+\newcommand{\id}{\mathsf{id}}
+
+\newcommand{\primes}{\mathsf{primes}}
+\newcommand{\nextprime}{\mathsf{next\_prime}}
+\newcommand{\fib}{\mathsf{fib}}
+\newcommand{\fibgen}{\mathsf{fib\_gen}}
+\newcommand{\runstr}{\mathsf{runstr}}
+
+\newcommand{\letin}{\mathsf{let}}
+\newcommand{\inlet}{\mathsf{in}}
+
+%\newcommand{\ifthenelse}[3]
+%           {\mathsf{if}\;{#1}\;\mathsf{then}\;{#2}\;\mathsf{else}\;{#3}}
+\newcommand{\return}{\mathsf{return}}
+\newcommand{\join}{\mathsf{join}}
+\newcommand{\mdo}{\mathsf{do}}
+\newcommand{\bind}{\mathbin{\gg\!\!=}}
+
+\newcommand{\nodec}{\mathsf{nodec}}
+\newcommand{\noend}{\mathsf{noend}}
+\newcommand{\arrapp}{\mathbin{\mathsf{<\!\$\!>}}}
+\newcommand{\flipper}{\mathsf{flipper}}
+
+\newcommand{\append}{\mathbin{+\!\!+}}
+\newcommand{\strindex}{\mathsf{index}}
+\newcommand{\fmod}[1]{\mathsf{mod}_{#1}}
+\newcommand{\modulus}{\mathsf{modulus}}
+\newcommand{\strdecor}{\mathsf{decorate}}
+
+\newcommand{\appr}{\mathsf{approx}}
+\newcommand{\force}{\Vdash}
+\newcommand{\mlst}[1]{\mathbb{L}_{#1}}
+\newcommand{\unknown}{\mathsf{unknown}}
+\newcommand{\lcons}{\mathsf{lcons}}
+
+% counter-example
+
+\newcommand{\mistake}{\mathsf{misTake}}
+\newcommand{\take}{\mathsf{take}}
+\newcommand{\suc}{\mathsf{suc}}
+\newcommand{\goleft}{\mathsf{goleft}}
+\newcommand{\atleft}{\mathsf{atleft}}
+\newcommand{\ifzero}{\mathsf{ifzero}}
+\newcommand{\leftof}{\mathsf{leftof}}
+
+% Strategy Trees
+\newcommand{\diatree}{\mathsf{Dialogue}}
+\newcommand{\answer}{\mathsf{Answer}}
+\newcommand{\ask}{\mathsf{Ask}}
+\newcommand{\streval}{\mathsf{eval}}
+\newcommand{\meval}{\mathsf{meval}}
+
+\newcommand{\tabulate}{\mathsf{tabulate}}
+\newcommand{\ext}{\mathsf{ext}}
+
+\newcommand{\asktwice}{\mathsf{asktwice}}
+\newcommand{\askonce}{\mathsf{askonce}}
+\newcommand{\incrstr}{\mathsf{incr}}
+
+\newcommand{\sconcat}{%
+  \mathbin{{+}\mspace{-8mu}{+}}%
+}
+
+% Bisimulation and coinduction
+
+\newcommand{\bisim}{\sim}  % bisimulation relation
+\newcommand{\rlift}[2]{\mathrel{\stackrel{#2}{#1}}} % lifting of a relation by a functor
+\newcommand{\bslift}[1]{\rlift{\bisim}{#1}}  % lifting of bisimulation
