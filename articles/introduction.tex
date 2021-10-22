@@ -4,7 +4,7 @@ A monadic stream is a sequence of values in which every element is obtained by t
 If $\sigma$ is such a stream, it will consist of an action for a certain monad $M$ that, when executed, will return a head (first element) and a tail (continuation of the stream).
 This process can be continued in a non-well-founded way: streams constitute a coinductive type.
 
-Formally the type of streams over a monad $M$ (let's call them {\em $M$-monsters}) with elements of type $A$ is defined, with an Agda-like notation \cite{agda}, as:
+Using type theoretic notation, the type of streams over a monad $M$ (let's call them {\em $M$-monsters}) with elements of type $A$ is defined as:
 
 $$
 \begin{array}[t]{l}
@@ -14,20 +14,25 @@ $$
 \end{array}
 $$
 
+The keyword $\codata$ indicates that we are defining a coinductive type: in Haskell we just use $\data$ which indicates a recursive type, with no distinction between induction and coinduction. 
+The type has a single constructor, $\mcons$, that takes as argument an $M$-action which, when executed, produces a pair of a head in $A$ and a tail $M$-monster.
+Depending on the nature of the $M$ monad, head and tail may not be uniquely determined or may evoke some side effects.
+
 Categorically, we can see this type as the {\em final coalgebra} of the functor $F_M\,X = M\,(A\times X)$.
 The final coalgebra does not necessarily exist for every $M$, 
 but it does for most of the commonly used monads, specifically for those that are container functors \cite{AAG:2005}.
+
+Common implementations of type theory, specifically Coq \cite{coq} and Agda \cite{agda}, allow the definition of coinductive types when the types of constructors (or destructors) satisfy some strict positivity conditions.
 
 The definition of $M$-monsters is very close to that of {\em cofree (or iterative) comonad}, which can be seen as the type of $M$-monsters with a pure 
 leading value \cite{AAMV:2003,CUV:2006}.
 We introduced them in a previous article \cite{capretta/fowler:2017}, where we proved that polymorphic discrete functions on monadic streams are always continuous.
 A slightly different definition of monadic stream functions have been studied previously by Perez, B{\"{a}}renz and Nilsson \cite{PBN:2016} to model signal processors.
 
-
 The monadic streams definition is a type operator $\stream{M}$ that maps a type $A$ to the type of $M$-monsters with elements of type $A$.
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
 
-If we instantiate $M$ with the identity monad, we obtain the type of pure streams.
+The simplest example is to instantiate $M$ with the identity monad: we obtain the type of pure streams.
 Its usual definition is the following:
 
 $$
@@ -39,8 +44,12 @@ $$
 $$
 
 An element of $(\strsym\,A)$ is an infinite sequence of elements of $A$: $a_0 \scons a_1\scons a_2\scons \cdots$.
+As an $\Id$-monster, that is, an element of $\stream{\Id}\,A$, it is written as:
+$$
+\mcons\,\langle a_0,\mcons \langle a_1, \mcons \langle a_2, \ldots \rangle \rangle \rangle
+$$
 
-If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe}\,A$, equivalent to the type of lazy lists $\lst{A}$.
+As a second example, if we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe}\,A$, equivalent to the type of lazy lists $\lst{A}$.
 The $\maybe$ monad is a functor that adds an extra element to the argument type:
 $\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
 So $\maybe\,X \cong X+1$.
