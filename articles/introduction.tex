@@ -31,10 +31,12 @@ A slightly different definition of monadic stream functions have been studied pr
 
 The monadic streams definition is a type operator $\stream{M}$ that maps a type $A$ to the type of $M$-monsters with elements of type $A$.
 Instantiating $M$ with some of the most well-known monads leads to versions of known data types or to interesting new constructs.
+Here are some examples:
 
-The simplest example is to instantiate $M$ with the identity monad: we obtain the type of pure streams.
-Its usual definition is the following:
-
+\begin{example}[Identity Monad $\rightarrow$ Pure Streams]
+The simplest example is to instantiate $M$ with the identity monad:
+$\Id$-monsters are equivalent to pure streams.
+The usual definition of the type of streams is the following:
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -48,13 +50,14 @@ As an $\Id$-monster, that is, an element of $\stream{\Id}\,A$, it is written as:
 $$
 \mcons\,\langle a_0,\mcons \langle a_1, \mcons \langle a_2, \ldots \rangle \rangle \rangle
 $$
+\end{example}
 
-As a second example, if we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe}\,A$, equivalent to the type of lazy lists $\lst{A}$.
+\begin{example}[Maybe Monad $\rightarrow$ Lazy Lists]
+If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe}\,A$, equivalent to the type of lazy lists $\lst{A}$.
 The $\maybe$ monad is a functor that adds an extra element to the argument type:
 $\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
 So $\maybe\,X \cong X+1$.
 The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe}\,A)\rightarrow\stream{\maybe}\,A$ is equivalent to two constructors (for $\nothing$ and $\just$):
-
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -74,19 +77,25 @@ a_0 \scons a_1\scons \nil \cong
   \mcons\, (\just\,\langle a_1,
     \mcons\,\nothing\rangle) \rangle)
 $$
+\end{example}
 
-
-Another example is when the underlying monad is $M = \lstsym $ itself.
+\begin{example}[List Monad $\rightarrow$ Finitely Branching Trees]
+Next, let us take as underlying monad $M = \lstsym $ itself.
 In this case each entry in the stream is a list of pairs of heads and tails.
 This is equivalent to trees of arbitrary branching degrees (finite branches if we use only finite lists, but also countably infinite branches if we use lazy lists).
 Since the type is coinductive, the trees can be non-well-founded, that is, they may be infinitely deep.
+\end{example}
 
+\begin{example}[State Monad $\rightarrow$ State Machines]
 If we choose $M$ to be the {\em state transformer} monad, $M$-monsters are state machines that, at every step, produce an output value that depends on an underlying state and change the state itself.
 The state transformer monad is defined as $\state_S\,A = S\rightarrow A\times S$, where $S$ is the type of underlying states.
 We use the notation $\stmon{S}\,A = \stream{\state_S}\,A$ to denote state monsters.
 They will be useful to construct the counterexample to the monad laws in Section \ref{sec:monad}.
+\end{example}
 
+\begin{example}[IO Monad $\rightarrow$ Interactive Processes]
 Finally, in Haskell user interaction and other system effects are encapsulated in the $\io$ monad. An $\io$ action produces a value that possibly depends and triggers effects. $\io$-monsters are interactive processes that continuously interface with the external world.
+\end{example}
 
 A companion paper that we will publish later will present the Haskell monster library that we developed and describe several of its applications.
 
