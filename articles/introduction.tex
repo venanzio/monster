@@ -185,6 +185,11 @@ We can use the same principle of guarded recursion to generate all the proofs: w
 In practice the coinduction principle is applied by a corecursive proof that can invoke the statement to be proved under certain structural restrictions.
 When proving the equality of two given terms, we can appeal to the statement that we want to prove, as a {\em coinduction hypothesis}, as long as it is {\em guarded by constructors} in the sense that it is only deployed to prove the equality of direct components of the given terms.
 
+Suppose we were proving a proposition about the function $\guardf$ above, of the form $\guardf\,x = e$ for some expression $e$.
+In the proof we would be allowed to use the statement itself, as if it were already true, for the recursive occurrence $\guardf\,x'$ in the right-hand side of $f$.
+
+\hide{
+
 As an example,
 let us prove a characterization of the function $\frominc$ defined above.
 \begin{lemma}
@@ -225,8 +230,10 @@ This guarantees the the top levels of the two terms are equal.
 It is therefore sound to invoke the hypothesis to prove the lower levels.
 \end{proof}
 
+}
+
 We will use this style of reasoning repeatedly in the article.
-Most of the proof consist in equational rewriting, with most steps consisting in term reduction, application of known laws and of previously proved lemmas.
+Most of the proofs consist in equational rewriting, with most steps consisting in term reduction, application of known laws and of previously proved lemmas.
 There will usually be a single step justified by {\em coinduction hypothesis}: it will always occur under the guard of a constructor and be mapped inside the monadic action.
 
 See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, corecursive definitions, and proof by coinduction.
@@ -245,6 +252,7 @@ The proof of the first result is straightforward and unproblematic.
 We give the proofs of the functor laws in Section \ref{sec:functor} anyway, as a warm-up in the use of coinduction arguments that will be illuminating in view of the more complex proofs to come.
 The proofs of the applicative laws, on the other hand, are surprisingly challenging and require the definition of auxiliary notation and several ancillary lemmas.
 Finally, a counterexample using the state transition monad shows that monsters do not form a monad in general. Our counterexample assumes that the join operation takes the {\em diagonal} of a stream of streams.
-This is one possible attempt at a definition, but since the join operation on pure streams ($\Id$-monsters) operates by taking the diagonal, the principle of polymorphic parametricity suggests that no alternative is possible.
+This doesn't exclude the possibility that monster would form a monad with a different implementation of joing.
+However, a general definition that work with any monad $M$ should instantiate to the canonical instance for known monads, and the join operation on pure streams ($\Id$-monsters) operates by taking the diagonal.
 
 These results are important theoretically, they shed light on the abstract properties of monsters, and practically, they allow programmers to use specific notations and extensive libraries for these classes.
