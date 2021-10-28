@@ -111,7 +111,7 @@ Haskell will accept the definition when $M$ is any operator, but mathematically 
 As stated above, this is the case if $M$ is a container functor and we assume that it is for the rest of the article.
 
 Functions with $M$-monsters as codomain can be defined by explicitly giving a coalgebra.
-In practical programming it is more convenient to define function by {\em corecursive equations} that satisfy the property of {\em guardedness by constructors}:
+In practical programming it is more convenient to define functions by {\em corecursive equations} that satisfy the property of {\em guardedness by constructors}:
 a corecursive equations is accepted if the right-hand side is a term with a constructor on top and recursive calls occurring only as direct arguments of that constructor.
 
 As an example, here is a function that generates a state machine from a natural number:
@@ -119,12 +119,19 @@ As an example, here is a function that generates a state machine from a natural 
 $$
 \begin{array}{l}
 \frominc : \nat \rightarrow \stmon{\nat}\,\nat \\
-\frominc\, n = \mcons\, (\lambda s. \pair{\pair{s+n}{\frominc\, (n + 1)}}{s + 1})
+\frominc\, n = \mcons\, (
+   \lambda s. \pair{\pair{s*n}{\frominc\, (n + 1)}}{s+n}
+                        )
 \end{array}
 $$
 
-Given an input $n$, this defines a state-monster that reads the current state $s$, returns its as output the value $s+n$, increments the state by 1, and continues recursively by calling itself on input $n+1$.
-In the end it will produce the infinite sequence $s+n \scons s+n+1 \scons s+n+2 \scons \cdots$.
+The machine is a  a State-monster with a parameter $n$,
+working with an underlying state $s$.
+When executed, it generates the next element, the head of the monster, which is the product value $s*n$; it updates the state to the sum of the old state and the parameter, $s+n$; finally calls itself to generate the tail of the monster with parameter $n+1$.
+
+If we run the machine with initial parameter $2$ on an initial state $3$,
+it generates the infinite sequence (assuming no other process modifies the state): $6 \scons 15 \scons 32 \scons 60 \scons \cdots$, with the state going through the values $3, 5, 8, 12, 17, \cdots$ and the parameter increasing $2, 3, 4, 5, 6, \cdots$.
+
 The justification of the soundness of the definition is in the fact that the recursive call $\frominc\, (n + 1)$ occurs under the guard of the constructor $\mcons $ and is used to generate the recursive sub-stream of the main output value.
 The fact that the input $n+1$ is larger than the original input $n$ is irrelevant to corecursive definitions (contrary to what happens in inductive definitions): what matter is that the first element of the stream and the new state are produced before the call is executed.
 
