@@ -145,13 +145,27 @@ $$
 \end{array}
 $$
 
-Here the pattern-matching variable $m$ has type $M\,(\nat\times \stream{M}\,\nat)$.
-We map onto it the function that increases the output value by one and recursively applies $\incr$ to the tail.
+The input monster, in constructor form, is $(\mcons\,m)$ where $m$ is an action of type $M\,(\nat\times \stream{M}\,\nat)$.
+The right hand-side maps into $m$ (using functoriality of $M$) a function that increases the output value by one and recursively applies $\incr$ to the tail.
+We may break down the expression as: $\mcons\,(M\,f\,m)$ where $f\,\pair{k}{\sigma} = \pair{k+1}{\incr\,\sigma}$.
+The recursive call $(\incr\,\sigma)$ occurs as the second element of the output of $f$.
+
+The general form of a guarded monster function is the following:
+$$
+\begin{array}{l@{\qquad}l}
+\guardf : \stream{M}\,A \rightarrow \stream{M}\,A
+& f : A\times \stream{M}\,A \rightarrow A\times \stream{M}\,A \\
+\guardf\,m = \mcons\,(M\,f\,m)
+& f\,\langle a, \sigma \rangle = \langle \cdots, \guardf\,\cdots \rangle
+\end{array}
+$$
+where the displayed occurrence of $\guardf$ in the body of $f$ is the only recursive call, and the dots can be any expressions not containing $\guardf$.
+
+
 This recursive occurrence is justified because it is guarded by $\mcons$ and mapped to the direct subterms inside the monad action.
 By the way,
 after we prove that $\stream{M}$ is a functor whenever $M$ is in Section \ref{sec:functor}, and that it is applicative whenever $M$ is in Section \ref{sec:applicative},
 the definition can be simplified and made more intuitive in the following ways, respectively:
-
 $$
 \incr\,\sigma = \stream{M}\,(+1)\,\sigma
 \qquad
