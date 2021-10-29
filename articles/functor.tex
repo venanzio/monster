@@ -35,7 +35,7 @@ $$
 = \mcons\,(M\,(\id_A\times \stream{M} \id_A)\,m)
 $$
 The recursive occurrence of the function $(\stream{M} \id_A)$ occurs as argument of the functor $M$, which in turn is guarded by the constructor $\mcons$.
-This guarantees the fulfillment of the {\em guardedness by constructors} constraint, so we can apply the {\em coinduction hypothesis} allowing us to apply the Lemma's statement to this occurrence:
+This guarantees the fulfilment of the {\em guardedness by constructors} constraint, so we can apply the {\em coinduction hypothesis} allowing us to apply the Lemma's statement to this occurrence:
 $$
 \begin{array}{rl@{\qquad}l}
 \cdots
@@ -60,12 +60,16 @@ $$
 $$
 \end{lemma}
 \begin{proof}
-Let us again apply the left-hand side function to an $M$-monster in constructor form:
+We apply the left-hand side function to an $M$-monster in constructor form and simplify according to the definition of $\stream{M}$ mapping:
 $$
-\begin{array}{ll}
-\stream{M} (g\comp f)\,(\mcons\,m)\\
-{}= \mcons\,(M\,((g\comp f)\times \stream{M} (g\comp f))\,m)
-  & \mbox{definition of }\stream{M}\mbox{ mapping}\\
+\stream{M} (g\comp f)\,(\mcons\,m)
+  = \mcons\,(M\,((g\comp f)\times \stream{M} (g\comp f))\,m)
+$$
+The recursive occurrence of the function $\stream{M} (g\comp f)$ occurs as argument of the functor $M$, which in turn is guarded by the constructor $\mcons$.
+We can therefore apply the coinduction hypothesis to it:
+$$
+\begin{array}{l@{\quad}l}
+\cdots\\
 {}= \mcons\,(M\,((g\comp f)\times ((\stream{M} g) \comp (\stream{M} f)))\,m)
   & \mbox{coinduction hypothesis}\\ 
 {}= \mcons\,(M\,((g\times \stream{M} g) \comp (f\times \stream{M} f))\,m)
@@ -84,7 +88,7 @@ $$
 $$
 \end{proof}
 
-We can sum up these results by stating that the monster operator is a functor if the underlying `monad' is (remember that we are not actually assuming that $M$ is a monad yet, but just a type operator).
+We can sum up these results by stating that the monster operator is a functor if the underlying operator is.
 
 \begin{theorem}
 If $M$ is a functor, $\stream{M}$ is also a functor.
