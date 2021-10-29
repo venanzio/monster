@@ -42,7 +42,7 @@ Functoriality of $M$ follows from these laws, with functorial mapping defined as
 $
 M\,f\,m_a = \apure\,f \appl m_a.
 $
-The interchange law implies that
+The homomorphism law implies that
 $
 M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
@@ -80,9 +80,15 @@ $$
 $$
 The recursive occurrence of $\apure_{\stream{M}}\,a$ is guarded by $\mcons$ and the functorial application of $M$.
 The occurrence of $(\apure_M\, a)$ on the other hand. is not recursive and therefore unproblematic.
-(Notice that the expression can be further simplified to $\mcons\, (\apure_M\, \langle a, \apure_{\stream{M}}\,a \rangle)$.)
 
-This shows in general that the second arguments of $(\fcons)$ and $(\acons)$, when definitions are expanded, are guarded by the constructor $\mcons$.
+The homomorphism law for $M$ provides a further simplification.
+\begin{lemma}\label{lemma:monster_pure} 
+$$
+\apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
+$$
+\end{lemma}
+
+The previous discussion shows that the second arguments of $(\fcons)$ and $(\acons)$, when definitions are expanded, are guarded by the constructor $\mcons$.
 Therefore, in future definitions and proofs, we allow ourselves to give corecursive definitions as that for $\apure\,a$ without justifying them by expansion.
 
 In the following statements and proofs, we often need to write terms that combine the use of $\apure$ on $M$ and on $\stream{M}$.
@@ -91,15 +97,6 @@ We also explicitly write the type of identity functions as a subscript.
 We consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions.
 We adopt the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\comp}$ and $\alift{\pappl}$ (defined below).
 
-
-Using the applicative laws for $M$, we can give a simplified characterisation of pure monsters.
- The proofs of this and some of the following technical lemmas are included in the Appendix.
-
-\begin{lemma}\label{lemma:monster_pure} 
-$$
-\apure_{\stream{M}}\,a = \mcons\,(\apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
-$$
-\end{lemma}
 
 We define the function application method by mapping straight function application on the heads and recursive calls on the tails through functorial and applicative lifting:
 
@@ -231,23 +228,21 @@ $$
 
 
 % Proof of interchange law with M applicative
+The proofs of the following technical lemmas are included in the Appendix.
+\vcomm{maybe just say that they are easy equational proofs, no Appendix}
 
 \begin{lemma}\label{lemma:pure_lift}
 If $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$, then:
-
 $$
 \apure_M\, a \alift{\oplus} \apure_M\, b = \apure_M\, (a \oplus b)
 $$
-
 \end{lemma} 
 
 \begin{lemma}\label{lemma:applicative_flip}
 If $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, then:
-
 $$
 \apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
 $$
-
 \end{lemma}
 
 This lemma is extremely useful in the following proofs of the last two applicative laws.
