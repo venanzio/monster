@@ -48,34 +48,48 @@ M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
 
 We will show that $\stream{M}$ is also applicative.
-In order to define the methods, we need some auxiliary functions on applicative monsters.
-First of all, a simplified version of $\mcons$ that appends a single value in front of a monster.
-This in turn uses a similar operator (which works when $M$ is just a functor) which appends an $M$-action to the front of a monster:
-
+In order to define the methods, we need some auxiliary functions.
+First of all, simplified versions of $\mcons$: appending either an $M$-action or a pure value in front of a monster.
+The first works when $M$ is just a functor, the second when it is an applicative:
 $$
 \begin{array}{l}
 (\fcons): M\,A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
-m \fcons \sigma = \mcons\, (M\,(\lambda a. \langle a, \sigma\rangle)\,m)\\
-\,\\
+m \fcons \sigma = \mcons\, (M\,(\lambda a. \langle a, \sigma\rangle)\,m)
+\end{array}\qquad
+\begin{array}{l}
 (\acons): A \rightarrow \stream{M}\,A \rightarrow \stream{M}\,A\\
 a \acons \sigma = (\apure\, a) \fcons \sigma
 \end{array}
 $$
 
-The $\apure$ method for monsters then consists in repeating the same element forever:
-
+The $\apure$ method for monsters repeats the same element forever:
 $$
 \begin{array}{l}
 \apure : A \rightarrow \stream{M}\,A\\
 \apure\,a = a \acons \apure\,a
 \end{array}
-$$ 
+$$
+To check that the recursive occurrence of $\apure\,a$ satisfies the guardedness condition we just unfold the definitions (we write the functor as a subscript to clarify which version of $\apure$ is used):
+$$
+\begin{array}{ll}
+\apure_{\stream{M}}\,a 
+& {} = a \acons \apure_{\stream{M}}\,a 
+     = (\apure_M\, a) \fcons \apure_{\stream{M}}\,a \\
+& {} = \mcons\, (M\,(\lambda a. \langle a, \apure_{\stream{M}}\,a \rangle)\, (\apure_M\, a))
+\end{array}
+$$
+The recursive occurrence of $\apure_{\stream{M}}\,a$ is guarded by $\mcons$ and the functorial application of $M$.
+The occurrence of $(\apure_M\, a)$ on the other hand. is not recursive and therefore unproblematic.
+(Notice that the expression can be further simplified to $\mcons\, (\apure_M\, \langle a, \apure_{\stream{M}}\,a \rangle)$.)
+
+This shows in general that the second arguments of $(\fcons)$ and $(\acons)$, when definitions are expanded, are guarded by the constructor $\mcons$.
+Therefore, in future definitions and proofs, we allow ourselves to give corecursive definitions as that for $\apure\,a$ without justifying them by expansion.
 
 In the following statements and proofs, we often need to write terms that combine the use of $\apure$ on $M$ and on $\stream{M}$.
 This could be confusing, so we explicitly write the functors as subscript: $\apure_M$ and $\apure_{\stream{M}}$.
-We explicitly write the type of identity functions as a subscript.
+We also explicitly write the type of identity functions as a subscript.
 We consistently use $\sigma$ with subscripts to denote monsters and $m$ with subscripts to denote $M$-actions.
-We also use the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\comp}$ and $\alift{\pappl}$ (defined below).
+We adopt the convention that $\apure$ binds stronger than any of the infix operators that we use, specifically $\appl$, $\alift{\comp}$ and $\alift{\pappl}$ (defined below).
 
 
 Using the applicative laws for $M$, we can give a simplified characterisation of pure monsters.
