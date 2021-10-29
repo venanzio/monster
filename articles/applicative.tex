@@ -2,36 +2,29 @@
 
 Applicative functors \cite{mcbride/paterson:2008}
 extend the mapping operation by allowing function sequencing under the functor.
-The Applicative class has two methods: $\apure$, that injects single values into the functor, and $\appl$, that applies functions under the functor.
-
-In this section, we assume that the type operator $M$ is an applicative functor, that is, it has methods:
-
+The Applicative class has two methods: $\apure$, that injects single values into the functor, and $\appl$, that applies functions under the functor:
 $$
 \begin{array}{l}
 \apure : A \rightarrow M\,A\\
 (\appl): M\,(A\rightarrow B) \rightarrow M\,A \rightarrow M\,B
 \end{array}
 $$
-
-satisfying the four equational laws regulating the interaction of sequencing and pure values and requiring associativity of application.
+They must satisfy the four applicative laws given below (after we introduce some notation).
 
 A typical use of applicative functors is to apply a function of many arguments to several applicative values.
 If $g:A_0\rightarrow A_1 \rightarrow \cdots \rightarrow A_n \rightarrow B$ and $m_0:M\,A_0, m_1:M\,A_1, \ldots, m_n:M\,A_n$ , then:
-
 $$
 \apure\,g \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
 $$
 
-In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, then we use the notation:
-
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, we can lift it to $M$-objects:
 $$
 m_a \alift{\oplus} m_b = \apure\,(\oplus) \appl m_a \appl m_b
 $$
 
-For the base functor $M$, the laws take the following form, where
+Here are the applicative functor laws for $M$, where
  $a:A$, $f:A\rightarrow B$,
 $m_a:M\,A$, $m_f:M\,(A\rightarrow B)$, $m_g:M\,(B\rightarrow C)$.
-
 $$
 \begin{array}{l@{\qquad}l}
 \apure\,\id \appl m_a = m_a
