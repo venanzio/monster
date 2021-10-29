@@ -252,7 +252,7 @@ The proof of the first result is straightforward and unproblematic.
 We give the proofs of the functor laws in Section \ref{sec:functor} anyway, as a warm-up in the use of coinduction arguments that will be illuminating in view of the more complex proofs to come.
 The proofs of the applicative laws, on the other hand, are surprisingly challenging and require the definition of auxiliary notation and several ancillary lemmas.
 Finally, a counterexample using the state transition monad shows that monsters do not form a monad in general. Our counterexample assumes that the join operation takes the {\em diagonal} of a stream of streams.
-This doesn't exclude the possibility that monster would form a monad with a different implementation of joing.
+This doesn't exclude the possibility that monsters would form a monad with a different implementation of joint.
 However, a general definition that work with any monad $M$ should instantiate to the canonical instance for known monads, and the join operation on pure streams ($\Id$-monsters) operates by taking the diagonal.
 
 These results are important theoretically, they shed light on the abstract properties of monsters, and practically, they allow programmers to use specific notations and extensive libraries for these classes.

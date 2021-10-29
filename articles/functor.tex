@@ -1,7 +1,8 @@
 \section{Monsters are Functors}\label{sec:functor}
 
 In this section we assume that $M$ is a functor.
-To show that $\stream{M}$ is also a functor, we have to define its behaviour on morphisms: if $f:A\rightarrow B$, then we must define how $f$ maps on monadic streams:
+We want to show that $\stream{M}$ is also a functor: we have to define its extension to morphisms and prove the functor laws.
+If $f:A\rightarrow B$, then define how $f$ maps on $M$-monsters:
 $$
 \begin{array}{l}
 \stream{M} f : \stream{M} A \rightarrow \stream{M} B\\
@@ -28,27 +29,25 @@ $$
 \end{lemma}
 \begin{proof}
 We prove the statement pointwise, by applying the left-hand side function to an $M$-monster in constructor form $(\mcons\,m)$.
-We symplify according the the definition of the definition of $\stream{M}$ mapping:
+We simplify according the the definition of the definition of $\stream{M}$ mapping:
 $$
 \stream{M} \id_A\,(\mcons\,m)
 = \mcons\,(M\,(\id_A\times \stream{M} \id_A)\,m)
 $$
-Notice now that the function $(\stream{M} \id_A)$ occurs as argument of the functor $M$, which in turn is guarded by the constructor $\mcons$.
+The recursive occurrence of the function $(\stream{M} \id_A)$ occurs as argument of the functor $M$, which in turn is guarded by the constructor $\mcons$.
 This guarantees the fulfillment of the {\em guardedness by constructors} constraint, so we can apply the {\em coinduction hypothesis} allowing us to apply the Lemma's statement to this occurrence:
 $$
-\begin{array}{ll}
-\cdots\\
-{}= \mcons\,(M\,(\id_A\times \id_{(\stream{M} A)})\,m)
+\begin{array}{rl@{\qquad}l}
+\cdots
+& {}= \mcons\,(M\,(\id_A\times \id_{(\stream{M} A)})\,m)
   & \mbox{coinduction hypothesis}\\
-{}= \mcons\,(M\,(\id_{A\times \stream{M} A})\,m)
-  & \mbox{functoriality of }\times\\
-{}= \mcons\,(\id_{M\,(A\times \stream{M} A)}\,m)
-  & \mbox{functoriality of }M\\
-{}= \mcons\,m
+& {}= \mcons\,(\id_{M\,(A\times \stream{M} A)}\,m)
+  & \mbox{functoriality of }\times\mbox{ and }M\\
+& {}= \mcons\,m
 \end{array}
 $$
 This concludes the proof that the statement's identity holds for all objects in canonical constructor form.
-We have recursively used the statement as coinductive hypothesis only on a subterm guarded by construction.
+We have recursively used the statement as coinductive hypothesis only on a subterm guarded by constructor.
 This validates this proof as a correct application of coinduction.
 \end{proof}
 
