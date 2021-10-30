@@ -43,7 +43,7 @@ s !| 0 = headS s
 s !| n = (tailS s) !| (n - 1)
 
 
--- | Examples of pure streams
+-- * Examples of pure streams
 
 fromN :: Int -> Stream Int
 fromN n = n <: fromN (n+1)

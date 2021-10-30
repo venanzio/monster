@@ -48,8 +48,7 @@ stopAtPredLazy p s = do ns <- unsafeRunProcess s
                         return $! takeWhile (not . p) ns
 
 
--- | Examples of processes
---------------------------
+-- * Example processes
 
 -- | A process that adds up the inputs from the user, printing
 -- the partial sums
@@ -61,16 +60,14 @@ sumProc n = MCons $ do
     return (n', sumProc n')
     
     
-------------
--- | Example of benefits of processes as opposed to non-terminating
--- IO actions
+-- * Example of benefits of processes as opposed to non-terminating IO actions
 
 consumeOne :: Show a => Process a -> Process a
 consumeOne p = absorbM $ do (a, cont) <- uncons p
                             putStrLn (show a)
                             return cont
 
--- | This is similar to what the above function does, but using
+-- | This is similar to the previous function, but using
 -- IO actions - taking the fst of the output won't work unless
 -- the IO actions are lazy, or the whole list gets evaluated.
 consumeOne' :: Show a => IO [a] -> IO (a, [a])
@@ -82,10 +79,9 @@ consumeOne' p = join $ do a <- fmap P.head p
 -- point
 fromIO :: Int -> IO [Int]
 fromIO n = (fmap (n:) (fromIO (n+1)))
-------------
 
------------- 
--- | An example of combining two processes with interleaveReadM
+
+-- * An example of combining two processes with interleaveReadM
 
 inputProc :: Process Char
 inputProc = MCons $ do c <- getChar
@@ -102,11 +98,9 @@ outputProc = MCons $ do a <- ask
 -- | Showing how the input and output processes can be interleaved
 testProc0 :: IO ()
 testProc0 = runVoidProcess (interleaveReadM inputProc outputProc)
------------- 
 
 
--- | A set of examples demonstrating the differences between lazy
--- and strict IO 
+-- * A set of examples demonstrating the differences between lazy and strict IO 
 
 -- | Will not terminate or print the first element of the process
 run0 :: IO ()
@@ -128,7 +122,7 @@ run3 :: IO ()
 run3 = stopAtPred (\(n, _) -> n == 0) (zipA nats proc) >> return ()
        where proc = insertActReadM 0 (\a -> do putStrLn (show a); return a) (sumProc 5)
 
--- | This also works fine now and is much cleaner
+-- | This also works fine and is much cleaner than the previous ones
 run4 :: IO ()
 run4 = do a <- stopAtPred (\(n, _) -> n == 0) (zipA nats (sumProc 5)) 
           putStrLn $ show (snd a)
