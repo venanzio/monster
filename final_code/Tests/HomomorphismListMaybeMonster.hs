@@ -41,7 +41,7 @@ instance Eq a => Eq (MonStr Maybe a) where
    (MCons Nothing)      == (MCons _)              = False
 
 -- | Tests for isomorphism between list and maybe monster, with llist and toList 
--- being the morphisms between the types, whose composition has to equal id
+-- being the isomorphisms between the types, whose composition has to equal id
 
 prop_monStr :: Property
 prop_monStr = forAll genMaybeMonStr $ (\mas -> mas === llist (toList mas))
@@ -330,9 +330,9 @@ genCharListMonStr = do l <- (listOf1 arbChar)
                     where arbChar = frequency [(1, return ' '),(1, return '\n'),(5, arbitrary :: Gen Char)]
 
 -- | These four may occasionally fail because specific special
--- characters that are interpreted by the stdlib as spaces or
--- newlines are not included in our implementation. This will
--- not affect most use cases.
+-- characters that are interpreted by the stdlib versions as 
+-- spaces or newlines are not included in our implementation.
+-- This will not affect most use cases.
 
 -- PASSES
 prop_words :: Property

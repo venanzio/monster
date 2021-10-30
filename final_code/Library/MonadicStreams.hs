@@ -5,9 +5,10 @@ Module      : MonadicStreams
 Description : Core library for building and working with monadic streams
 Copyright   : (c) Chris Purdy, 2021
                   Venanzio Capretta, 2021
-License     : GPL-3
+License     : GPL-3 (NEEDS CHECKING)
 Maintainer  : cp766@cam.ac.uk
-Stability   : experimental
+Stability   : experimental (NEEDS CHECKING)
+Portability : POSIX (NEEDS CHECKING)
 
 == __Function naming conventions__
 
