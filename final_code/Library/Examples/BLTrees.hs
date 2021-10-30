@@ -26,13 +26,11 @@ branch :: [BLTree a] -> BLTree a
 branch = foldl (<|>) empty
  
 
-{-
- | Functions to pretty print a branch-labelled tree
-
- The trees are shown as unlabelled nodes and leaves,
- with the branches between them represented as arrows
- from parent nodes to their children.
--}
+-- | Functions to pretty print a branch-labelled tree
+--
+-- The trees are shown as unlabelled nodes and leaves,
+-- with the branches between them represented as arrows
+-- from parent nodes to their children.
 
 showTree :: Show a => BLTree a -> String
 showTree = intercalate "\n" . stList
@@ -61,8 +59,7 @@ printTree = putStrLn . showTree
 
 
 
--- | Some common operations on trees, translated into 
--- 'branch-labelled' versions
+-- * Some common operations on trees, translated into 'branch-labelled' versions
 
 
 -- | Depth-first traversal
@@ -104,10 +101,9 @@ pruneBy p (MCons blt) = MCons $ do (a, st) <- blt
                                    return (a, pruneBy p st)
 
 
--- | BLT examples
------------------
+-- * BLT examples
 
--- | Generators for trees that always branch according 
+-- * Generators for trees that always branch according 
 -- to a given list
 
 treeBranchList :: [a] -> BLTree a
@@ -171,8 +167,7 @@ pickOne n ps = let (ls, (LN (s, (nu, de))):rs) = splitAt n (map (fmap (bimap id 
 (LN (s, n)) *| (LN (s', m)) = LN (s', n * m)
 
 
--- | Word tree 
-
+-- | Word tree example
 wordTree = node [('a', node [(' ', node [('b', node [('a', node [('t', leaf)]),
                                                      ('u', node [('r', node [('e', node [('a', node [('u', node [('c', node [('r', node [('a', node [('t', leaf)])])])])])])])])
                                                     ]),
@@ -185,7 +180,7 @@ wordTree = node [('a', node [(' ', node [('b', node [('a', node [('t', leaf)]),
                             ])
                 ]
 
--- | Examples of basic branch-labelled trees
+-- * Examples of basic branch-labelled trees
 
 blt1 = node [(5, leaf),
              (9, node [(1, leaf)]),
@@ -199,26 +194,3 @@ blt2 = node [(10, node [(11,leaf)
              )
             ,(20, leaf)
             ]
-
-{-
-                    _.---._
-                _.-~       ~-._
-            _.-~               ~-._
-        _.-~                       ~---._
-    _.-~                                 ~\
- .-~               BLT                  _.;
- :-._                               _.-~ ./
- `-._~-._                   _..__.-~ _.-~
-  /  ~-._~-._              / .__..--~----._
- \_____(_;-._\.        _.-~_/       ~).. . \
-    /(_____  \`--...--~_.-~______..-+_______)
-  .(_________/`--...--~/    _/nad        /\
- /-._     \_     (___./_..-~__.....__..-~./
- `-._~-._   ~\--------~  .-~_..__.-~ _.-~
-     ~-._~-._ ~---------'  / .__..--~
-         ~-._\.        _.-~_/
-             \`--...--~_.-~
-              `--...--~ 
-
-http://www.ascii-art.de/ascii/s/sandwich.txt
--}
