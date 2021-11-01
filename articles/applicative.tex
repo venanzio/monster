@@ -17,10 +17,13 @@ $$
 \apure\,g \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
 $$
 
-In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, we can lift it to $M$-objects:
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, we can lift it to $M$-objects ($\pairing$ is the pairing operator, $\pairing\,a\,b = \pair{a}{b}$, and $\pairop{\oplus}$ operates on pairs, $\pairop{\oplus}\,\pair{a}{b} = a \oplus b$):
 $$
-m_a \alift{\oplus} m_b = \apure\,(\oplus) \appl m_a \appl m_b
+m_a \alift{\oplus} m_b 
+= \apure\,(\oplus) \appl m_a \appl m_b
+= \apure\,(\pairop{\oplus}) \appl (\apure\,\pairing\appl m_a\appl m_b)
 $$
+\vcomm{I haven't yet proved the right-hand side}
 
 Here are the applicative functor laws for $M$, where
  $a:A$, $f:A\rightarrow B$,
@@ -46,6 +49,12 @@ The homomorphism law implies that
 $
 M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
+We can further characterize the applicative operator lifting as:
+$$
+m_a \alift{\oplus} m_b 
+= M\,(\pairop{\oplus})\,(\apure\,\pairing\appl m_a\appl m_b)
+$$
+
 
 We will show that $\stream{M}$ is also applicative.
 In order to define the methods, we need some auxiliary functions.
