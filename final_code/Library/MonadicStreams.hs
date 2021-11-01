@@ -241,9 +241,13 @@ transform :: Functor m =>
                MonStr m a -> MonStr m b
 transform f s = MCons $ fmap (\(h,t) -> f h t) (uncons s)
 
+-- | Corecursion operator for monsters: h gives the head or the monster,
+-- m is the action that generates the recursive calls/tail
+mcorec :: Functor m => (x -> a) -> (x -> m x) -> x -> MonStr m a
+mcorec h m x = MCons $ fmap (\x' -> (h x', mcorec h m x')) (m x)
+
 instance Functor m => Functor (MonStr m) where
   fmap f = transform (\a s -> (f a, fmap f s))
-
 
 -- | Version of transform for applicative monsters
 transformA :: Applicative m =>
