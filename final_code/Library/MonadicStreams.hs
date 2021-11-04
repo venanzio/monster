@@ -256,15 +256,19 @@ transformA :: Applicative m =>
 transformA f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
                                <$> uncons as <*> uncons bs
 
+-- | Lifting a binary operator to an applicative functor
+liftBinA :: Applicative m => (a->b->c) -> m a -> m b -> m c
+liftBinA op ma mb = pure op <*> ma <*> mb
+
 instance Applicative m => Applicative (MonStr m) where
   pure a = a <: pure a
-  (<*>) = transformA (\f fs a as -> (f a, fs <*> as))  
-  
+  (MCons mf) <*> (MCons ma) = MCons (liftBinA compM mf ma)
+      where compM (f,phi) (a,s) = (f a, phi <*> s)
+
 
 instance (Functor m, Foldable m) => Foldable (MonStr m) where
   foldMap f s = foldMap f (head s) `mappend`
                 foldMap id (fmap (foldMap f) (tail s))
-
 
 instance Alternative m => Alternative (MonStr m) where
   empty = MCons empty
