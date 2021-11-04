@@ -17,13 +17,11 @@ $$
 \apure\,g \appl m_0 \appl m_1 \appl \cdots \appl m_n : M\,B
 $$
 
-In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, we can lift it to $M$-objects ($\pairing$ is the pairing operator, $\pairing\,a\,b = \pair{a}{b}$, and $\pairop{\oplus}$ operates on pairs, $\pairop{\oplus}\,\pair{a}{b} = a \oplus b$):
+In particular, if $g$ is an infix binary operator $(\oplus) : A \rightarrow B \rightarrow C$, we can lift it to $M$-objects:
 $$
 m_a \alift{\oplus} m_b 
 = \apure\,(\oplus) \appl m_a \appl m_b
-= \apure\,(\pairop{\oplus}) \appl (\apure\,\pairing\appl m_a\appl m_b)
 $$
-\vcomm{I haven't yet proved the right-hand side}
 
 Here are the applicative functor laws for $M$, where
  $a:A$, $f:A\rightarrow B$,
@@ -51,7 +49,6 @@ $$
 \end{array}
 $$
 
-
 Functoriality of $M$ follows from these laws, with functorial mapping defined as
 $
 M\,f\,m_a = \apure\,f \appl m_a.
@@ -60,12 +57,16 @@ The homomorphism law implies that
 $
 M\,f\,(\apure\,a) = \apure\,(f\,a).
 $
-We can further characterize the applicative operator lifting as:
-$$
-m_a \alift{\oplus} m_b 
-= M\,(\pairop{\oplus})\,(\apure\,\pairing\appl m_a\appl m_b)
-$$
 
+The two previous observations validate the following characterization of the applicative lifting of a binary operator
+ ($\pairing$ is the pairing operator, $\pairing\,a\,b = \pair{a}{b}$, and $\pairop{\oplus}$ operates on pairs, $\pairop{\oplus}\,\pair{a}{b} = a \oplus b$):
+$$
+\begin{array}{rl}
+m_a \alift{\oplus} m_b 
+& {} = \apure\,(\pairop{\oplus}) \appl (\apure\,\pairing\appl m_a\appl m_b) \\
+& {}= M\,(\pairop{\oplus})\,(\apure\,\pairing\appl m_a\appl m_b)
+\end{array}
+$$
 
 We will show that $\stream{M}$ is also applicative.
 In order to define the methods, we need some auxiliary functions.
@@ -134,6 +135,7 @@ $$
 This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
 This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
 This guarantees the soundness of the definition according to the {\em guardedness-by-constructors} criterion.
+(Formally, we can rewrite the definition, using the previous characterization of the monster lifting of a binary operator, to reduce it to a syntactically guarded form.)
 
 We aim to show that these definitions satisfy the applicative laws.
 We assume that the laws hold for the base functor $M$ and we wish to prove them for the monster functor $\stream{M}$.
