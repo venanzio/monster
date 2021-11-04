@@ -135,7 +135,7 @@ $$
 This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
 This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
 This guarantees the soundness of the definition according to the {\em guardedness-by-constructors} criterion.
-(Formally, we can rewrite the definition, using the previous characterization of the monster lifting of a binary operator, to reduce it to a syntactically guarded form.)
+(Formally, we can rewrite the definition, using the previous characterization of the applicative lifting of a binary operator, to reduce it to a syntactically guarded form.)
 
 We aim to show that these definitions satisfy the applicative laws.
 We assume that the laws hold for the base functor $M$ and we wish to prove them for the monster functor $\stream{M}$.
