@@ -41,6 +41,17 @@ m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a
 \end{array}
 $$
 
+A consequence of the Homomorphism and Composition Laws is that sequential application of functions can be reduced to a single application of the composition;
+if $g:B\rightarrow D$ and $h:A_1\rightarrow A_2 \rightarrow C$, then:
+$$
+\begin{array}{l}
+\apure\,g \appl (\apure\, f \appl m_a) = \apure\, (g\comp f) \appl m_a\\
+\apure\,g \appl (\apure\, h \appl m_{a_1} \appl m_{a_2})
+  = \apure\, (\lambda a.\lambda b. g\,(h\,a\,b)) \appl m_{a_1} \appl m_{a_2}
+\end{array}
+$$
+
+
 Functoriality of $M$ follows from these laws, with functorial mapping defined as
 $
 M\,f\,m_a = \apure\,f \appl m_a.
