@@ -268,15 +268,23 @@ $$
 \begin{lemma}
 Monsters satisfy the applicative interchange law.
  If $\sigma_f: \stream{M}(A\rightarrow B)$ and $a:A$, then:
-
 $$
 \sigma_f \appl \apure_{\stream{M}}\,a = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 $$
-
 \end{lemma}
 \begin{proof}
 Assume that $\sigma_f = \mcons\,m_f$ for some $m_f:M\,((A\rightarrow B)\times \stream{M}\,(A\rightarrow B))$.
-
+By definition of the operators and Lemmas \ref{lemma:monster_pure} and \ref{lemma:pure_lift} we can rewrite the right-hand side to:
+$$
+\sigma_f \appl \apure_{\stream{M}}\,a
+= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl \apure_{\stream{M}}\,a}) \appl m_f)
+$$
+We apply the coinduction hypothesis to the guarded occurrence of $\phi \appl \apure_{\stream{M}}\,a$:
+$$
+\ldots = \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\apure_{\stream{M}}\,(\lambda f . f\, a) \appl \phi}) \appl m_f)
+$$
+Using the homomorphism law for $M$ and Lemma \ref{lemma:monster_pure}, this further reduces to $\apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f$, as desired.
+\hide{
 $$
 \begin{array}{ll}
 \sigma_f \appl \apure_{\stream{M}}\,a = (\mcons\,m_f) \appl \apure_{\stream{M}}\,a \\
@@ -307,7 +315,7 @@ $$
   & \mbox{Lemma \ref{lemma:monster_pure}} \\
 {} = \apure_{\stream{M}}\,(\lambda f. f\,a) \appl \sigma_f
 \end{array}
-$$
+$$}
 \end{proof}
 
 
