@@ -216,14 +216,23 @@ This structural positioning of the term ensure that the application of the coind
 
 \begin{lemma}
 Monsters satisfy the applicative homomorphism law:
-
 $$
 \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a = \apure\,(f\,a)
 $$
 
 \end{lemma}
 \begin{proof}
-
+By definiton of $\appl$ and Lemmas \ref{lemma:monster_pure} and \ref{lemma:pappl} we have:
+$$
+\apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a
+= \mcons\,(\apure_M\,\langle f\, a, \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a \rangle))
+$$
+We can now apply the coinduction hypthesis to the guarded occurrence of $\apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a$ to obtain:
+$$
+\cdots = \mcons\,(\apure_M\,\langle f\,a, \apure_{\stream{M}}\,(f\,a)\rangle)
+$$
+witch simplifies, using Lemma \ref{lemma:monster_pure} again, to $\apure_{\stream{M}}\,(f\,a)$, as desired.
+\hide{
 $$
 \begin{array}{ll}
 \apure_{\stream{M}}\,f \appl \apure_{\stream{M}}\,a\\
@@ -240,29 +249,21 @@ $$
 {}= \apure_{\stream{M}}\,(f\,a)
   & \mbox{lemma }\ref{lemma:monster_pure}
 \end{array}
-$$
+$$}
 \end{proof}
 
+The following lemma gives two technical equalities that are very useful the proof of the last two applivative laws for monsters.
+They can be proved by equational manipulations using the definition of the operators and the applicative laws for $M$.
 
-% Proof of interchange law with M applicative
-The proofs of the following technical lemmas are included in the Appendix.
-\vcomm{maybe just say that they are easy equational proofs, no Appendix}
-
-\begin{lemma}\label{lemma:pure_lift}
-If $a:A$, $b:B$ and $(\oplus) : A \rightarrow B \rightarrow C$, then:
+\begin{lemma}\label{lemma:pure_lift}% \label{lemma:applicative_flip}
+Let $a:A$, $m_a : M\, A$, $b:B$, $(\oplus) : A \rightarrow B \rightarrow C$, $f : A \rightarrow B \rightarrow C$. Then:
 $$
-\apure_M\, a \alift{\oplus} \apure_M\, b = \apure_M\, (a \oplus b)
-$$
-\end{lemma} 
-
-\begin{lemma}\label{lemma:applicative_flip}
-If $f : A \rightarrow B \rightarrow C$, $m_a : M\, A$ and $b : B$, then:
-$$
+\begin{array}{l}
+\apure_M\, a \alift{\oplus} \apure_M\, b = \apure_M\, (a \oplus b)\\
 \apure_M\, f \appl m_a \appl \apure_M\, b = \apure_M\, (\lambda a . f\, a\, b) \appl m_a
+\end{array}
 $$
 \end{lemma}
-
-This lemma is extremely useful in the following proofs of the last two applicative laws.
 
 \begin{lemma}
 Monsters satisfy the applicative interchange law.
@@ -286,7 +287,7 @@ $$
 {}= \mcons\,(\apure_M\,(\pappl) \appl m_f \appl \apure_M\,\langle a, \apure_{\stream{M}}\,a\rangle)
   & \mbox{definition of }\alift{-}\\
 {}= \mcons \, (\apure_M\,(\lambda \pair{f}{\phi} . \pair{f}{\phi} \pappl \pair{a}{\apure_{\stream{M}}\,a}) \appl m_f)
-  & \mbox{Lemma \ref{lemma:applicative_flip}}\\
+  & \mbox{Lemma \ref{lemma:pure_lift}}\\
 {}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\phi \appl \apure_{\stream{M}}\,a}) \appl m_f)
   & \mbox{definition of } \pappl \\
 {}= \mcons\,(\apure_M\,(\lambda \pair{f}{\phi} . \pair{f a}{\apure_{\stream{M}}\,(\lambda f . f\, a) \appl \phi}) \appl m_f)
