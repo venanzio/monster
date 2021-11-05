@@ -148,27 +148,35 @@ $$
 $$
 \end{lemma}
 \begin{proof}
-By definition of $\alift{-}$ and the homomorphism law for $M$.
+By definition of ${}\alift{-}{}$ and the homomorphism law for $M$.
 \end{proof}
 
 \begin{lemma}
 Monsters satisfy the applicative identity law:
-
 $$
 \apure_{\stream{M}}\,\id_A \appl \sigma_a = \sigma_a
 $$
-
 \end{lemma}
 \begin{proof}
 Assume that $\sigma_a$ has the canonical form:
 $\sigma_a = \mcons\,m$ where $m:M\,(A\times \stream{M}A).$
-
-
 Most of the proof is by straightforward equational reasoning, unfolding definitions and using the applicative laws for $M$.
 
 The only unusual step is the application of the {\em coinduction hypothesis}.
 Recall that this means that we can assume that the statement to prove is already true, as long as it is invoked only on direct arguments of the monster constructor.
+Specifically, we can invoke it on the recursive application $\phi \appl \sigma$ in the definition of $\appl$, since that occurrence is guarded.
 
+By expanding definitions and using the interchange and homomorphism laws for $M$ we obtain:
+$$
+\apure_{\stream{M}}\,\id_A \appl \sigma_a \\
+= \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle \id_A\,a, \apure_{\stream{M}}\,\id_A \appl \sigma_a\rangle) \appl m)
+$$
+The recursive occurrence $\apure_{\stream{M}}\,\id_A \appl \sigma_a$ is guarded, therefore we can apply the coinductive hypothesis to it:
+$$
+\cdots = \mcons\,(\apure_M\,(\lambda \langle a,\sigma_a\rangle. \langle a, \sigma_a\rangle) \appl m)
+$$
+this trivially reduces to $(\mcons\,m) = \sigma_a$, as desired.
+\hide{
 $$
 \begin{array}{ll}
 \apure_{\stream{M}}\,\id_A \appl \sigma_a \\
@@ -203,7 +211,7 @@ $$
 
 In the step that makes use of the coinduction hypothesis, we circularly use the lemma's statement that $\apure_{\stream{M}}\,\id_A \appl \sigma_a = \sigma_a$.
 The right-hand side occurs under an application of the constructor $\mcons$, inside an application of a pure value. 
-This structural positioning of the term ensure that the application of the coinductive hypothesis is sound.
+This structural positioning of the term ensure that the application of the coinductive hypothesis is sound.}
 \end{proof}
 
 \begin{lemma}
