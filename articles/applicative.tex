@@ -143,25 +143,12 @@ We assume that the laws hold for the base functor $M$ and we wish to prove them 
 The new operator $\alift{\pappl}$ has a direct simplification on pure values, which will be very useful in the proofs of the laws.
 \begin{lemma}\label{lemma:pappl}
 If $f:A\rightarrow B$, $m_f:\stream{M}\,(A\rightarrow B)$, $a:A$, $m_a:\stream{M}\,A$, then:
-
 $$
 \apure_M\,\langle f, m_f\rangle \alift{\pappl} \apure_M\,\langle a, m_a\rangle = \apure_M \langle f\,a, m_f \appl m_a \rangle
 $$
-
 \end{lemma}
 \begin{proof}
-
-$$
-\begin{array}{ll}
-\apure_M\,\langle f, m_f\rangle \alift{\pappl} \apure_M\,\langle a, m_a\rangle \\
-{}= \apure_M\,(\pappl) \appl \apure_M\,\langle f, m_f\rangle \appl \apure_M\,\langle a, m_a\rangle
-  & \mbox{definition of }\alift{-}\\
-{}= \apure_M\,(\langle f, m_f\rangle \pappl \langle a, m_a\rangle)
-  & \mbox{the homomorphism law for }M\\
-{}= \apure_M\,\langle f\,a, m_f \appl m_a \rangle
-  & \mbox{definition of }\pappl
-\end{array}
-$$
+By definition of $\alift{-}$ and the homomorphism law for $M$.
 \end{proof}
 
 \begin{lemma}
