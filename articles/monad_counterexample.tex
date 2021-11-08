@@ -1,17 +1,8 @@
-\section{Monsters are Not Monads}\label{sec:monad}
+\section{Investigating Monadic Monsters}\label{sec:monad}
 
-The pure stream constructor $\strsym$ is known to be a monad, by making the $\join$ method return the diagonal of a stream of streams.
-Pure streams are $\Id$-monsters, so we may think it possible to generalize this definition to monsters based on any monad.
-However, we show in this session that this fails, by giving a counterexample for state-monsters.
+It is natural when given an applicative functor to ask whether it is also a monad.\\
 
-Specific monads may result in monadic monsters, either by using the diagonal as $\join$ or with a different definitions.
-For example, $\maybe$-monsters (lazy lists) are a monad by using concatenation as $\join$.
-
-We conjecture that a universal definition (parametric on the base monad) is not possible.
-Our discussion of the counterexample for state-monster gives some intuitive reason why it seems unlikely that a monad instantiation exists.
-A full proof of impossibility is still an open problem.
-
-A monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a join or a bind operation sequencing monadic actions, satisfying three laws.
+To recap, a monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a join or a bind operation sequencing monadic actions, satisfying three laws.
 
 $$
 \begin{array}{l}
@@ -31,67 +22,19 @@ $$
 \end{array}
 $$
 
-The laws can be expressed either in terms of $\join$ or $(\bind)$.
-The following is the formulation in terms of $(\bind)$.
-Let $a:A$, $m_a : M\, A$,
-$f : A \rightarrow M\, B$, $g : B \rightarrow M\,C$:
+Specific choices of monad may result in a monadic monster - for example, $\maybe$-monsters (lazy lists) are a monads by defining $\join$ as list concatenation, and $\Id$-monsters are pure streams, which are known to be monads by making $\join$ return the diagonal of a stream of streams.
 
-$$
-\begin{array}{l@{\qquad}l}
-(\return\, a)\, \bind \, f = f\, a
-  & \mbox{Left identity} \\
-m_a\, \bind \, \return = m_a
-  & \mbox{Right identity} \\
-(m_a \, \bind \, f)\, \bind \, g = m_a\, \bind\, (\lambda a.  f\, a \, \bind \, g)
-  & \mbox{Composition} \\
-\end{array}
-$$
+One might think that taking the diagonal could work for any $M$-monster where $M$ is a monad. We show that, at least for one definition of taking the diagonal, this is not the case in general by giving a counterexample for $\state$-monsters.\\
 
-A monad is automatically an applicative functor:
-$\apure$ is the same as $\return$ and $\appl$ can be defined as:
-
-$$
-m_f\appl m_a = m_f \bind (\lambda f. m_a \bind (\lambda a. f\,a))
-$$
-
-The idea of the implementation of the $\join$ operation is that,
+We naturally take $\return_{\stream{M}}$ to be the same as $\apure_{\stream{M}}$.
+The idea of the implementation of the proposed $\join_{\stream{M}}$ operation is that,
 given a {\em monster matrix} $\mu:\stream{M}\,(\stream{M}\,A)$, we travel down the diagonal and pick elements in positions $(0,0)$, $(1,1)$, $(2,2)$, etc.
-This seems the most sensible approach as it generalizes canonical $\join$ operation of the pure stream monad.
+This seems the most sensible approach as it generalizes the canonical $\join_\strsym$ operation of the pure stream monad.
 However, since these are monadic streams, accessing those elements requires executing all the monadic actions leading to them.
 
-Let us represent $\mu$ intuitively as follows, denoting the monadic actions by arrow:
-
-$$
-\begin{array}[t]{rll}
-\mu \larrow{m_0} 
- & \sigma_0 
- & \larrow{m_{00}} a_{00} \larrow{m_{01}} a_{01} \larrow{m_{02}} a_{02} \larrow{} \cdots\\[5pt]
-\larrow{m_1} 
- & \sigma_1 
- & \larrow{m_{10}} a_{10} \larrow{m_{11}} a_{11} \larrow{m_{12}} a_{12} \larrow{} \cdots\\[5pt]
-\larrow{m_2} 
- & \sigma_2
- & \larrow{m_{20}} a_{20} \larrow{m_{21}} a_{21} \larrow{m_{22}} a_{22} \larrow{} \cdots\\[5pt]
-\larrow{} & \cdots
-\end{array}
-$$
-
-The result of $(\join\,\mu)$ should be the monster $a_{00} \larrow{} a_{11}\larrow{} a_{22} \larrow{} \cdots$.
-However, to access these elements, we are forced to execute all the actions leading to them:
-
-$$
-\begin{array}{ll}
-\join\,\mu 
-& \larrow{m_0}\larrow{m_{00}} a_{00}\\[5pt]
-& \larrow{m_1}\larrow{m_{10}}\larrow{m_{11}} a_{11}\\[5pt]
-& \larrow{m_2}\larrow{m_{20}}\larrow{m_{21}}\larrow{m_{22}} a_{22}\\[5pt]
-& \larrow{} \cdots
-\end{array}
-$$
-
-In order to define it formally, let us introduce some notation.
-We use $\unc{\sigma}$ to denote the monadic action associated to the monster $\sigma$, that is $ \unc{\sigma} = \uncons\,\sigma $, just stripping the $\mcons$ constructor away; so $\unc{\mu}$ is the action $m_0$ above.
-The $\head$ and $\tail$ functions extract the components of a monster, but of course they can only return a value inside the monad $M$.
+In order to state this definition of $\join_{\stream{M}}$ formally, let us introduce some notation.
+We use $\unc{\sigma}$ to denote the monadic action associated to the monster $\sigma$, that is $ \unc{\sigma} = \uncons\,\sigma $, just stripping the $\mcons$ constructor away.
+The $\head_M$ and $\tail_M$ functions extract the components of a monster, but of course they can only return a value inside the monad $M$.
 
 $$
 \begin{array}{l}
@@ -103,29 +46,29 @@ $$
 \end{array}
 \qquad
 \begin{array}{l}
-\head : \stream{M}\,A \rightarrow M\,A\\
-\head = M\,\fst \comp \uncons\\
+\head_M : \stream{M}\,A \rightarrow M\,A\\
+\head_M = M\,\fst \comp \uncons\\
 \,\\
-\tail : \stream{M}\,A \rightarrow M\,(\stream{M}\,A)\\
-\tail = M\,\snd \comp \uncons\\
+\tail_M : \stream{M}\,A \rightarrow M\,(\stream{M}\,A)\\
+\tail_M = M\,\snd \comp \uncons\\
 \end{array}
 $$
 
 When we traverse a monster to get to its elements, we have to use monadic actions, so we don't get pure elements.
-That's the case for $\head$ and $\tail$ above.
-However, a monadic action can always be absorbed inside a monster, but using the $\join$ operation for $M$.
-This allows us to define a ``pure'' version of the $\tail$ function, which we call $\traverse$:
+That's the case for $\head_M$ and $\tail_M$ above.
+However, a monadic action can always be absorbed inside a monster, by using the $\join$ operation for $M$.
+This allows us to define a ``pure'' version of the $\tail_M$ function, which we call $\traverse_M$.
 We first define four auxiliary functions:
 
 $$
 \begin{array}{l}
-\absorb : M\,(\stream{M}\,A) \rightarrow \stream{M}\,A \\
-\absorb =  \mcons \comp \join_{M} \comp M\,\uncons
+\absorb_M : M\,(\stream{M}\,A) \rightarrow \stream{M}\,A \\
+\absorb_M =  \mcons \comp \join_{M} \comp M\,\uncons
 \end{array}
   \qquad
 \begin{array}{l}
-\traverse : \stream{M}\,A \rightarrow \stream{M}\,A \\
-\traverse = \absorb \comp \tail \comp \uncons
+\traverse_M : \stream{M}\,A \rightarrow \stream{M}\,A \\
+\traverse_M = \absorb_M \comp \tail_M \comp \uncons
 \end{array}
 $$
 
@@ -143,172 +86,40 @@ $$
 
 There is some degree of unpacking, but ultimately, given a monster matrix $\mu$, we get its components, the first row $\sigma_a$ and the rest of the matrix $\mu'$; 
 we extract the first element $a$ from $\sigma_a$;
-we map $\traverse$ onto $\mu'$ to delete the first column, then we corecursively apply $\join$.
+we map $\traverse_M$ onto $\mu'$ to delete the first column, then we corecursively apply $\join_{\stream{M}}$.
 
 Keeping in mind that the functorial mapping for a monad is defined as $M\,f\,m_a = m_a \bind \lambda a. \return\,(f\,a)$ and rearranging the expression a bit, we have this equivalent one-line characterization:
-
 $$
-\join\, \mu = \mcons\, ((\uncons\, \mu) \, \bind \,(\lambda \pair{\sigma_a}{\mu'} . M\,(\lambda a . \pair{a}{(\join\, \comp\, \stream{M}\,\traverse)\, \mu'})\, (\head\, \sigma_a)))
-$$
-
-We next show that this definition of $\join$ fails to satisfy the monad laws.
-We give a counterexample of the left identity law.
-First of all, let us translate the law from the $\bind$ formulation to the equivalent $\join$ version for monsters, where $a:A$ and $f:A\rightarrow \stream{M}\,B$:
-
-$$
-\begin{array}{l}
-(\return\, a)\, \bind \, f = f\, a\\
-(\join \comp \stream{M}\,f)\,(\return\,a) = f\,a
-\end{array}
+\join_{\stream{M}}\, \mu = \mcons\, (\unc{\mu} \, \bind \,(\lambda \pair{\sigma_a}{\mu'} . M\,(\lambda a . \pair{a}{(\join_{\stream{M}}\, \comp\, \stream{M}\,\traverse_M)\, \mu'})\, (\head_M\, \sigma_a)))
 $$
 
-So the law says that $\join \comp (\stream{M}\,f)\comp \return = f$.
-
-Intuitively, $(f\,a)$ is an $M$-monster of $B$ values:
-
-$$
-f\,a \larrow{m_0} b_0 \larrow{m_1} b_1 \larrow{m_2} b_2 \larrow{}\cdots
-$$
-
-On the left-hand side, $\return\,a$ is a pure streams of repetitions of $a$; when we map $f$ on it, we get a matrix in which every row is equal to $f\,a$:
-
-$$
-\begin{array}[t]{rll}
-(\stream{M}\,f)\,(\return\,a) \larrow{} 
- & f\,a 
- & \larrow{m_0} b_0 \larrow{m_1} b_1 \larrow{m_2} b_2 \larrow{}\cdots\\[5pt]
-\larrow{} 
- & f\,a 
- & \larrow{m_0} b_0 \larrow{m_1} b_1 \larrow{m_2} b_2 \larrow{}\cdots\\[5pt]
-\larrow{} 
- & f\,a 
- & \larrow{m_0} b_0 \larrow{m_1} b_1 \larrow{m_2} b_2 \larrow{}\cdots\\[5pt]
-\larrow{} & \cdots
-\end{array}
-$$
-
-The $\join$ operation then travels down the diagonal of this matrix:
-
-$$
-\begin{array}{ll}
-\join\,((\stream{M}\,f)\,(\return\,a))
-& \larrow{m_0} b_0\\[5pt]
-& \larrow{m_0}\larrow{m_1} b_1\\[5pt]
-& \larrow{m_0}\larrow{m_1}\larrow{m_2} b_2\\[5pt]
-& \larrow{} \cdots
-\end{array}
-$$
-
-We can see here why we don't necessarily obtain the same result as $(f\,a)$: all the initial monadic actions at each row need to be executed every time to get to the element on the diagonal at that depth.
-
-With this idea in mind, we give a formal counterexample with state machines.
-Recall the notation for state-monsters: $\stmon{S} = \stream{\state_S}$, where $\state_S A = S \rightarrow A \times S$, representing the $\state$-transformer functor with states of type $S$ and return values of type $A$. 
-We assume it is equipped with the usual monad operations for the $\state$ monad. We call $\state$-monsters  {\em state machines}.
-
+We now present our counterexample: a $\state$-monster that violates one of the monad laws.
 $$
 \begin{array}{l}
 \fromstepstr : \nat \rightarrow \stmon{\nat}\,\nat \\
 \fromstepstr\, n = \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
 \end{array}
 $$
-
 This function generates a state machine which, when given a number, generates a stream where the first two numbers differ by $n$, the next two differ by $n + 1$, and so on.
-% Runner function
-%To observe the results of monsters of this type, we need a `runner' function that generates a pure stream:
-%$$
-%\begin{array}{l}
-%\strun :: \stmon{S}\, A \rightarrow S \rightarrow \stream{\Id}\,A \\
-%\strun\, m_0\, s_0 = n \acons (\strun\, m_1\, %s_1) \\
-%\qquad \where\, \pair{\pair{n}{m_1}}{s_1} = (\uncons\, m_0)\, s_0
-%\end{array}
-%$$
 
-You can `run' this state machine by threading the state through each nested function, and collecting the results. This requires an initial seed state. For example:
+You can `run' this state machine by threading the state through each nested function, and collecting the results in a pure stream. This requires an initial seed state. For example:
 
 $$
 \strun\,(\fromstepstr\, 1)\, 2 = 2\, \acons\, 3\, \acons\, 5\, \acons\, 8\, \acons\, 12\, \acons\, \dots
 $$
 
-We now show that this specific case of the left identity monad law does not hold. 
+We now show that this specific case of the left identity monad law does not hold, by `running' both sides.
+$$
+(\join_{\stmon{\nat}} \comp \stmon{\nat}\, \fromstepstr \comp \return)\, n = \fromstepstr\, n
+$$
+By constructing the monster on the left-hand side of this equation when $n = 1$, and `running' it with a seed state of $2$, we should obtain the same resultant stream as from $\strun\,(\fromstepstr\, 1)\, 2$. Instead we obtain:
+$$
+\strun\, ((\join_{\stmon{\nat}} \comp \stmon{\nat}\, \fromstepstr \comp \return)\, 1)\, 2 = 2\, \acons\, 4\, \acons\, 9\, \acons\, 18\, \acons\, 32\, \acons\, \dots
+$$
+By extensionality, it is clear that the monsters on either side of the equality in question cannot be the same, therefore the left identity law does not hold for this definition of $\join_{\stream{M}}$.
 
-$$
-(\join \comp \stmon{\nat}\, \fromstepstr \comp \return)\, n 
-\neq \fromstepstr\, n
-$$
+Code demonstrating this counterexample is included within our library \ccomm{link to the library here}. 
 
-The law is expanded using the definition of $\bind$ in terms of $\join$. 
-To show that the equality does not hold, the following two lemmas are useful to simplify reasoning. Any uses of $\join$ without a subscript refer to the $\join$ operation for monsters, otherwise the subscript will indicate the monad.
 
-\begin{lemma}\label{lemma:general_bind_law}
-For $a : A$, $f : A \rightarrow M\, B$ and assuming $M$ is a monad:
 
-$$
-(\join\, \comp\,  M\, f\, \comp\, \return)\, n = \mcons\, (M\,(\lambda a . \pair{a}{\join\, (\apure_{\stream{M}}\, (\traverse\, (f\, n)))})\, (\head\, (f\, n)))
-$$
-\end{lemma}
 
-\begin{lemma}\label{lemma:traverse_fromstepstr}
-$$
-\traverse\, (\fromstepstr\, n) = \mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1})
-$$
-\end{lemma} 
-
-The proofs of these lemmas are mostly simple cases of expanding definitions, and are included in the appendix.
-
-\begin{theorem}\label{lemma:monad_counterexample}
-Monadic streams equipped with a `diagonal' $\join$ operation are not monads.
-\end{theorem}
-\begin{proof}
-We use $tts = \join\, (\traverse\, (\traverse\, (\fromstepstr\, n)))$ to simplify the following reasoning, as we only need to unfold the definitions so far in order to demonstrate the conjecture. \\
-
-First we expand $\fromstepstr\, n$:
-$$
-\begin{array}{ll}
-\fromstepstr\, n \\
-{}= \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 1)}}{s + n})\\
-{}= \mcons\, (\lambda s. \pair{\pair{s}{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + n + 1}))}}{s + n}) \\
-\end{array} 
-$$
-We then compare it to the other side of the left-identity law
-$$
-\begin{array}{l}
-(\join \comp  \stmon{\nat}\, \fromstepstr \comp \return)\, n \\
-{}= \mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{\join\, (\apure_{\stmon{\nat}}\, (\traverse\, (\fromstepstr\, n)))})\, (\head\, (\fromstepstr\, n))) \\
- \qquad\mbox{Lemma \ref{lemma:general_bind_law}}  \\
-{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{\join\, (\apure_{\stmon{\nat}}\,(\traverse\, (\fromstepstr\, n)))})\, (\lambda s. \pair{s}{s + n})) \\
- \qquad\mbox{definition of } \head \mbox{ and } \fromstepstr \\
-{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
-\mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, (\head\, (\traverse\, (\fromstepstr\, n))))
-})\, (\lambda s. \pair{s}{s + n})) \\
- \qquad\mbox{Lemma \ref{lemma:general_bind_law}}\\
-{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
-\mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, \\\qquad(\head\, (\mcons\, (\lambda s . \pair{\pair{s+n}{\fromstepstr\, (n + 2)}}{s + 2n + 1}))))
-})\, (\lambda s. \pair{s}{s + n})) \\
- \qquad\mbox{Lemma \ref{lemma:traverse_fromstepstr}}\\
-{}=  \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
-\mcons\, (\state_{\nat} \,(\lambda a . \pair{a}{tts})\, (\lambda s . \pair{s + n}{s + 2n + 1}))
-})\, (\lambda s. \pair{s}{s + n}))
-\\ \qquad\mbox{definition of } \head \\
-{}= \mcons\, (\state_{\nat}\,(\lambda a . \pair{a}{  
-\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})
-})\, (\lambda s. \pair{s}{s + n})) \\
-\qquad\mbox{functor definition of } \state_{\nat}  \\
-{}= \mcons\, (\lambda s. \pair{\pair{s}{\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})}}{s + n}) \\ 
-\qquad\mbox{functor definition of } \state_{\nat} \\
-\end{array} 
-$$
-It is clear by inspection that 
-$$
-\begin{array}{l}
-\mcons\, (\lambda s. \pair{\pair{s}{(\mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr\, (n + 2)}}{s + n + 1}))}}{s + n}) \neq \\
-\qquad \mcons\, (\lambda s. \pair{\pair{s}{\mcons\, (\lambda s . \pair{\pair{s + n}{tts}}{s + 2n + 1})}}{s + n})
-\end{array} 
-$$
-without expanding $tts$ and $\fromstepstr\, (n + 2)$ any further.
-\end{proof}
-
-The issue is that the first monadic action (that of $\fromstepstr\, n$) is repeated twice in the monster resulting from the $\join$ operation. 
-This indicates that monsters may still be monads if the underlying functor is an idempotent monad instead. 
-We have yet to prove this, and we are also looking for a weaker condition on the underlying functor, as idempotency is a strong requirement. \\
-
-An argument could be made that the only possible definition of $\join$ is the one we consider here. Pure streams are simply monsters with the underlying monad $\Id$, and taking the diagonal is the canonical $\join$ operation in this case. By naturality of the $\join$ operation, the definition may have to be independent of the particular underlying monad chosen. If this is the case, then monsters are not monads, because as demonstrated, the diagonal $\join$ operation does not satisfy the required laws for $\stmon{\nat}$, so either a different definition is required (which could violate naturality), or monsters (with a monadic underlying functor) are not monads in general. We suspect it is the latter, and one goal of our future work is to verify this.
