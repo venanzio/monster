@@ -15,3 +15,5 @@
 *.pdf
 *.out
 *.vtc
+articles/monster_article.synctex.gz
+documentation/representable_proof.synctex.gz
