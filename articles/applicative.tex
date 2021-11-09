@@ -331,36 +331,25 @@ Elements of $\mstream{A}$ will be denoted by $m_a$.
 We introduce notation for a {\em pure} value in the type $\pstream{A}$:
 if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
 
-
-
 We start with a little general lemma about {\em composition with compositions}.
 The generic composition operator has type: $(\comp): (B\rightarrow C) \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$.
 Suppose we want to compose it with a binary operator $(\oplus) : D\rightarrow (B\rightarrow C)$.
-What would this higher composition, $(\comp) \comp (\oplus) : D \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$ be?
-We will use the notation $\clift{\oplus}{A}$ for it.
-\begin{lemma}\label{lemma:comp_comp}
-
-$$
-(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
-$$
-
-\end{lemma}
-\begin{proof}
-Just expand the definition of the two composition operators.
-\end{proof}
+We use specialized notation for this higher composition, $\clift{\oplus}{A} = (\comp) \comp (\oplus) : D \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$.
 
 We will in fact need to apply this {\em composition with compositions} operator twice: after producing $(\clift{\oplus}{A})$, we want in turn to compose it with the composition operator $(\comp): ((A\rightarrow B) \rightarrow (A\rightarrow C)) \rightarrow (X\rightarrow A\rightarrow B) \rightarrow X \rightarrow A \rightarrow C$ to produce the new operator $(\clift{\clift{\oplus}{A}}{X}): D\rightarrow (X\rightarrow A \rightarrow B) \rightarrow X \rightarrow A \rightarrow C$.
-\begin{lemma}\label{lemma:comp_comp_comp}
 
+The following lemma states two properties of this higher composition operator.
+It can be proved by just expanding definitions and simplifying.
+\begin{lemma}\label{lemma:comp_comp}\label{lemma:comp_comp_comp}
 $$
+\begin{array}{l}
+(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a) \\
 (\clift{\clift{\oplus}{A}}{X}) =
 \lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
+\end{array}
 $$
-
 \end{lemma}
-\begin{proof}
-Apply Lemma \ref{lemma:comp_comp} twice and simplify.
-\end{proof}
+
 
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
