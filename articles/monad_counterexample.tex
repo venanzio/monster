@@ -102,7 +102,16 @@ $$
 $$
 This function generates a state machine which, when given a number, generates a stream where the first two numbers differ by $n$, the next two differ by $n + 1$, and so on.
 
-You can `run' this state machine by threading the state through each nested function, and collecting the results in a pure stream. This requires an initial seed state. For example:
+You can `run' this state machine by threading an initial seed state $s$ through each nested function, `mutating' the state with each function call, and collecting the results in a pure stream:
+$$
+\begin{array}{l}
+\strun : \stmon{S}\,A \rightarrow S \rightarrow \stream{\Id}\,A  \\
+\strun\, m\, s = a \acons (\strun\,m'\,s')  \\
+\qquad\where\,\pair{\pair{a}{m'}}{s'} = (\uncons\,m)\, s
+\end{array}
+$$
+
+For example:
 
 $$
 \strun\,(\fromstepstr\, 1)\, 2 = 2\, \acons\, 3\, \acons\, 5\, \acons\, 8\, \acons\, 12\, \acons\, \dots
