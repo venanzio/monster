@@ -331,60 +331,47 @@ Elements of $\mstream{A}$ will be denoted by $m_a$.
 We introduce notation for a {\em pure} value in the type $\pstream{A}$:
 if $a:A$, we write $\ppair{a} = \langle a, \apure_{\stream{M}}\,a \rangle$.
 
-
-
 We start with a little general lemma about {\em composition with compositions}.
 The generic composition operator has type: $(\comp): (B\rightarrow C) \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$.
 Suppose we want to compose it with a binary operator $(\oplus) : D\rightarrow (B\rightarrow C)$.
-What would this higher composition, $(\comp) \comp (\oplus) : D \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$ be?
-We will use the notation $\clift{\oplus}{A}$ for it.
-\begin{lemma}\label{lemma:comp_comp}
-
-$$
-(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a)
-$$
-
-\end{lemma}
-\begin{proof}
-Just expand the definition of the two composition operators.
-\end{proof}
+We use specialized notation for this higher composition, $\clift{\oplus}{A} = (\comp) \comp (\oplus) : D \rightarrow (A\rightarrow B) \rightarrow A \rightarrow C$.
 
 We will in fact need to apply this {\em composition with compositions} operator twice: after producing $(\clift{\oplus}{A})$, we want in turn to compose it with the composition operator $(\comp): ((A\rightarrow B) \rightarrow (A\rightarrow C)) \rightarrow (X\rightarrow A\rightarrow B) \rightarrow X \rightarrow A \rightarrow C$ to produce the new operator $(\clift{\clift{\oplus}{A}}{X}): D\rightarrow (X\rightarrow A \rightarrow B) \rightarrow X \rightarrow A \rightarrow C$.
-\begin{lemma}\label{lemma:comp_comp_comp}
 
+The following lemma states two properties of this higher composition operator.
+It can be proved by just expanding definitions and simplifying.
+\begin{lemma}\label{lemma:comp_comp}\label{lemma:comp_comp_comp}
 $$
+\begin{array}{l}
+(\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a) \\
 (\clift{\clift{\oplus}{A}}{X}) =
 \lambda d. \lambda h. \lambda x.\lambda a. d\oplus (h\,x\,a)
+\end{array}
 $$
-
 \end{lemma}
-\begin{proof}
-Apply Lemma \ref{lemma:comp_comp} twice and simplify.
-\end{proof}
+
+With the help of Lemma \label{lemma:comp_comp} we can prove two technical equalities about the $\pappl$ operator. Their proofs are given in the Appendix.
 
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
-
 $$
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
  = \apure\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 $$
-
 \end{lemma}
-
 
 \begin{lemma}\label{lemma:ppair}
-
 $$
-\apure_M\,\ppair{\comp}\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
-= \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
+\begin{array}{l}
+\apure_M\,\ppair{\comp}\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a \\
+{}= \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
+\end{array}
 $$
-
 \end{lemma}
 
+We're finally ready to complete the proof that monsters are applicative.
 \begin{lemma}
 Monsters satisfies the applicative composition law:
-
 $$
 \sigma_g \appl (\sigma_f \appl \sigma_a)
  = 
@@ -399,40 +386,37 @@ This difference is resolved by proving that the two argument of the $\apure$ ter
 
 As usual we assume that all monsters are in canonical form: $\sigma_g = \mcons\,m_g$, $\sigma_f = \mcons\,m_f$, $\sigma_a = \mcons\,m_a$.
 
-First we rewrite the left-hand-side of the composition law. 
-
+First we rewrite the left-hand-side of the composition law:
 $$
-\begin{array}{l}
+\begin{array}{ll}
 \sigma_g \appl (\sigma_f \appl \sigma_a)
  = (\mcons\,m_g) \appl ((\mcons\,m_f) \appl (\mcons\,m_a))\\
-{}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a))\\
-  \qquad  \mbox{definition of}\appl\mbox{for monsters} \\
+{}= \mcons\,(m_g \alift{\pappl} (m_f \alift{\pappl} m_a))
+  &  \mbox{def of }\appl \\
 {}= \mcons\,(
 \apure_M\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
-)\\
-  \qquad \mbox{Lemma \ref{lemma:pappl_comp_appl}}
+)
+  & \mbox{Lemma \ref{lemma:pappl_comp_appl}}
 \end{array}
 $$
 
-Next we rewrite the right-hand-side.
-
+Next we rewrite the right-hand-side:
 $$
-\begin{array}{l}
+\begin{array}{ll}
 (\sigma_g \alift{\comp} \sigma_f) \appl \sigma_a\\
-{}= \apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f \appl \sigma_a \\
-  \qquad \mbox{definition of }\alift{-}\\
-{}= \mcons\, (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
-  \qquad \mbox{definition of}\appl\mbox{for monsters}\\
-{}= \mcons\, (\apure_M\,\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)\\
-  \qquad \mbox{definition of }\ppair{-}\\
+{}= \apure_{\stream{M}}\,(\comp) \appl \sigma_g \appl \sigma_f \appl \sigma_a
+  & \mbox{def of }\alift{-}\\
+{}= \mcons\, (\apure_M\,\pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)
+  & \mbox{def of }\appl\\
+{}= \mcons\, (\apure_M\,\ppair{\comp} \alift{\pappl} m_g \alift{\pappl} m_f \alift{\pappl} m_a)
+  & \mbox{def of }\ppair{-}\\
 {}= \mcons\,(
-\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a}) \appl m_g \appl m_f \appl m_a)\\
-  \qquad \mbox{Lemma \ref{lemma:ppair}}
+\apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp} \pappl \pstr{g}  \pappl \pstr{f}  \pappl \pstr{a}) \appl m_g \appl m_f \appl m_a)
+  & \mbox{Lemma \ref{lemma:ppair}}
 \end{array}
 $$
 
 To complete this proof, we need to show the following:
-
 $$
 \lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})
   = 
@@ -440,35 +424,22 @@ $$
 $$
 
 Let's assume the abstracted variables are in canonical form: $\pstr{g} = \pair{g}{\tau_g}$, $\pstr{f} = \pair{f}{\tau_f}$, $\pstr{a} = \pair{a}{\tau_a}$.
-
-We use the coinduction hypothesis to prove the equality.
-This is justified because the equality itself is embedded in an application of the constructor $\mcons$: in this context, $\tau_g$, $\tau_f$ and $\tau_a$ are guaranteed to be sub-streams of $\sigma_g$, $\sigma_f$ and $\sigma_a$ respectively, so the use of the coinductive hypothesis is sound.
-
+Unfolding the definition of $\pappl$ ans simplifying we get:
 $$
-\begin{array}{ll}
 \pstr{g}\, \pappl (\pstr{f} \pappl \pstr{a})
- = \pair{g}{\tau_g}\, \pappl (\pair{f}{\tau_f} \pappl \pair{a}{\tau_a}) \\
-{}= \pair{g}{\tau_g}\, \pappl \pair{f\, a}{\tau_f \appl \tau_a}
-& \mbox{definition of }\pappl \\
-{}= \pair{g\, (f\, a)}{\tau_g \appl (\tau_f \appl \tau_a)}
-& \mbox{definition of }\pappl \\
-{}= \pair{(g \comp f)\, a)}{\tau_g \appl (\tau_f \appl \tau_a)}
-& \mbox{definition of }\comp \\
-{}= \pair{((\comp)\, g\, f)\, a}{\tau_g \appl (\tau_f \appl \tau_a)}
-& \mbox{trivial} \\
-{}= \pair{(((\comp)\, g)\, f)\, a}{(\tau_g \alift{\comp} \tau_f) \appl \tau_a}
-& \mbox{coinduction hypothesis} \\
-{}= \pair{(((\comp)\, g)\, f)\, a}{\apure_{\stream{M}}\, (\comp) \appl \tau_g \appl \tau_f \appl \tau_a}
-& \mbox{definition of }\alift{-} \\
-{}= \pair{((\comp)\, g)\, f}{\apure_{\stream{M}}\, (\comp) \appl \tau_g \appl \tau_f} \pappl  \pair{a}{\tau_a}
-& \mbox{definition of }\pappl \\
-{}= \pair{(\comp)\, g}{\apure_{\stream{M}}\, (\comp) \appl \tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
-& \mbox{definition of }\pappl \\
-{}= \pair{(\comp)}{\apure_{\stream{M}}\,(\comp)} \pappl \pair{g}{\tau_g} \pappl \pair{f}{\tau_f} \pappl \pair{a}{\tau_a}
-& \mbox{definition of }\pappl \\
-{}= \ppair{\comp} \pappl \pstr{g} \pappl \pstr{f} \pappl \pstr{a}
-\end{array}
+ = \pair{((\comp)\, g\, f)\, a}{\tau_g \appl (\tau_f \appl \tau_a)}
 $$
+
+Now notice that in the main term of the equality, this expression occurs under the $\mcons$ constructor and the $\apure_M$ operator, as the body of the function generating the $M$-subterms; it is a pair in which the second component matches the left-hand side of the main statement.
+This is exactly the position were the application of the coinductive hypothesis is allowed, so we obtain:
+$$
+{} = \pair{(((\comp)\, g)\, f)\, a}{(\tau_g \alift{\comp} \tau_f) \appl \tau_a}
+$$
+which can be further simplified, by unfolding the definitions of $\alift{-}$ and $\pappl$:
+$$
+{} = \ppair{\comp} \pappl \pstr{g} \pappl \pstr{f} \pappl \pstr{a}
+$$
+This concludes the proof.
 \end{proof}
 
 
