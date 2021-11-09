@@ -350,30 +350,28 @@ $$
 $$
 \end{lemma}
 
+With the help of Lemma \label{lemma:comp_comp} we can prove two technical equalities about the $\pappl$ operator. Their proofs are given in the Appendix.
 
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
-
 $$
 m_g \alift{\pappl} (m_f \alift{\pappl} m_a)
  = \apure\, (\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \pstr{g} \pappl (\pstr{f}\pappl \pstr{a})) \appl m_g \appl m_f \appl m_a
 $$
-
 \end{lemma}
-
 
 \begin{lemma}\label{lemma:ppair}
-
 $$
-\apure_M\,\ppair{\comp}\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a
-= \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
+\begin{array}{l}
+\apure_M\,\ppair{\comp}\, \alift{\pappl}\, m_g\, \alift{\pappl}\, m_f\, \alift{\pappl}\, m_a \\
+{}= \apure_M\,(\lambda \pstr{g}. \lambda \pstr{f}. \lambda \pstr{a}. \ppair{\comp}\, \pappl\, \pstr{g} \, \pappl\, \pstr{f} \, \pappl\, \pstr{a})\, \appl\, m_g\, \appl\, m_f\, \appl\, m_a 
+\end{array}
 $$
-
 \end{lemma}
 
+We're finally ready to complete the proof that monsters are applicative.
 \begin{lemma}
 Monsters satisfies the applicative composition law:
-
 $$
 \sigma_g \appl (\sigma_f \appl \sigma_a)
  = 
