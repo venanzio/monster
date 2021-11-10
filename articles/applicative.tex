@@ -255,7 +255,7 @@ $$}
 The following lemma gives two technical equalities that are very useful the proof of the last two applivative laws for monsters.
 They can be proved by equational manipulations using the definition of the operators and the applicative laws for $M$.
 
-\begin{lemma}\label{lemma:pure_lift}% \label{lemma:applicative_flip}
+\begin{lemma}\label{lemma:pure_lift}
 Let $a:A$, $m_a : M\, A$, $b:B$, $(\oplus) : A \rightarrow B \rightarrow C$, $f : A \rightarrow B \rightarrow C$. Then:
 $$
 \begin{array}{l}
@@ -340,7 +340,7 @@ We will in fact need to apply this {\em composition with compositions} operator 
 
 The following lemma states two properties of this higher composition operator.
 It can be proved by just expanding definitions and simplifying.
-\begin{lemma}\label{lemma:comp_comp}\label{lemma:comp_comp_comp}
+\begin{lemma}\label{lemma:comp_comp}
 $$
 \begin{array}{l}
 (\clift{\oplus}{A}) = \lambda d.\lambda f. \lambda a. d\oplus (f\,a) \\
@@ -350,7 +350,7 @@ $$
 $$
 \end{lemma}
 
-With the help of Lemma \label{lemma:comp_comp} we can prove two technical equalities about the $\pappl$ operator. Their proofs are given in the Appendix.
+With the help of Lemma \ref{lemma:comp_comp} we can prove two technical equalities about the $\pappl$ operator. Their proofs are given in the Appendix.
 
 \begin{lemma}\label{lemma:pappl_comp_appl}
 Let $m_g:\mstream{B\rightarrow C}$, $m_f:\mstream{A\rightarrow B}$, $m_a:\mstream{A}$, then:
