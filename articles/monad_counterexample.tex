@@ -1,9 +1,9 @@
 \section{Investigating Monadic Monsters}\label{sec:monad}
 
-It is natural when given an applicative functor to ask whether it is also a monad.\\
+A spontaneous question to ask next is whether the $\stream{M}$ type constructor is not just an applicative functor, but also a monad, if the underlying functor $M$ is.
 
-To recap, a monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a join or a bind operation sequencing monadic actions, satisfying three laws.
-
+Let us recall the definition: a {\em monad}
+is a functor $M$ with two methods: a $\return$ function injecting pure elements into $M$ and either a $\join$ or a bind ($\bind$) operation sequencing monadic actions, satisfying three laws.
 $$
 \begin{array}{l}
 \return : A \rightarrow M\, A \\
@@ -13,16 +13,15 @@ $$
 \end{array}
 $$
 
-The $(\bind)$ and $\join$ operations can be defined in terms of each other:
-
+The version using the $\join$ operation is common in the categorical literature, while the version using $(\bind)$ is more convenient in functional programming.
+They can be defined in terms of each other:
 $$
-\begin{array}{l}
-(\bind\, f) = \join \comp M f \\
-\join = (\bind\,\id)
-\end{array}
+(m_a \bind\, f) = \join \, (M f\, m_a) \qquad
+\join\, m = m \bind\,\id
 $$
 
-Specific choices of monad may result in a monadic monster - for example, $\maybe$-monsters (lazy lists) are a monads by defining $\join$ as list concatenation, and $\Id$-monsters are pure streams, which are known to be monads by making $\join$ return the diagonal of a stream of streams.
+We already know that some specific specific choices of the underlying monad $M$  result in monadic monsters.
+For example, $\maybe$-monsters (lazy lists) are a monad by defining $\join$ as the concatenation of a list of lists, and $\Id$-monsters (pure streams) are a monad by defining $\join$ as the diagonal of a stream of streams.
 
 One might think that taking the diagonal could work for any $M$-monster where $M$ is a monad. We show that, at least for one definition of taking the diagonal, this is not the case in general by giving a counterexample for $\state$-monsters.\\
 
