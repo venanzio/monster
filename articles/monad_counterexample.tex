@@ -17,15 +17,18 @@ The version using the $\join$ operation is common in the categorical literature,
 They can be defined in terms of each other:
 $$
 (m_a \bind\, f) = \join \, (M f\, m_a) \qquad
-\join\, m = m \bind\,\id
+\join\, m = (m \bind\,\id)
 $$
 
 We already know that some specific specific choices of the underlying monad $M$  result in monadic monsters.
 For example, $\maybe$-monsters (lazy lists) are a monad by defining $\join$ as the concatenation of a list of lists, and $\Id$-monsters (pure streams) are a monad by defining $\join$ as the diagonal of a stream of streams.
 
-One might think that taking the diagonal could work for any $M$-monster where $M$ is a monad. We show that, at least for one definition of taking the diagonal, this is not the case in general by giving a counterexample for $\state$-monsters.\\
+It is possible, and intuitively reasonable, to extend the monad instantiation for pure streams to all $M$-monsters where $M$ is a monad:
+define $\return$ as repetition of an element, the same as $\apure_{\stream{M}}$;
+define $\join$ to be the diagonal of a {\em monster matrix}, that is, a monster of monsters.
 
-We naturally take $\return_{\stream{M}}$ to be the same as $\apure_{\stream{M}}$.
+Unfortunately, this instantiation does not satisfy the monad laws universally: we will give a counterexample using $\state$-monsters.
+
 The idea of the implementation of the proposed $\join_{\stream{M}}$ operation is that,
 given a {\em monster matrix} $\mu:\stream{M}\,(\stream{M}\,A)$, we travel down the diagonal and pick elements in positions $(0,0)$, $(1,1)$, $(2,2)$, etc.
 This seems the most sensible approach as it generalizes the canonical $\join_\strsym$ operation of the pure stream monad.
