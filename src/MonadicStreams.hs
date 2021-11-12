@@ -7,8 +7,7 @@ Copyright   : (c) Chris Purdy, 2021
                   Venanzio Capretta, 2021
 License     : GPL-3 (NEEDS CHECKING)
 Maintainer  : cp766@cam.ac.uk
-Stability   : experimental (NEEDS CHECKING)
-Portability : POSIX (NEEDS CHECKING)
+Stability   : experimental
 
 == __Function naming conventions__
 

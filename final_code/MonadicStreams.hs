@@ -5,7 +5,7 @@ Module      : MonadicStreams
 Description : Core library for building and working with monadic streams
 Copyright   : (c) Chris Purdy, 2021
                   Venanzio Capretta, 2021
-License     : GPL-3
+License     : GPL-3 (NEEDS CHECKING)
 Maintainer  : cp766@cam.ac.uk
 Stability   : experimental
 
@@ -240,9 +240,13 @@ transform :: Functor m =>
                MonStr m a -> MonStr m b
 transform f s = MCons $ fmap (\(h,t) -> f h t) (uncons s)
 
+-- | Corecursion operator for monsters: h gives the head or the monster,
+-- m is the action that generates the recursive calls/tail
+mcorec :: Functor m => (x -> a) -> (x -> m x) -> x -> MonStr m a
+mcorec h m x = MCons $ fmap (\x' -> (h x', mcorec h m x')) (m x)
+
 instance Functor m => Functor (MonStr m) where
   fmap f = transform (\a s -> (f a, fmap f s))
-
 
 -- | Version of transform for applicative monsters
 transformA :: Applicative m =>
@@ -251,15 +255,19 @@ transformA :: Applicative m =>
 transformA f as bs = MCons $ (\(a,as') (b,bs') -> f a as' b bs')
                                <$> uncons as <*> uncons bs
 
+-- | Lifting a binary operator to an applicative functor
+liftBinA :: Applicative m => (a->b->c) -> m a -> m b -> m c
+liftBinA op ma mb = pure op <*> ma <*> mb
+
 instance Applicative m => Applicative (MonStr m) where
   pure a = a <: pure a
-  (<*>) = transformA (\f fs a as -> (f a, fs <*> as))  
-  
+  (MCons mf) <*> (MCons ma) = MCons (liftBinA compM mf ma)
+      where compM (f,phi) (a,s) = (f a, phi <*> s)
+
 
 instance (Functor m, Foldable m) => Foldable (MonStr m) where
   foldMap f s = foldMap f (head s) `mappend`
                 foldMap id (fmap (foldMap f) (tail s))
-
 
 instance Alternative m => Alternative (MonStr m) where
   empty = MCons empty
