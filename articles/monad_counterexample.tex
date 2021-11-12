@@ -20,6 +20,29 @@ $$
 \join\, m = (m \bind\,\id)
 $$
 
+
+The laws can be expressed either in terms of $\join$ or $(\bind)$.
+The following is the formulation in terms of $(\bind)$.
+Let $a:A$, $m_a : M\, A$,
+$f : A \rightarrow M\, B$, $g : B \rightarrow M\,C$:
+
+$$
+\begin{array}{l@{\qquad}l}
+(\return\,a \bind  f) = f\, a
+  & \mbox{Left identity} \\
+(m_a \bind \return) = m_a
+  & \mbox{Right identity} \\
+((m_a \bind f) \bind g) = (m_a \bind (\lambda a.  f\, a  \bind  g))
+  & \mbox{Composition} \\
+\end{array}
+$$
+
+A monad is automatically an applicative functor:
+$\apure$ is the same as $\return$ and $\appl$ can be defined as:
+$
+m_f\appl m_a = m_f \bind (\lambda f. m_a \bind (\lambda a. f\,a))
+$
+
 We already know that some specific specific choices of the underlying monad $M$  result in monadic monsters.
 For example, $\maybe$-monsters (lazy lists) are a monad by defining $\join$ as the concatenation of a list of lists, and $\Id$-monsters (pure streams) are a monad by defining $\join$ as the diagonal of a stream of streams.
 
@@ -89,11 +112,6 @@ Given a monster matrix $\mu$, we decompose it into its first row $\sigma_a$ and 
 we extract the first element $a$ from $\sigma_a$;
 we map $\tailm_M$ onto $\mu'$ to delete the first column, then we corecursively apply $\join_{\stream{M}}$.
 
-Keeping in mind that the functorial mapping for a monad is defined as $M\,f\,m_a = m_a \bind \lambda a. \return\,(f\,a)$ and rearranging the expression a bit, we have this equivalent one-line characterization:
-$$
-\join_{\stream{M}}\, \mu = \mcons\, (\unc{\mu} \, \bind \,(\lambda \pair{\sigma_a}{\mu'} . M\,(\lambda a . \pair{a}{(\join_{\stream{M}}\, \comp\, \stream{M}\,\tailm_M)\, \mu'})\, (\head_M\, \sigma_a)))
-$$
-
 We now present our counterexample: a $\state$-monster that violates one of the monad laws.
 $$
 \begin{array}{l}
@@ -101,7 +119,7 @@ $$
 \fromstepstr\, n = \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
 \end{array}
 $$
-This function generates a state machine which, when given a number, generates a stream where the first two numbers differ by $n$, the next two differ by $n + 1$, and so on.
+When we apply this function to an initial increment $n$, it generates a state machine that will output the value of the state and increment the state by $n$; then it calls itself with the increment increased by 1.
 
 You can `run' this state machine by threading an initial seed state $s$ through each nested function, `mutating' the state with each function call, and collecting the results in a pure stream:
 $$
@@ -112,21 +130,22 @@ $$
 \end{array}
 $$
 
-For example:
-
+For example, running $\fromstepstr$ with initial increment $1$ and starting state $2$:
 $$
 \strun\,(\fromstepstr\, 1)\, 2 = 2\, \acons\, 3\, \acons\, 5\, \acons\, 8\, \acons\, 12\, \acons\, \dots
 $$
 
-We now show that this specific case of the left identity monad law does not hold, by `running' both sides.
+We know show that the left identity monad law does not hold for $\stmon{S}$ using the diagonal definition of $\join$.
+The law states that:
 $$
 (\join_{\stmon{\nat}} \comp \stmon{\nat}\, \fromstepstr \comp \return)\, n = \fromstepstr\, n
 $$
-By constructing the monster on the left-hand side of this equation when $n = 1$, and `running' it with a seed state of $2$, we should obtain the same resultant stream as from $\strun\,(\fromstepstr\, 1)\, 2$. Instead we obtain:
+If it were true, running the left-hand side with $n = 1$ and initial state $2$ should give us the same pure stream as before.
+Instead we have:
 $$
 \strun\, ((\join_{\stmon{\nat}} \comp \stmon{\nat}\, \fromstepstr \comp \return)\, 1)\, 2 = 2\, \acons\, 4\, \acons\, 9\, \acons\, 18\, \acons\, 32\, \acons\, \dots
 $$
-By extensionality, it is clear that the monsters on either side of the equality in question cannot be the same, therefore the left identity law does not hold for this definition of $\join_{\stream{M}}$.
+Therefore the monsters on either side of the equality in question cannot be the same and the left identity law does not hold for this definition of $\join_{\stream{M}}$.
 
 Code demonstrating this counterexample is included within our library \ccomm{link to the library here}. 
 
