@@ -1,9 +1,9 @@
 \section{Investigating Monadic Monsters}\label{sec:monad}
 
-It is natural when given an applicative functor to ask whether it is also a monad.\\
+A spontaneous question to ask next is whether the $\stream{M}$ type constructor is not just an applicative functor, but also a monad, if the underlying functor $M$ is.
 
-To recap, a monad is defined as a functor $M$ with a $\return$ function injecting pure elements into it and either a join or a bind operation sequencing monadic actions, satisfying three laws.
-
+Let us recall the definition: a {\em monad}
+is a functor $M$ with two methods: a $\return$ function injecting pure elements into $M$ and either a $\join$ or a bind ($\bind$) operation sequencing monadic actions, satisfying three laws.
 $$
 \begin{array}{l}
 \return : A \rightarrow M\, A \\
@@ -13,20 +13,45 @@ $$
 \end{array}
 $$
 
-The $(\bind)$ and $\join$ operations can be defined in terms of each other:
+The version using the $\join$ operation is common in the categorical literature, while the version using $(\bind)$ is more convenient in functional programming.
+They can be defined in terms of each other:
+$$
+(m_a \bind\, f) = \join \, (M f\, m_a) \qquad
+\join\, m = (m \bind\,\id)
+$$
+
+
+The laws can be expressed either in terms of $\join$ or $(\bind)$.
+The following is the formulation in terms of $(\bind)$.
+Let $a:A$, $m_a : M\, A$,
+$f : A \rightarrow M\, B$, $g : B \rightarrow M\,C$:
 
 $$
-\begin{array}{l}
-(\bind\, f) = \join \comp M f \\
-\join = (\bind\,\id)
+\begin{array}{l@{\qquad}l}
+(\return\,a \bind  f) = f\, a
+  & \mbox{Left identity} \\
+(m_a \bind \return) = m_a
+  & \mbox{Right identity} \\
+((m_a \bind f) \bind g) = (m_a \bind (\lambda a.  f\, a  \bind  g))
+  & \mbox{Composition} \\
 \end{array}
 $$
 
-Specific choices of monad may result in a monadic monster - for example, $\maybe$-monsters (lazy lists) are a monads by defining $\join$ as list concatenation, and $\Id$-monsters are pure streams, which are known to be monads by making $\join$ return the diagonal of a stream of streams.
+A monad is automatically an applicative functor:
+$\apure$ is the same as $\return$ and $\appl$ can be defined as:
+$
+m_f\appl m_a = m_f \bind (\lambda f. m_a \bind (\lambda a. f\,a))
+$
 
-One might think that taking the diagonal could work for any $M$-monster where $M$ is a monad. We show that, at least for one definition of taking the diagonal, this is not the case in general by giving a counterexample for $\state$-monsters.\\
+We already know that some specific specific choices of the underlying monad $M$  result in monadic monsters.
+For example, $\maybe$-monsters (lazy lists) are a monad by defining $\join$ as the concatenation of a list of lists, and $\Id$-monsters (pure streams) are a monad by defining $\join$ as the diagonal of a stream of streams.
 
-We naturally take $\return_{\stream{M}}$ to be the same as $\apure_{\stream{M}}$.
+It is possible, and intuitively reasonable, to extend the monad instantiation for pure streams to all $M$-monsters where $M$ is a monad:
+define $\return$ as repetition of an element, the same as $\apure_{\stream{M}}$;
+define $\join$ to be the diagonal of a {\em monster matrix}, that is, a monster of monsters.
+
+Unfortunately, this instantiation does not satisfy the monad laws universally: we will give a counterexample using $\state$-monsters.
+
 The idea of the implementation of the proposed $\join_{\stream{M}}$ operation is that,
 given a {\em monster matrix} $\mu:\stream{M}\,(\stream{M}\,A)$, we travel down the diagonal and pick elements in positions $(0,0)$, $(1,1)$, $(2,2)$, etc.
 This seems the most sensible approach as it generalizes the canonical $\join_\strsym$ operation of the pure stream monad.
@@ -57,7 +82,7 @@ $$
 When we traverse a monster to get to its elements, we have to use monadic actions, so we don't get pure elements.
 That's the case for $\head_M$ and $\tail_M$ above.
 However, a monadic action can always be absorbed inside a monster, by using the $\join$ operation for $M$.
-This allows us to define a ``pure'' version of the $\tail_M$ function, which we call $\traverse_M$.
+This allows us to define a ``pure'' version of the $\tail_M$ function, which we call $\tailm_M$.
 We first define four auxiliary functions:
 
 $$
@@ -67,31 +92,25 @@ $$
 \end{array}
   \qquad
 \begin{array}{l}
-\traverse_M : \stream{M}\,A \rightarrow \stream{M}\,A \\
-\traverse_M = \absorb_M \comp \tail_M \comp \uncons
+\tailm_M : \stream{M}\,A \rightarrow \stream{M}\,A \\
+\tailm_M = \absorb_M \comp \tail_M
 \end{array}
 $$
 
-We are ready to give the definition of $\join$:
+With the help of these unpacking functions, we define $\join$ for ${\stream{M}}$:
 $$
 \begin{array}{ll}
-\multicolumn{2}{l}{\join: \stream{M}\,(\stream{M}\,A) \rightarrow \stream{M}\,A}\\
-\join\,\mu = \mcons\,(
+\multicolumn{2}{l}{\join_{\stream{M}}: \stream{M}\,(\stream{M}\,A) \rightarrow \stream{M}\,A}\\
+\join_{\stream{M}}\,\mu = \mcons\,(
   & \unc{\mu} \bind
     \lambda \pair{\sigma_a}{\mu'}.\\
   &  (\head\,\sigma_a) \bind \lambda a.\\
-  & \return\,\pair{a}{\join\,(\stream{M}\,\traverse\, \mu')} \; )
+  & \return\,\pair{a}{\join_{\stream{M}}\,(\stream{M}\,\tailm\, \mu')} \; )
 \end{array}
 $$
-
-There is some degree of unpacking, but ultimately, given a monster matrix $\mu$, we get its components, the first row $\sigma_a$ and the rest of the matrix $\mu'$; 
+Given a monster matrix $\mu$, we decompose it into its first row $\sigma_a$ and the rest of the matrix $\mu'$; 
 we extract the first element $a$ from $\sigma_a$;
-we map $\traverse_M$ onto $\mu'$ to delete the first column, then we corecursively apply $\join_{\stream{M}}$.
-
-Keeping in mind that the functorial mapping for a monad is defined as $M\,f\,m_a = m_a \bind \lambda a. \return\,(f\,a)$ and rearranging the expression a bit, we have this equivalent one-line characterization:
-$$
-\join_{\stream{M}}\, \mu = \mcons\, (\unc{\mu} \, \bind \,(\lambda \pair{\sigma_a}{\mu'} . M\,(\lambda a . \pair{a}{(\join_{\stream{M}}\, \comp\, \stream{M}\,\traverse_M)\, \mu'})\, (\head_M\, \sigma_a)))
-$$
+we map $\tailm_M$ onto $\mu'$ to delete the first column, then we corecursively apply $\join_{\stream{M}}$.
 
 We now present our counterexample: a $\state$-monster that violates one of the monad laws.
 $$
@@ -100,7 +119,7 @@ $$
 \fromstepstr\, n = \mcons\, (\lambda s. \pair{\pair{s}{\fromstepstr (n + 1)}}{s + n})
 \end{array}
 $$
-This function generates a state machine which, when given a number, generates a stream where the first two numbers differ by $n$, the next two differ by $n + 1$, and so on.
+When we apply this function to an initial increment $n$, it generates a state machine that will output the value of the state and increment the state by $n$; then it calls itself with the increment increased by 1.
 
 You can `run' this state machine by threading an initial seed state $s$ through each nested function, `mutating' the state with each function call, and collecting the results in a pure stream:
 $$
@@ -111,24 +130,25 @@ $$
 \end{array}
 $$
 
-For example:
-
+For example, running $\fromstepstr$ with initial increment $1$ and starting state $2$:
 $$
 \strun\,(\fromstepstr\, 1)\, 2 = 2\, \acons\, 3\, \acons\, 5\, \acons\, 8\, \acons\, 12\, \acons\, \dots
 $$
 
-We now show that this specific case of the left identity monad law does not hold, by `running' both sides.
+We know show that the left identity monad law does not hold for $\stmon{S}$ using the diagonal definition of $\join$.
+The law states that:
 $$
 (\join_{\stmon{\nat}} \comp \stmon{\nat}\, \fromstepstr \comp \return)\, n = \fromstepstr\, n
 $$
-By constructing the monster on the left-hand side of this equation when $n = 1$, and `running' it with a seed state of $2$, we should obtain the same resultant stream as from $\strun\,(\fromstepstr\, 1)\, 2$. Instead we obtain:
+If it were true, running the left-hand side with $n = 1$ and initial state $2$ should give us the same pure stream as before.
+Instead we have:
 $$
 \strun\, ((\join_{\stmon{\nat}} \comp \stmon{\nat}\, \fromstepstr \comp \return)\, 1)\, 2 = 2\, \acons\, 4\, \acons\, 9\, \acons\, 18\, \acons\, 32\, \acons\, \dots
 $$
-By extensionality, it is clear that the monsters on either side of the equality in question cannot be the same, therefore the left identity law does not hold for this definition of $\join_{\stream{M}}$.
+Therefore the monsters on either side of the equality in question cannot be the same and the left identity law does not hold for this definition of $\join_{\stream{M}}$.
 
 Code demonstrating this counterexample is included within our library \ccomm{link to the library here}. 
 
-
-
-
+The counterexample shows that the {\em diagonal} definition of $\join$ does not yield a universal monad instantiation for monsters. 
+It still may work for specific base monads $M$, as for $\Id$.
+For other base functors, a different instantiation may work, for example the {\em concatenation} implementation for $\maybe$-monsters.
