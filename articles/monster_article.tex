@@ -7,20 +7,22 @@
 
 \usepackage{notations}
 
+\usepackage{hyperref}
+
 
 \begin{document}
 
 \title{Type Classes of Monsters}
 
 \author{Venanzio Capretta\inst{1} \and
-        Christopher Purdy\inst{1}}
+        Christopher Purdy\inst{2}}
 
 
 \authorrunning{V. Capretta and C. Purdy}
 
-\institute{Nottingham University, UK
-          \email{\{venanzio.capretta,psycjpu\}@nottingham.ac.uk}}
-
+\institute{Nottingham University, UK \email{venanzio.capretta@nottingham.ac.uk} \and
+		Cambridge University, UK \email{cp766@cam.ac.uk}}
+	
 \maketitle
 
 
@@ -29,6 +31,9 @@
   \renewcommand\thelemmainner{#1}%
   \lemmainner
 }{\endlemmainner}
+
+
+\newcommand{\repourl}{\url{https://github.com/venanzio/monster}}
 
 \begin{abstract}
 A monadic stream (which we call a {\em monster}) is a potentially infinite sequence of values in which every element triggers a monadic action.

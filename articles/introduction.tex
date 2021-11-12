@@ -16,7 +16,7 @@ $$
 
 The keyword $\codata$ indicates that we are defining a coinductive type: in Haskell we just use $\data$ which indicates a recursive type, with no distinction between induction and coinduction. 
 The type has a single constructor, $\mcons$, that takes as argument an $M$-action which, when executed, produces a pair of a head in $A$ and a tail $M$-monster.
-Depending on the nature of the $M$ monad, head and tail may not be uniquely determined or may evoke some side effects.
+Depending on the nature of the $M$ monad, head and tail may not be uniquely determined or may invoke some side effects.
 
 Categorically, we can see this type as the {\em final coalgebra} of the functor $F_M\,X = M\,(A\times X)$.
 The final coalgebra does not necessarily exist for every $M$, 
@@ -57,7 +57,7 @@ If we instantiate $M$ with the $\maybe$ monad we obtain the type $\stream{\maybe
 The $\maybe$ monad is a functor that adds an extra element to the argument type:
 $\maybe\,X$ contains copies of each element $x:X$, denoted by $\just\,x$, plus a {\em empty} element $\nothing$.
 So $\maybe\,X \cong X+1$.
-The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe}\,A)\rightarrow\stream{\maybe}\,A$ is equivalent to two constructors (for $\nothing$ and $\just$):
+The single constructor $\mcons_\maybe: \maybe\,(A\times \stream{\maybe}\,A)\rightarrow\stream{\maybe}\,A$ is equivalent to two constructors (for $\just$ and $\nothing$ respectively):
 $$
 \begin{array}[t]{l}
 \codata\;
@@ -82,7 +82,7 @@ $$
 \begin{example}[List Monad $\rightarrow$ Finitely Branching Trees]
 Next, let us take as underlying monad $M = \lstsym $ itself.
 In this case each entry in the stream is a list of pairs of heads and tails.
-This is equivalent to trees of arbitrary branching degrees (finite branches if we use only finite lists, but also countably infinite branches if we use lazy lists).
+This is equivalent to {\em branch-labelled trees} of arbitrary branching degrees (finite branches if we use only finite lists, but also countably infinite branches if we use lazy lists).
 Since the type is coinductive, the trees can be non-well-founded, that is, they may be infinitely deep.
 \end{example}
 
@@ -97,7 +97,7 @@ They will be useful to construct the counterexample to the monad laws in Section
 Finally, in Haskell user interaction and other system effects are encapsulated in the $\io$ monad. An $\io$ action produces a value that possibly depends and triggers effects. $\io$-monsters are interactive processes that continuously interface with the external world.
 \end{example}
 
-A companion paper that we will publish later will present the Haskell monster library that we developed and describe several of its applications.
+A companion paper that we will publish later will present the Haskell monster library that we developed and describe several of its applications. This library can be found on GitHub at \repourl. \\
 
 It is important to make two observations about the underlying ``monad'' $M$.
 
@@ -129,7 +129,7 @@ The machine is a  a State-monster with a parameter $n$,
 working with an underlying state $s$.
 When executed, it generates the next element, the head of the monster, which is the product value $s*n$; it updates the state to the sum of the old state and the parameter, $s+n$; finally calls itself to generate the tail of the monster with parameter $n+1$.
 
-If we run the machine with initial parameter $2$ on an initial state $3$,
+If we ``run'' (definition given in \ref{sec:monad}) the machine with initial parameter $2$ on an initial state $3$,
 it generates the infinite sequence (assuming no other process modifies the state): $6 \scons 15 \scons 32 \scons 60 \scons \cdots$, with the state going through the values $3, 5, 8, 12, 17, \cdots$ and the parameter increasing $2, 3, 4, 5, 6, \cdots$.
 
 The justification of the soundness of the definition is in the fact that the recursive call $\frominc\, (n + 1)$ occurs under the guard of the constructor $\mcons $ and is used to generate the recursive sub-stream of the main output value.
@@ -233,7 +233,7 @@ It is therefore sound to invoke the hypothesis to prove the lower levels.
 }
 
 We will use this style of reasoning repeatedly in the article.
-Most of the proofs consist in equational rewriting, with most steps consisting in term reduction, application of known laws and of previously proved lemmas.
+Most of the proofs consist of equational rewriting, with most steps consisting of term reduction, application of known laws and of previously proved lemmas.
 There will usually be a single step justified by {\em coinduction hypothesis}: it will always occur under the guard of a constructor and be mapped inside the monadic action.
 
 See previous survey work \cite{capretta:2011} for an overview of the theory of final coalgebras, coinductive types, corecursive definitions, and proof by coinduction.
@@ -252,7 +252,7 @@ The proof of the first result is straightforward and unproblematic.
 We give the proofs of the functor laws in Section \ref{sec:functor} anyway, as a warm-up in the use of coinduction arguments that will be illuminating in view of the more complex proofs to come.
 The proofs of the applicative laws, on the other hand, are surprisingly challenging and require the definition of auxiliary notation and several ancillary lemmas.
 Finally, a counterexample using the state transition monad shows that monsters do not form a monad in general. Our counterexample assumes that the join operation takes the {\em diagonal} of a stream of streams.
-This doesn't exclude the possibility that monsters would form a monad with a different implementation of joint.
+This doesn't exclude the possibility that monsters would form a monad with a different implementation of join.
 However, a general definition that work with any monad $M$ should instantiate to the canonical instance for known monads, and the join operation on pure streams ($\Id$-monsters) operates by taking the diagonal.
 
 These results are important theoretically, they shed light on the abstract properties of monsters, and practically, they allow programmers to use specific notations and extensive libraries for these classes.

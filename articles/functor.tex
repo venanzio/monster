@@ -29,13 +29,13 @@ $$
 \end{lemma}
 \begin{proof}
 We prove the statement pointwise, by applying the left-hand side function to an $M$-monster in constructor form $(\mcons\,m)$.
-We simplify according the the definition of the definition of $\stream{M}$ mapping:
+We simplify according the the definition of $\stream{M}$ mapping:
 $$
 \stream{M} \id_A\,(\mcons\,m)
 = \mcons\,(M\,(\id_A\times \stream{M} \id_A)\,m)
 $$
 The recursive occurrence of the function $(\stream{M} \id_A)$ occurs as argument of the functor $M$, which in turn is guarded by the constructor $\mcons$.
-This guarantees the fulfilment of the {\em guardedness by constructors} constraint, so we can apply the {\em coinduction hypothesis} allowing us to apply the Lemma's statement to this occurrence:
+This guarantees the fulfillment of the {\em guardedness by constructors} constraint, so we can apply the {\em coinduction hypothesis}, allowing us to apply the Lemma's statement to this occurrence:
 $$
 \begin{array}{rl@{\qquad}l}
 \cdots

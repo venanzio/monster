@@ -39,8 +39,8 @@ m_g \appl (m_f \appl m_a) = (m_g \alift{\comp} m_f) \appl m_a
 \end{array}
 $$
 
-A consequence of the Homomorphism and Composition Laws is that sequential application of functions can be reduced to a single application of the composition;
-if $g:B\rightarrow D$ and $h:A_1\rightarrow A_2 \rightarrow C$, then:
+A consequence of the Homomorphism and Composition Laws is that sequential application of functions can be reduced to a single application of their composition;
+if $g:B\rightarrow C$ and $h:A_1\rightarrow A_2 \rightarrow B$, then:
 $$
 \begin{array}{l}
 \apure\,g \appl (\apure\, f \appl m_a) = \apure\, (g\comp f) \appl m_a\\
@@ -110,7 +110,7 @@ $$
 \end{lemma}
 
 The previous discussion shows that the second arguments of $(\fcons)$ and $(\acons)$, when definitions are expanded, are guarded by the constructor $\mcons$.
-Therefore, in future definitions and proofs, we allow ourselves to give corecursive definitions as that for $\apure\,a$ without justifying them by expansion.
+Therefore, in future definitions and proofs, we allow ourselves to give corecursive definitions with that of $\apure_{\stream{M}}\,a$ given in Lemma \ref{lemma:monster_pure}, without justifying them by expansion.
 
 In the following statements and proofs, we often need to write terms that combine the use of $\apure$ on $M$ and on $\stream{M}$.
 This could be confusing, so we explicitly write the functors as subscript: $\apure_M$ and $\apure_{\stream{M}}$.
@@ -133,7 +133,7 @@ $$
 $$
 
 This definition recursively applies $\appl$ indirectly in the second components of the arguments of the $\pappl$ operator.
-This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and finally guarded by the constructor $\mcons$.
+This is lifted to $\alift{\pappl}$, which distributes down through the components of the applicative values $m_f$ and $m_a$, and is finally guarded by the constructor $\mcons$.
 This guarantees the soundness of the definition according to the {\em guardedness-by-constructors} criterion.
 (Formally, we can rewrite the definition, using the previous characterization of the applicative lifting of a binary operator, to reduce it to a syntactically guarded form.)
 
