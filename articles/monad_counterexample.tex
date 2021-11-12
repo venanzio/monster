@@ -59,7 +59,7 @@ $$
 When we traverse a monster to get to its elements, we have to use monadic actions, so we don't get pure elements.
 That's the case for $\head_M$ and $\tail_M$ above.
 However, a monadic action can always be absorbed inside a monster, by using the $\join$ operation for $M$.
-This allows us to define a ``pure'' version of the $\tail_M$ function, which we call $\traverse_M$.
+This allows us to define a ``pure'' version of the $\tail_M$ function, which we call $\tailm_M$.
 We first define four auxiliary functions:
 
 $$
@@ -69,30 +69,29 @@ $$
 \end{array}
   \qquad
 \begin{array}{l}
-\traverse_M : \stream{M}\,A \rightarrow \stream{M}\,A \\
-\traverse_M = \absorb_M \comp \tail_M \comp \uncons
+\tailm_M : \stream{M}\,A \rightarrow \stream{M}\,A \\
+\tailm_M = \absorb_M \comp \tail_M
 \end{array}
 $$
 
-We are ready to give the definition of $\join$:
+With the help of these unpacking functions, we define $\join$ for ${\stream{M}}$:
 $$
 \begin{array}{ll}
-\multicolumn{2}{l}{\join: \stream{M}\,(\stream{M}\,A) \rightarrow \stream{M}\,A}\\
-\join\,\mu = \mcons\,(
+\multicolumn{2}{l}{\join_{\stream{M}}: \stream{M}\,(\stream{M}\,A) \rightarrow \stream{M}\,A}\\
+\join_{\stream{M}}\,\mu = \mcons\,(
   & \unc{\mu} \bind
     \lambda \pair{\sigma_a}{\mu'}.\\
   &  (\head\,\sigma_a) \bind \lambda a.\\
-  & \return\,\pair{a}{\join\,(\stream{M}\,\traverse\, \mu')} \; )
+  & \return\,\pair{a}{\join_{\stream{M}}\,(\stream{M}\,\tailm\, \mu')} \; )
 \end{array}
 $$
-
-There is some degree of unpacking, but ultimately, given a monster matrix $\mu$, we get its components, the first row $\sigma_a$ and the rest of the matrix $\mu'$; 
+Given a monster matrix $\mu$, we decompose it into its first row $\sigma_a$ and the rest of the matrix $\mu'$; 
 we extract the first element $a$ from $\sigma_a$;
-we map $\traverse_M$ onto $\mu'$ to delete the first column, then we corecursively apply $\join_{\stream{M}}$.
+we map $\tailm_M$ onto $\mu'$ to delete the first column, then we corecursively apply $\join_{\stream{M}}$.
 
 Keeping in mind that the functorial mapping for a monad is defined as $M\,f\,m_a = m_a \bind \lambda a. \return\,(f\,a)$ and rearranging the expression a bit, we have this equivalent one-line characterization:
 $$
-\join_{\stream{M}}\, \mu = \mcons\, (\unc{\mu} \, \bind \,(\lambda \pair{\sigma_a}{\mu'} . M\,(\lambda a . \pair{a}{(\join_{\stream{M}}\, \comp\, \stream{M}\,\traverse_M)\, \mu'})\, (\head_M\, \sigma_a)))
+\join_{\stream{M}}\, \mu = \mcons\, (\unc{\mu} \, \bind \,(\lambda \pair{\sigma_a}{\mu'} . M\,(\lambda a . \pair{a}{(\join_{\stream{M}}\, \comp\, \stream{M}\,\tailm_M)\, \mu'})\, (\head_M\, \sigma_a)))
 $$
 
 We now present our counterexample: a $\state$-monster that violates one of the monad laws.
