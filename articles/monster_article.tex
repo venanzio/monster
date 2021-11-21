@@ -40,7 +40,7 @@ A monadic stream (which we call a {\em monster}) is a potentially infinite seque
 Monsters are useful tools in functional programming: they can be instantiated to pure streams, lazy lists, finitely branching trees, interactive processes, state machines, and many other data structures.
 We developed an extensive library of generic functions for monsters in Haskell.
 We prove that if the underlying functor is applicative, the monster constructor is also an applicative functor.
-Functoriality is straightforward, but the applicative laws require a series of complex lemmas about the behaviour of sequential composition under a monad and through corecursion.
+Functoriality is straightforward, but the applicative laws require a series of complex lemmas about the behaviour of sequential composition under a functor and through corecursion.
 On the other hand, monsters do not form a monad in a straightforward way, even if the underlying functor is itself a monad.
 We show that the generalization of the join operation from pure streams (by taking the diagonal of a stream of streams) does not satisfy the monad laws.
 \end{abstract}
