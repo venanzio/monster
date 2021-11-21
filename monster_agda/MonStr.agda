@@ -10,7 +10,8 @@ open import Function using (_∘′_) renaming (id to idf)
 open import Categories.Category.Product
 open import Relation.Binary using (Rel)
 
-import Relation.Binary.PropositionalEquality as ≡ using (_≡_; trans; cong; cong-app; refl)
+open import Relation.Binary.PropositionalEquality as ≡ using (_≡_; trans; cong; cong-app; refl)
+open ≡.≡-Reasoning
 open import Level renaming (suc to lsuc; zero to lzero)
 open Functor
 open Category
@@ -59,15 +60,7 @@ C→F {o} C = record
     ContainerFmap f (s , p) = s , f ∘′ p
 
     ContainerFmapResp≈ : ∀ {A B : Set o} {f g : Sets o [ A , B ]} → Sets o [ f ≈ g ] → Sets o [ ContainerFmap f ≈ ContainerFmap g ]
-    ContainerFmapResp≈ {A} {B} {f} {g} f≈g {s , p} =
-      begin
-        s , f ∘′ p
-      ≡⟨ cong (λ h → s , h ∘′ p) (extensionality {f = f} {g = g} f≈g) ⟩
-        s , g ∘′ p
-      ∎
-      where
-        open import Relation.Binary.PropositionalEquality
-        open ≡-Reasoning
+    ContainerFmapResp≈ {A} {B} {f} {g} f≈g {s , p} = ≡.cong (λ h → s , h ∘′ p) (extensionality {f = f} {g = g} f≈g)
 
 
 -- Lift binary relation to one on containers
@@ -99,10 +92,12 @@ record _∼∼_ {C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) : Set o whe
   field
     unmbisim : CRel (prlift (≡._≡_) (_∼∼_ {o}{C}{A})) (unmcons m₁) (unmcons m₂)
 
+open _∼∼_
+
 
 -- Coinduction axiom
 postulate
-  coinduction : ∀ {C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) → m₁ ∼∼ m₂ → m₁ ≡.≡ m₂
+  coinduction : ∀ {C : Container o}{A : Set o}{m₁ m₂ : MonStr C A} → m₁ ∼∼ m₂ → m₁ ≡.≡ m₂
 
 
 -- Pair functoriality proofs
@@ -171,46 +166,41 @@ _×- {o} X = record
                      Sets o [(λ x → proj₁ x , f (proj₂ x)) ≈ (λ x → proj₁ x , g (proj₂ x))]
     ProductResp≈ f≈g {x , a} = ≡.cong (λ ha → x , ha) f≈g
 
-
     
 -- Monster proofs
 -- ====================
 
--- Proof that Monsters are Coalgebras
-MonStrCoAlg : (M : Container o) (A : Set o) → F-Coalgebra ((C→F M) ∘F (A ×-))
-MonStrCoAlg M A = record
-  { A = MonStr M A
-  ; α = unmcons
-  }
-
-
 -- Proof that Monsters are Functors
 MonStrF : Container o → Endofunctor (Sets o)
-MonStrF {o} C = record
-  { F₀           = λ A → MonStr C A -- action on 0-cells
-  ; F₁           = MonStrFMap -- action on 1-cells
-  ; identity     = {!!} -- proof that id morphisms are conserved
-  ; homomorphism = {!!} -- proof that a->b maps to Fa->Fb
-  ; F-resp-≈     = {!!} -- proof that F respects isomorphism
+MonStrF {o} C with C→F C
+... | F = record
+  { F₀           = MonStr C         -- action on 0-cells
+  ; F₁           = MonStrFMap       -- action on 1-cells
+  ; identity     = coinduction lem1 -- proof that id morphisms are conserved
+  ; homomorphism = coinduction lem2 -- proof that a→b maps to Fa→Fb
+  ; F-resp-≈     = lem3             -- proof that F respects isomorphism
   }
   where
+
     MonStrFMap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ MonStr C A , MonStr C B ]
     unmcons (MonStrFMap {A = A} {B = B} f ma) with unmcons ma
-    ... | (s , p) = s , (λ x → (λ (a , b) → (f a , MonStrFMap f b)) (p x))
+    ... | (s , p) = ( s , (λ x → (λ (a , b) → (f a , MonStrFMap f b)) (p x)))
 
-    -- Start with pure stream proof below to get used to coinductive proofs
-    MonStrFMapId : ∀ {A : Set o} → Sets o [ MonStrFMap {A = A} {B = A} (id (Sets o)) ≈ id (Sets o) ]
-    MonStrFMapId {A} {ms} with unmcons ms
-    ... | (s , p) =
-      begin
-        MonStrFMap {A = A} {B = A} (λ x → x) ms
-      ≡⟨⟩
-        {!!}
-    
+    lem1 : {A : Set o}{ma : MonStr C A} → MonStrFMap {A} {A} (id (Sets o)) ma ∼∼ id (Sets o) ma
+    unmbisim (lem1 {A} {ma}) with unmcons ma
+    ... | s , p = crel (λ {x} → ≡.refl , lem1)
+
+    lem2 : {X Y Z : Set o}{f : Sets o [ X , Y ]}{g : Sets o [ Y , Z ]} →
+         {ma : MonStr C X} → MonStrFMap (Sets o [ g ∘ f ]) ma ∼∼ (Sets o [ MonStrFMap g ∘ MonStrFMap f ]) ma
+    unmbisim (lem2 {X} {Y} {Z} {f} {g} {ma}) with unmcons ma
+    ... | s , p = crel (λ {x} → ≡.refl , lem2)
+
+    lem3 : {A B : Set o}{f g : Sets o [ A , B ]} → Sets o [ f ≈ g ] → Sets o [ MonStrFMap f ≈ MonStrFMap g ]
+    lem3 {A} {B} {f} {g} f≈g {ma} = coinduction lem3a
       where
-        open import Relation.Binary.PropositionalEquality
-        open ≡-Reasoning
-
-        lem1 : ∀ {A : Set o}{ms : MonStr C A} → ms ≡ mcons (unmcons ms)
-        lem1 {A} {ms} with unmcons ms
-        ... | (s , p) = {!!}
+        lem3a : {ma : MonStr C A} → MonStrFMap f ma ∼∼ MonStrFMap g ma
+        unmbisim (lem3a {ma}) with unmcons ma
+        ... | s , p = crel (λ {x} → f≈g , lem3a)
+        
+        
+        
