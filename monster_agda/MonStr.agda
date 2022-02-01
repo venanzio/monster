@@ -2,11 +2,13 @@
 
 open import Categories.Category -- using (Category; _[_≈_])
 open import Categories.Category.Instance.Sets
+open import Categories.Category.Monoidal.Instance.Sets
+open import Categories.Functor.Monoidal using (IsMonoidalFunctor; MonoidalFunctor)
 open import Categories.Functor hiding (id)
 open import Categories.Functor.Bifunctor
 open import Categories.Functor.Coalgebra
-open import Data.Product
-open import Function using (_∘′_) renaming (id to idf)
+open import Data.Product hiding (_<*>_)
+open import Function using (_∘′_)
 open import Categories.Category.Product
 open import Relation.Binary using (Rel)
 
@@ -66,8 +68,7 @@ C→F {o} C = record
 -- Lift binary relation to one on containers
 data CRel {C : Container o}{A : Set o}(R : Rel A o) : Rel (M A) o where
   crel : ∀ {s : Shapes C}{h1 h2 : Positions C s → A} → (∀ {p : Positions C s} → R (h1 p) (h2 p)) → CRel R (s , h1) (s , h2)
-
-open CRel
+  
 
 -- Lift binary relation to one on products
 prlift : ∀ {A B : Set o}(RA : Rel A o)(RB : Rel B o) → Rel (A × B) o
@@ -90,14 +91,14 @@ record _∼∼_ {C : Container o}{A : Set o}(m₁ m₂ : MonStr C A) : Set o whe
   coinductive
   constructor mbisim
   field
-    unmbisim : CRel (prlift (≡._≡_) (_∼∼_ {o}{C}{A})) (unmcons m₁) (unmcons m₂)
+    unmbisim : CRel (prlift (_≡_) (_∼∼_)) (unmcons m₁) (unmcons m₂)
 
 open _∼∼_
 
 
 -- Coinduction axiom
 postulate
-  coinduction : ∀ {C : Container o}{A : Set o}{m₁ m₂ : MonStr C A} → m₁ ∼∼ m₂ → m₁ ≡.≡ m₂
+  coinduction : ∀ {C : Container o}{A : Set o}{m₁ m₂ : MonStr C A} → m₁ ∼∼ m₂ → m₁ ≡ m₂
 
 
 -- Pair functoriality proofs
@@ -105,66 +106,10 @@ postulate
 
 -- A helper function to prove equality of pairs when they are equal in each projection
 pair≡ : ∀ {o}{A B : Set o}{a₁ a₂ : A}{b₁ b₂ : B} →  -- If ...
-          (∀ (b : B) → ( a₁ , b ) ≡.≡ ( a₂ , b )) → -- π₁ is equal
-          (∀ (a : A) → ( a , b₁ ) ≡.≡ ( a , b₂ )) → -- π₂ is equal
-          ( a₁ , b₁ ) ≡.≡ ( a₂ , b₂ )               -- ... then the pair is equivalent
-pair≡ {a₁ = a₁} {b₂ = b₂} π₁≡ π₂≡ = ≡.trans (π₂≡ a₁) (π₁≡ b₂)
-
-
--- Proof that cartesian product is functorial in both arguments
--- ============================================================
-
--×- : Bifunctor (Sets o) (Sets o) (Sets o)
--×- = record
-  { F₀           = λ A⊗B → proj₁ A⊗B × proj₂ A⊗B
-  ; F₁           = ProductBiMap
-  ; identity     = ≡.refl
-  ; homomorphism = ≡.refl
-  ; F-resp-≈     = ProductBiMapResp≈
-  }
-  where
-    ProductBiMap : ∀ {o} {A×B C×D : Set o × Set o} →
-                     (Product (Sets o) (Sets o) ⇒ A×B) C×D →
-                     (Sets o ⇒ (proj₁ A×B × proj₂ A×B)) (proj₁ C×D × proj₂ C×D)
-    ProductBiMap (f , g) (a , b) = f a , g b
-
-    ProductBiMapResp≈ : ∀ {o} → {A×B C×D : Set o × Set o}
-                          {f g : Product (Sets o) (Sets o) [ A×B , C×D ]} →
-                          Product (Sets o) (Sets o) [ f ≈ g ] →
-                          Sets o [ ProductBiMap f ≈ ProductBiMap g ]
-    ProductBiMapResp≈ {o = o} (f₁≈g₁ , f₂≈g₂) {a , b} =
-                          pair≡ (λ y → ≡.cong (λ ha → ha , y) f₁≈g₁)
-                                (λ x → ≡.cong (λ hb → x , hb) f₂≈g₂)
-                                
-
--×_ : Set o → Endofunctor (Sets o)
--×_ {o} X = record
-  { F₀           = λ A → A × X
-  ; F₁           = λ f → (λ (a , x) → (f a , x))
-  ; identity     = ≡.refl
-  ; homomorphism = ≡.refl
-  ; F-resp-≈     = ProductResp≈
-  }
-  where
-    ProductResp≈ : ∀ {A B : Set o} {f g : Sets o [ A , B ]} →
-                     Sets o [ f ≈ g ] →
-                     Sets o [(λ x → f (proj₁ x) , proj₂ x) ≈ (λ x → g (proj₁ x) , proj₂ x)]
-    ProductResp≈ f≈g {a , x} = ≡.cong (λ ha → ha , x) f≈g
-
-
-_×- : Set o → Endofunctor (Sets o)
-_×- {o} X = record
-  { F₀           = λ A → X × A
-  ; F₁           = λ f → (λ (x , a) → (x , f a))
-  ; identity     = ≡.refl
-  ; homomorphism = ≡.refl
-  ; F-resp-≈     = ProductResp≈
-  }
-  where
-    ProductResp≈ : ∀ {A B : Set o} {f g : Sets o [ A , B ]} →
-                     Sets o [ f ≈ g ] →
-                     Sets o [(λ x → proj₁ x , f (proj₂ x)) ≈ (λ x → proj₁ x , g (proj₂ x))]
-    ProductResp≈ f≈g {x , a} = ≡.cong (λ ha → x , ha) f≈g
+          (∀ (b : B) → ( a₁ , b ) ≡ ( a₂ , b )) →   -- π₁ is equal
+          (∀ (a : A) → ( a , b₁ ) ≡ ( a , b₂ )) →   -- π₂ is equal
+          ( a₁ , b₁ ) ≡ ( a₂ , b₂ )                 -- ... then the pair is equivalent
+pair≡ {a₁ = a₁} {b₂ = b₂} π₁≡ π₂≡ = trans (π₂≡ a₁) (π₁≡ b₂)
 
     
 -- Monster proofs
@@ -188,7 +133,7 @@ MonStrF {o} C with C→F C
 
     lem1 : {A : Set o}{ma : MonStr C A} → MonStrFMap {A} {A} (id (Sets o)) ma ∼∼ id (Sets o) ma
     unmbisim (lem1 {A} {ma}) with unmcons ma
-    ... | s , p = crel (λ {x} → ≡.refl , lem1)
+    ... | s , p = crel (λ {x} → ≡.refl , lem1 {A} {proj₂ (p x)})
 
     lem2 : {X Y Z : Set o}{f : Sets o [ X , Y ]}{g : Sets o [ Y , Z ]} →
          {ma : MonStr C X} → MonStrFMap (Sets o [ g ∘ f ]) ma ∼∼ (Sets o [ MonStrFMap g ∘ MonStrFMap f ]) ma
@@ -201,6 +146,127 @@ MonStrF {o} C with C→F C
         lem3a : {ma : MonStr C A} → MonStrFMap f ma ∼∼ MonStrFMap g ma
         unmbisim (lem3a {ma}) with unmcons ma
         ... | s , p = crel (λ {x} → f≈g , lem3a)
-        
-        
-        
+
+
+record Applicative {o : Level}(F : Endofunctor (Sets o)) : Set (lsuc o) where
+  field
+    pure : {A : Set o}(a : A) → F₀ F A
+    _<*>_ : {A B : Set o} → F₀ F (A → B) → F₀ F A → F₀ F B
+
+    identity : {A B : Set o}{a : F₀ F A} → (pure (id (Sets o)) <*> a) ≡ a
+    homomorphism : {A B : Set o}{f : A → B}{a : A} → (pure f <*> pure a) ≡ pure (f a)
+    interchange : {A B : Set o}{mf : F₀ F (A → B)}{a : A} → (mf <*> pure a) ≡ pure (λ f → f a) <*> mf
+    composition : {X Y Z : Set o}{mg : F₀ F (Y → Z)}{mf : F₀ F (X → Y)}{mx : F₀ F X} → mg <*> (mf <*> mx) ≡ ((pure (_∘_ (Sets o)) <*> mg) <*> mf) <*> mx
+
+    --fmap≡ : {A B : Set o}{f : A → B} → (pure f) <*>_ ≡ F₁ F f
+
+
+record Monoid {o : Level}(S : Set o) : Set o where
+
+  eta-equality
+
+  field
+    unit : S
+    _*_ : S → S → S
+
+    unitl : {a : S} → unit * a ≡ a
+    unitr : {a : S} → a * unit ≡ a
+    assoc : {a b c : S} → a * (b * c) ≡ (a * b) * c
+
+
+-- The full data of a functor based on a container
+{-
+C→F : {C : Container} → (Monoid (Shapes C)) → Applicative (C→F C)
+C→F {o} C = record
+  { F₀           = M {C = C}
+  ; F₁           = ContainerFmap
+  ; identity     = ≡.refl
+  ; homomorphism = ≡.refl
+  ; F-resp-≈     = ContainerFmapResp≈
+  }
+  where
+    ContainerFmap : ∀ {A B : Set o} → Sets o [ A , B ] → Sets o [ M A ,  M B ]
+    ContainerFmap f (s , p) = s , f ∘′ p
+
+    ContainerFmapResp≈ : ∀ {A B : Set o} {f g : Sets o [ A , B ]} → Sets o [ f ≈ g ] → Sets o [ ContainerFmap f ≈ ContainerFmap g ]
+    ContainerFmapResp≈ {A} {B} {f} {g} f≈g {s , p} = ≡.cong (λ h → s , h ∘′ p) (extensionality {f = f} {g = g} f≈g)
+
+-}
+
+-- Positions C (s * s') → Positions C s × Position C s'
+-- this could be a comonoid generated by a monoid and a dependant type?
+record DepComonoid {o : Level}{S : Set o}(m : Monoid S)(P : (s : S) → Set o) : Set (lsuc o) where
+
+  open Monoid m
+
+  field
+    --counit : {s : S} → P s → P (unit) -- is this even needed?
+    split : {s s' : S} → P (s * s') → P s × P s'
+
+    -- The DepComonoid type mapping should preserve the monoid structure
+    unitl : {s : S} → P (unit * s) ≡ P s -- might need to be only up to isomorphism to be proveable?
+    unitr : {s : S} → P (s * unit) ≡ P s -- same here
+    assoc : {a b c : S} → P (a * (b * c)) ≡ P ((a * b) * c)
+{--
+    unitl : {s s' : S}{p : P (_*_ m s s')} → 
+
+    unitl : (a : S) → proj₁ (split a) ≡ a
+    unitr : (a : S) → proj₂ (split a) ≡ a
+    assoc : (a : S) → split (split a) ≡ (a * b) * c
+ --}
+
+
+module _ {o : Level}{C : Container o} where
+
+  open Container C
+
+  containerAppMon : Applicative (C→F C) → Σ (Monoid (Shapes C)) (λ m → DepComonoid m (Positions C))
+  proj₁ (containerAppMon appC) = record
+    { unit  = proj₁ (pure tt)
+    ; _*_   = λ s s' → proj₁ ((s , λ _ x → x) <*> (s' , λ _ → tt))
+    ; unitl = {!!}
+    ; unitr = {!!}
+    ; assoc = {!!}
+    }
+    where
+      open Applicative appC
+  proj₂ (containerAppMon appC) = record
+    { split = {!!}
+    ; unitl = {!!}
+    ; unitr = {!!}
+    ; assoc = {!!}
+    }
+    where
+      open Monoid (proj₁ (containerAppMon appC))
+      open Applicative appC
+    
+      
+
+  containerApp' : Σ (Monoid (Shapes C)) (λ m → DepComonoid m (Positions C)) → Applicative (C→F C)
+  containerApp' (m , dc) = record
+    { pure         = λ a → (unit , λ _ → a)
+    ; _<*>_        = λ (sf , pf) (sa , pa) → (sf * sa , λ pfa → bimapapp (pf , pa) (split pfa))
+    ; identity     = {!!}
+    ; homomorphism = {!!}
+    ; interchange  = {!!}
+    ; composition  = {!!}
+    }
+    where
+      open Monoid m
+      open DepComonoid dc
+    
+      bimapapp : {A B C D : Set o} → (A → (C → D)) × (B → C) → A × B → D
+      bimapapp (f , g) (a , c) = (f a) (g c)
+  
+      lem1 : {A B : Set o} {a : F₀ (C→F C) A} → (unit * (proj₁ a) , (λ pfa → bimapapp ((λ _ → id (Sets o)) , proj₂ a) (split pfa))) ≡ a
+      lem1 {A} {B} {(s , p)} = {!!}
+  
+      {-
+      containerPure : (appC : Applicative (C→F C)) → Σ (Shapes C) (λ s → {A : Set o}{a : A} → pure a ≡ (s , λ _ → a))
+      proj₁ (containerPure appC) = proj₁ (pure tt)
+      proj₂ (containerPure appC) {A} {a} with pure a
+      ... | (s , p) = {!!}
+      -}
+
+
+    
